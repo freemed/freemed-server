@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"github.com/go-martini/martini"
 	"encoding/json"
 	"github.com/martini-contrib/encoder"
 	"github.com/martini-contrib/render"
@@ -15,11 +14,12 @@ type AuthLoginObj struct {
 }
 
 func AuthLogin(data AuthLoginObj, enc encoder.Encoder, r render.Render) {
-	log.Printf("user=%s", data.Username)
+	log.Printf("AuthLogin(): user=%s", data.Username)
 	uid, res := checkUserPassword(data.Username, data.Password)
 	if res {
 		s, err := createSession(uid)
 		if err != nil {
+			log.Printf("AuthLogin(): " + err.Error())
 			r.JSON(http.StatusInternalServerError, false)
 			return
 		}
@@ -27,19 +27,20 @@ func AuthLogin(data AuthLoginObj, enc encoder.Encoder, r render.Render) {
 			"session_id": s.SessionId,
 			"expires":    s.Expires,
 		})
+		return
 	}
-	r.JSON(http.StatusOK, res)
+	r.JSON(http.StatusUnauthorized, false)
 }
 
 func AuthLogout(req *http.Request, enc encoder.Encoder, r render.Render) {
 	authHeader := req.Header.Get("Authorization")
 	if authHeader == "" || len(authHeader) < 20 || authHeader[:7] != "Bearer " {
-		log.Printf("Found Authorization header : %s", authHeader)
+		log.Printf("AuthLogout(): Found Authorization header : %s", authHeader)
 		r.JSON(http.StatusInternalServerError, false)
 		return
 	}
 	sid := authHeader[7:]
-	log.Printf("Expire session %s", sid)
+	log.Printf("AuthLogout(): Expire session %s", sid)
 	expireSession(sid)
 	r.JSON(http.StatusOK, true)
 }

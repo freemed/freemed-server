@@ -39,18 +39,32 @@ func main() {
 
 	m.Use(render.Renderer())
 
-	static := martini.Static("ui", martini.StaticOptions{
+	static := Static("ui", StaticOptions{
 		Exclude: "/api",
 	})
-	m.Use(func(c martini.Context, w http.ResponseWriter) {
-		c.MapTo(encoder.JsonEncoder{}, (*encoder.Encoder)(nil))
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	})
-	m.Group("/api/auth", func(r martini.Router) {
+	contentMiddleware := func(c martini.Context, w http.ResponseWriter, r *http.Request) {
+		switch r.Header.Get("Content-Type") {
+		case "application/xml":
+			c.MapTo(encoder.XmlEncoder{}, (*encoder.Encoder)(nil))
+			w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+		default:
+			c.MapTo(encoder.JsonEncoder{}, (*encoder.Encoder)(nil))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		}
+	}
 
+	m.Group("/api/auth", func(r martini.Router) {
 		r.Post("/login", binding.Json(AuthLoginObj{}), AuthLogin)
 		r.Delete("/logout", AuthLogout)
-	})
+	}, contentMiddleware)
+
+	m.Group("/api/messages", func(r martini.Router) {
+		r.Get("/list_users", MessagesListUsers)
+	}, TokenFunc(tokenAuthFunc), contentMiddleware)
+
+	m.Group("/api/scheduler", func(r martini.Router) {
+	}, TokenFunc(tokenAuthFunc), contentMiddleware)
+
 	m.NotFound(static, http.NotFound)
 
 	if *HTTPS_KEY != "" && *HTTPS_CERT != "" {

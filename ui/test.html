@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test</title>
+
+	<script language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+	<style type="text/css">
+		#debug {
+			font-family: courier;
+			width: 100%;
+		}
+	</style>
+
+	<script language="javascript">
+
+// Basic test.
+
+// 1) Login
+
+var base = "../api";
+var sessionId = "";
+
+$(document).ready(function() {
+
+	$.ajax({
+		url: base + "/auth/login",
+		method: "POST",
+		contentType: "application/json",
+		data: JSON.stringify({
+			user: "root",
+			pass: "password"
+		}),
+		error: function(x){ alert(JSON.stringify(x)); },
+		success: function(data){
+			$('#debug').append("<p>/auth/login: " + JSON.stringify(data) + "</p>");
+			sessionId = data.session_id;
+			$('#debug').append('<p>session: ' + sessionId + '</p>');
+	
+			test_listMessages();
+		}
+	});
+
+});
+
+var sessionAuth = function(xhr){xhr.setRequestHeader('Authorization', 'Bearer ' + sessionId);};
+var showError = function(x){ $('debug').append("<p><em>ERROR:</em> " + JSON.stringify(x) + "</p>"); };
+
+function test_listMessages() {
+	$.ajax({
+		url: base + "/messages/list_users",
+		method: "GET",
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		error: showError,
+		success: function(data){
+			$('#debug').append("<p>/messages/list_users: " + JSON.stringify(data) + "</p>");
+			test_logout();
+		}
+	});
+} // test_listMessages
+
+function test_logout() {
+	$.ajax({
+		url: base + "/auth/logout",
+		method: "DELETE",
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		error: showError,
+		success: function(data){
+			$('#debug').append("<p>/auth/logout: " + JSON.stringify(data) + "</p>");
+		}
+	});
+} // test_logout
+
+	</script>
+
+</head>
+<body>
+	<div id="debug" />
+</body>
+</html>

@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+const (
+	TABLE_SESSION = "sessions"
+)
+
 type SessionModel struct {
 	Id          int64  `db:"id"`
 	SessionId   string `db:"session_id"`
@@ -16,7 +20,7 @@ type SessionModel struct {
 }
 
 func init() {
-	dbTables = append(dbTables, DbTable{TableName: "session", Obj: SessionModel{}})
+	dbTables = append(dbTables, DbTable{TableName: "sessions", Obj: SessionModel{}})
 }
 
 // GetById will populate a user object from a database model with
@@ -46,23 +50,45 @@ func createSession(uid int64) (SessionModel, error) {
 	return s, nil
 }
 
+func freshenSession(sid string) error {
+	_, err := dbmap.Exec("UPDATE "+TABLE_SESSION+" SET expiry_time = ? WHERE session_id = ?", time.Now().Unix()+int64(*SESSION_LENGTH), sid)
+	return err
+}
+
 func expireSession(sid string) error {
-	_, err := dbmap.Exec("DELETE FROM session WHERE session_id=? AND expiry_time < NOW()", sid)
+	_, err := dbmap.Exec("DELETE FROM "+TABLE_SESSION+" WHERE session_id = ? AND expiry_time < NOW()", sid)
 	return err
 }
 
 func getSessionById(sid string) (SessionModel, error) {
-	s, err := dbmap.Get(SessionModel{}, sid)
+	var s SessionModel
+	err := dbmap.SelectOne(&s, "SELECT * FROM "+TABLE_SESSION+" WHERE session_id = ?", sid)
 	if err != nil {
-		return s.(SessionModel), err
+		log.Print("getSessionById: " + err.Error())
+		return s, err
 	}
-	return s.(SessionModel), nil
+	return s, nil
+}
+
+func tokenAuthFunc(sid string) bool {
+	if sid == "" {
+		return false
+	}
+	s, err := getSessionById(sid)
+	log.Printf("tokenAuthFunc(): %s returned %v", sid, s)
+	if err != nil {
+		return false
+	}
+	if s.SessionId != "" {
+		return true
+	}
+	return false
 }
 
 func sessionExpiryThread() {
 	log.Print("sessionExpiryThread spinning up")
 	for {
-		_, err := dbmap.Exec("DELETE FROM session WHERE expiry_time < NOW()")
+		_, err := dbmap.Exec("DELETE FROM " + TABLE_SESSION + " WHERE expiry_time < NOW()")
 		if err != nil {
 			log.Print(err.Error())
 		}
