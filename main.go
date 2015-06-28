@@ -21,7 +21,7 @@ var (
 	SESSION_LENGTH = flag.Int("session-length", 600, "Session expiry in seconds")
 
 	IsRunning = true
-	apimap = map[string]func(martini.Router){}
+	apimap    = map[string]func(martini.Router){}
 )
 
 func main() {
@@ -62,12 +62,8 @@ func main() {
 	}
 
 	// HTTP
-	//m.Run()
-	//go func() {
 	log.Printf("Launching http on port :%d", *HTTP_PORT)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", *HTTP_PORT), m); err != nil {
 		log.Fatal(err)
 	}
-	//}()
-
 }
