@@ -28,7 +28,7 @@ type DbTable struct {
 func initDb() *gorp.DbMap {
 	db, err := sql.Open("mysql", *DB_USER+":"+*DB_PASS+"@/"+*DB_NAME)
 	if err != nil {
-		log.Fatalln("Fail to create database", err)
+		log.Fatalln("initDb: Fail to create database", err)
 	}
 
 	dbmap := &gorp.DbMap{
@@ -39,16 +39,17 @@ func initDb() *gorp.DbMap {
 	//dbmap.AddTableWithName(MyUserModel{}, "users").SetKeys(true, "Id")
 	for _, v := range dbTables {
 		keyName := v.Key
-		if keyName == "" {
-			keyName = "Id"
+		log.Printf("initDb: Adding table %s", v.TableName)
+		if keyName != "" {
+			dbmap.AddTableWithName(v.Obj, v.TableName).SetKeys(true, keyName)
+		} else {
+			dbmap.AddTableWithName(v.Obj, v.TableName)
 		}
-		log.Printf("Adding table %s", v.TableName)
-		dbmap.AddTableWithName(v.Obj, v.TableName).SetKeys(true, keyName)
 	}
 
 	err = dbmap.CreateTablesIfNotExists()
 	if err != nil {
-		log.Fatalln("Could not build tables", err)
+		log.Fatalln("initDb: Could not build tables", err)
 	}
 
 	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "db: ", log.Lmicroseconds))

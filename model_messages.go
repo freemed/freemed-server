@@ -26,5 +26,5 @@ type MessagesModel struct {
 }
 
 func init() {
-	dbTables = append(dbTables, DbTable{TableName: TABLE_MESSAGES, Obj: MessagesModel{}})
+	dbTables = append(dbTables, DbTable{TableName: TABLE_MESSAGES, Obj: MessagesModel{}, Key: "Id"})
 }

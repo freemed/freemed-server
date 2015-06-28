@@ -20,7 +20,7 @@ type SessionModel struct {
 }
 
 func init() {
-	dbTables = append(dbTables, DbTable{TableName: TABLE_SESSION, Obj: SessionModel{}})
+	dbTables = append(dbTables, DbTable{TableName: TABLE_SESSION, Obj: SessionModel{}, Key: "Id"})
 }
 
 func (u *SessionModel) GetBySessionId(id interface{}) error {
@@ -84,11 +84,11 @@ func tokenAuthFunc(sid string) (bool, SessionModel) {
 }
 
 func sessionExpiryThread() {
-	log.Print("sessionExpiryThread spinning up")
+	log.Print("sessionExpiryThread: spinning up")
 	for {
 		_, err := dbmap.Exec("DELETE FROM " + TABLE_SESSION + " WHERE expiry_time < NOW()")
 		if err != nil {
-			log.Print(err.Error())
+			log.Print("sessionExpiryThread: " + err.Error())
 		}
 		sleepFor(30)
 	}

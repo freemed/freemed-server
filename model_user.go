@@ -33,7 +33,7 @@ type UserModel struct {
 }
 
 func init() {
-	dbTables = append(dbTables, DbTable{TableName: TABLE_USER, Obj: UserModel{}})
+	dbTables = append(dbTables, DbTable{TableName: TABLE_USER, Obj: UserModel{}, Key: "Id"})
 }
 
 // GetAnonymousUser should generate an anonymous user model

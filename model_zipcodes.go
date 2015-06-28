@@ -17,5 +17,5 @@ type ZipcodesModel struct {
 }
 
 func init() {
-	dbTables = append(dbTables, DbTable{TableName: TABLE_ZIPCODES, Obj: ZipcodesModel{}})
+	dbTables = append(dbTables, DbTable{TableName: TABLE_ZIPCODES, Obj: ZipcodesModel{}, Key: "Id"})
 }
