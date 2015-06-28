@@ -6,15 +6,19 @@ import (
 	"log"
 )
 
+const (
+	TABLE_USER = "user"
+)
+
 type UserModel struct {
-	Id                  int64          `form:"id" db:"id"`
-	Username            string         `form:"name" db:"username"`
-	Password            string         `form:"password" db:"userpassword"`
-	Type                sql.NullString `form:"type" db:"usertype"`
-	ProviderId          int64          `form:"provider_id" db:"userrealphy"`
-	FirstName           sql.NullString `form:"first_name" db:"userfname"`
-	MiddleName          sql.NullString `form:"middle_name" db:"usermname"`
-	LastName            sql.NullString `form:"last_name" db:"userlname"`
+	Id                  int64          `db:"id"`
+	Username            string         `db:"username"`
+	Password            string         `db:"userpassword"`
+	Type                sql.NullString `db:"usertype"`
+	ProviderId          int64          `db:"userrealphy"`
+	FirstName           sql.NullString `db:"userfname"`
+	MiddleName          sql.NullString `db:"usermname"`
+	LastName            sql.NullString `db:"userlname"`
 	Description         sql.NullString `db:"userdescrip"`
 	Level               []byte         `db:"userlevel"`
 	FacilityAccess      []byte         `db:"userfac"`
@@ -25,11 +29,11 @@ type UserModel struct {
 	Sms                 sql.NullInt64  `db:"usersms"`
 	SmsProvider         sql.NullInt64  `db:"usersmsprovider"`
 	Title               sql.NullString `db:"usertitle"`
-	authenticated       bool           `form:"-" db:"-"`
+	authenticated       bool           `db:"-"`
 }
 
 func init() {
-	dbTables = append(dbTables, DbTable{TableName: "user", Obj: UserModel{}})
+	dbTables = append(dbTables, DbTable{TableName: TABLE_USER, Obj: UserModel{}})
 }
 
 // GetAnonymousUser should generate an anonymous user model
@@ -66,7 +70,7 @@ func (u *UserModel) UniqueId() interface{} {
 // GetById will populate a user object from a database model with
 // a matching id.
 func (u *UserModel) GetById(id interface{}) error {
-	err := dbmap.SelectOne(u, "SELECT * FROM user WHERE id = $1", id)
+	err := dbmap.SelectOne(u, "SELECT * FROM "+TABLE_USER+" WHERE id = $1", id)
 	if err != nil {
 		return err
 	}
@@ -76,7 +80,7 @@ func (u *UserModel) GetById(id interface{}) error {
 
 func checkUserPassword(username, userpassword string) (int64, bool) {
 	u := &UserModel{}
-	err := dbmap.SelectOne(u, "SELECT * FROM user WHERE username = :user AND userpassword = :pass", map[string]interface{}{
+	err := dbmap.SelectOne(u, "SELECT * FROM "+TABLE_USER+" WHERE username = :user AND userpassword = :pass", map[string]interface{}{
 		"user": username,
 		"pass": md5hash(userpassword),
 	})

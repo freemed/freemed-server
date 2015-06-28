@@ -20,13 +20,11 @@ type SessionModel struct {
 }
 
 func init() {
-	dbTables = append(dbTables, DbTable{TableName: "sessions", Obj: SessionModel{}})
+	dbTables = append(dbTables, DbTable{TableName: TABLE_SESSION, Obj: SessionModel{}})
 }
 
-// GetById will populate a user object from a database model with
-// a matching id.
 func (u *SessionModel) GetBySessionId(id interface{}) error {
-	err := dbmap.SelectOne(u, "SELECT * FROM user WHERE session_id = ?", id)
+	err := dbmap.SelectOne(u, "SELECT * FROM "+TABLE_SESSION+" WHERE session_id = ?", id)
 	if err != nil {
 		return err
 	}
@@ -70,19 +68,19 @@ func getSessionById(sid string) (SessionModel, error) {
 	return s, nil
 }
 
-func tokenAuthFunc(sid string) bool {
+func tokenAuthFunc(sid string) (bool, SessionModel) {
 	if sid == "" {
-		return false
+		return false, SessionModel{}
 	}
 	s, err := getSessionById(sid)
 	log.Printf("tokenAuthFunc(): %s returned %v", sid, s)
 	if err != nil {
-		return false
+		return false, SessionModel{}
 	}
 	if s.SessionId != "" {
-		return true
+		return true, s
 	}
-	return false
+	return false, SessionModel{}
 }
 
 func sessionExpiryThread() {

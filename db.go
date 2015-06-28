@@ -10,6 +10,7 @@ import (
 	//"github.com/martini-contrib/sessionauth"
 	//"github.com/martini-contrib/sessions"
 	"log"
+	"os"
 )
 
 var (
@@ -49,6 +50,8 @@ func initDb() *gorp.DbMap {
 	if err != nil {
 		log.Fatalln("Could not build tables", err)
 	}
+
+	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "db: ", log.Lmicroseconds))
 
 	return dbmap
 }

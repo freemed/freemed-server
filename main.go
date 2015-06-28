@@ -60,9 +60,14 @@ func main() {
 
 	m.Group("/api/messages", func(r martini.Router) {
 		r.Get("/list_users", MessagesListUsers)
+		r.Get("/view", MessagesView)
 	}, TokenFunc(tokenAuthFunc), contentMiddleware)
 
 	m.Group("/api/scheduler", func(r martini.Router) {
+	}, TokenFunc(tokenAuthFunc), contentMiddleware)
+
+	m.Group("/api/zipcodes", func(r martini.Router) {
+		r.Get("/picklist/:param", CityStateZipPicklist)
 	}, TokenFunc(tokenAuthFunc), contentMiddleware)
 
 	m.NotFound(static, http.NotFound)

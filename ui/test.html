@@ -37,7 +37,7 @@ $(document).ready(function() {
 			sessionId = data.session_id;
 			$('#debug').append('<p>session: ' + sessionId + '</p>');
 	
-			test_listMessages();
+			test_listMessagesUsers();
 		}
 	});
 
@@ -46,7 +46,7 @@ $(document).ready(function() {
 var sessionAuth = function(xhr){xhr.setRequestHeader('Authorization', 'Bearer ' + sessionId);};
 var showError = function(x){ $('debug').append("<p><em>ERROR:</em> " + JSON.stringify(x) + "</p>"); };
 
-function test_listMessages() {
+function test_listMessagesUsers() {
 	$.ajax({
 		url: base + "/messages/list_users",
 		method: "GET",
@@ -55,10 +55,58 @@ function test_listMessages() {
 		error: showError,
 		success: function(data){
 			$('#debug').append("<p>/messages/list_users: " + JSON.stringify(data) + "</p>");
+			test_messagesView();
+		}
+	});
+} // test_listMessagesUsers
+
+function test_messagesView() {
+	$.ajax({
+		url: base + "/messages/view",
+		method: "GET",
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		error: showError,
+		success: function(data){
+			$('#debug').append("<p>/messages/view: " + JSON.stringify(data) + "</p>");
+			test_zipcodesPicklist();
+		}
+	});
+} // test_messagesView
+
+function test_zipcodesPicklist() {
+	$.ajax({
+		url: base + "/zipcodes/picklist/CT+Will",
+		method: "GET",
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		error: showError,
+		success: function(data){
+			$('#debug').append("<p>/zipcodes/picklist/CT+Will: " + JSON.stringify(data) + "</p>");
+		}
+	});
+	$.ajax({
+		url: base + "/zipcodes/picklist/Will,+CT",
+		method: "GET",
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		error: showError,
+		success: function(data){
+			$('#debug').append("<p>/zipcodes/picklist/Will,+CT: " + JSON.stringify(data) + "</p>");
+		}
+	});
+	$.ajax({
+		url: base + "/zipcodes/picklist/06226",
+		method: "GET",
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		error: showError,
+		success: function(data){
+			$('#debug').append("<p>/zipcodes/picklist/06226: " + JSON.stringify(data) + "</p>");
 			test_logout();
 		}
 	});
-} // test_listMessages
+} // test_zipcodesPicklist
 
 function test_logout() {
 	$.ajax({
