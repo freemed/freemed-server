@@ -13,6 +13,12 @@ import (
 	"strings"
 )
 
+func init() {
+	apimap["zipcodes"] = func(r martini.Router) {
+		r.Get("/picklist/:param", CityStateZipPicklist)
+	}
+}
+
 type cszPicklistObj struct {
 	Username string `json:"username" binding:"required"`
 	Id       string `json:"id" binding:"required"`

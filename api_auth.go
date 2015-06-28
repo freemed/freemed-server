@@ -2,11 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/encoder"
 	"github.com/martini-contrib/render"
 	"log"
 	"net/http"
 )
+
+func init() {
+	apimap["auth"] = func(r martini.Router) {
+		r.Post("/login", binding.Json(AuthLoginObj{}), AuthLogin)
+		r.Delete("/logout", AuthLogout)
+	}
+}
 
 type AuthLoginObj struct {
 	Username string `json:"user" binding:"required"`

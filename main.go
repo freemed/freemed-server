@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/binding"
-	"github.com/martini-contrib/encoder"
 	"github.com/martini-contrib/render"
 	"log"
 	"net/http"
@@ -23,6 +21,7 @@ var (
 	SESSION_LENGTH = flag.Int("session-length", 600, "Session expiry in seconds")
 
 	IsRunning = true
+	apimap = map[string]func(martini.Router){}
 )
 
 func main() {
@@ -42,33 +41,14 @@ func main() {
 	static := Static("ui", StaticOptions{
 		Exclude: "/api",
 	})
-	contentMiddleware := func(c martini.Context, w http.ResponseWriter, r *http.Request) {
-		switch r.Header.Get("Content-Type") {
-		case "application/xml":
-			c.MapTo(encoder.XmlEncoder{}, (*encoder.Encoder)(nil))
-			w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-		default:
-			c.MapTo(encoder.JsonEncoder{}, (*encoder.Encoder)(nil))
-			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	for k, v := range apimap {
+		if k == "auth" {
+			m.Group("/api/"+k, v, contentMiddleware)
+		} else {
+			m.Group("/api/"+k, v, contentMiddleware, TokenFunc(tokenAuthFunc))
 		}
 	}
-
-	m.Group("/api/auth", func(r martini.Router) {
-		r.Post("/login", binding.Json(AuthLoginObj{}), AuthLogin)
-		r.Delete("/logout", AuthLogout)
-	}, contentMiddleware)
-
-	m.Group("/api/messages", func(r martini.Router) {
-		r.Get("/list_users", MessagesListUsers)
-		r.Get("/view", MessagesView)
-	}, TokenFunc(tokenAuthFunc), contentMiddleware)
-
-	m.Group("/api/scheduler", func(r martini.Router) {
-	}, TokenFunc(tokenAuthFunc), contentMiddleware)
-
-	m.Group("/api/zipcodes", func(r martini.Router) {
-		r.Get("/picklist/:param", CityStateZipPicklist)
-	}, TokenFunc(tokenAuthFunc), contentMiddleware)
 
 	m.NotFound(static, http.NotFound)
 

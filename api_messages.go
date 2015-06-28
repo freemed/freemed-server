@@ -1,12 +1,20 @@
 package main
 
 import (
+	"github.com/go-martini/martini"
 	"github.com/martini-contrib/encoder"
 	"github.com/martini-contrib/render"
 	"log"
 	"net/http"
 	"strconv"
 )
+
+func init() {
+	apimap["messages"] = func(r martini.Router) {
+		r.Get("/list_users", MessagesListUsers)
+		r.Get("/view", MessagesView)
+	}
+}
 
 type messagesUserObj struct {
 	Username string `json:"username" binding:"required"`
