@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/coopernurse/gorp"
+	"gopkg.in/gorp.v1"
 )
 
 var (

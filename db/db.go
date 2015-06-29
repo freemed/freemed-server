@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"github.com/coopernurse/gorp"
+	"gopkg.in/gorp.v1"
 	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
