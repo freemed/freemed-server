@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/freemed/freemed-server/db"
 	"github.com/freemed/freemed-server/model"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/binding"
@@ -13,7 +12,7 @@ import (
 )
 
 func init() {
-	db.ApiMap["auth"] = func(r martini.Router) {
+	model.ApiMap["auth"] = func(r martini.Router) {
 		r.Post("/login", binding.Json(AuthLoginObj{}), AuthLogin)
 		r.Delete("/logout", AuthLogout)
 	}

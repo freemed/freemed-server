@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"fmt"
-	"github.com/freemed/freemed-server/db"
 	"github.com/freemed/freemed-server/model"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/encoder"
@@ -16,7 +15,7 @@ import (
 )
 
 func init() {
-	db.ApiMap["zipcodes"] = func(r martini.Router) {
+	model.ApiMap["zipcodes"] = func(r martini.Router) {
 		r.Get("/picklist/:param", CityStateZipPicklist)
 	}
 }
