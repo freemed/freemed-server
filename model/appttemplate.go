@@ -1,8 +1,6 @@
 package model
 
-import (
-	"github.com/freemed/freemed-server/db"
-)
+import ()
 
 const (
 	TABLE_APPTTEMPLATE = "appttemplate"
@@ -17,5 +15,5 @@ type AppointmentTemplateModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_APPTTEMPLATE, Obj: AppointmentTemplateModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_APPTTEMPLATE, Obj: AppointmentTemplateModel{}, Key: "Id"})
 }

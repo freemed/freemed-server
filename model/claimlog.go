@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/freemed/freemed-server/db"
 	"time"
 )
 
@@ -24,5 +23,5 @@ type ClaimLogModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_CLAIMLOG, Obj: ClaimLogModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_CLAIMLOG, Obj: ClaimLogModel{}, Key: "Id"})
 }

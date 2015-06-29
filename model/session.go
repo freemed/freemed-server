@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"github.com/freemed/freemed-server/db"
 	"github.com/freemed/freemed-server/util"
 	"log"
 	"os"
@@ -22,7 +21,7 @@ type SessionModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_SESSION, Obj: SessionModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_SESSION, Obj: SessionModel{}, Key: "Id"})
 }
 
 func (u *SessionModel) GetBySessionId(id interface{}) error {

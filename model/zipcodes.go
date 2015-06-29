@@ -1,8 +1,6 @@
 package model
 
-import (
-	"github.com/freemed/freemed-server/db"
-)
+import ()
 
 const (
 	TABLE_ZIPCODES = "zipcodes"
@@ -21,5 +19,5 @@ type ZipcodesModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_ZIPCODES, Obj: ZipcodesModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_ZIPCODES, Obj: ZipcodesModel{}, Key: "Id"})
 }

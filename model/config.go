@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"github.com/freemed/freemed-server/db"
 )
 
 const (
@@ -20,5 +19,5 @@ type ConfigModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_CONFIG, Obj: ConfigModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_CONFIG, Obj: ConfigModel{}, Key: "Id"})
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/freemed/freemed-server/db"
 	"github.com/freemed/freemed-server/model"
 	"github.com/freemed/freemed-server/util"
 	"github.com/go-martini/martini"
@@ -29,13 +28,13 @@ func main() {
 
 	// Pass variables to packages
 	model.SessionLength = *SESSION_LENGTH
-	db.DbUser = *DB_USER
-	db.DbPass = *DB_PASS
-	db.DbName = *DB_NAME
-	db.DbHost = *DB_HOST
+	model.DbUser = *DB_USER
+	model.DbPass = *DB_PASS
+	model.DbName = *DB_NAME
+	model.DbHost = *DB_HOST
 
 	log.Print("Initializing database backend")
-	model.DbMap = db.InitDb()
+	model.DbMap = model.InitDb()
 
 	log.Print("Initializing background services")
 	go model.SessionExpiryThread()
@@ -49,7 +48,7 @@ func main() {
 		Exclude: "/api",
 	})
 
-	for k, v := range db.ApiMap {
+	for k, v := range model.ApiMap {
 		if k == "auth" {
 			m.Group("/api/"+k, v, util.ContentMiddleware)
 		} else {

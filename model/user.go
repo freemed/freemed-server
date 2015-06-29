@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"github.com/freemed/freemed-server/db"
 	"github.com/freemed/freemed-server/util"
 	"github.com/martini-contrib/sessionauth"
 	"log"
@@ -35,7 +34,7 @@ type UserModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_USER, Obj: UserModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_USER, Obj: UserModel{}, Key: "Id"})
 }
 
 // GetAnonymousUser should generate an anonymous user model

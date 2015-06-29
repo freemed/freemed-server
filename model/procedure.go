@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"github.com/freemed/freemed-server/db"
 	"time"
 )
 
@@ -60,5 +59,5 @@ type ProcedureModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_PROCEDURE, Obj: ProcedureModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_PROCEDURE, Obj: ProcedureModel{}, Key: "Id"})
 }

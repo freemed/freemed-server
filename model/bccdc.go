@@ -1,8 +1,6 @@
 package model
 
-import (
-	"github.com/freemed/freemed-server/db"
-)
+import ()
 
 const (
 	TABLE_BCCDC = "bccdc"
@@ -15,5 +13,5 @@ type BccdcModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_BCCDC, Obj: BccdcModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_BCCDC, Obj: BccdcModel{}, Key: "Id"})
 }

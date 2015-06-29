@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"github.com/freemed/freemed-server/db"
 )
 
 const (
@@ -33,5 +32,5 @@ type PracticeModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_PRACTICE, Obj: PracticeModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_PRACTICE, Obj: PracticeModel{}, Key: "Id"})
 }

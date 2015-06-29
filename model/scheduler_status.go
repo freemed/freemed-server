@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/freemed/freemed-server/db"
 	"time"
 )
 
@@ -20,5 +19,5 @@ type SchedulerStatusModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_SCHEDULER_STATUS, Obj: SchedulerStatusModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_SCHEDULER_STATUS, Obj: SchedulerStatusModel{}, Key: "Id"})
 }

@@ -1,10 +1,10 @@
-package db
+package model
 
 import (
 	"database/sql"
-	"gopkg.in/gorp.v1"
 	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
+	"gopkg.in/gorp.v1"
 	"log"
 	"os"
 )

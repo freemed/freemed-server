@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/freemed/freemed-server/db"
 	"time"
 )
 
@@ -24,5 +23,5 @@ type BillingContactModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_BILLINGCONTACT, Obj: BillingContactModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_BILLINGCONTACT, Obj: BillingContactModel{}, Key: "Id"})
 }

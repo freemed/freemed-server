@@ -1,8 +1,6 @@
 package model
 
-import (
-	"github.com/freemed/freemed-server/db"
-)
+import ()
 
 const (
 	TABLE_ROUTEOFADMIN = "bodysite"
@@ -15,5 +13,5 @@ type RouteOfAdministrationModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_ROUTEOFADMIN, Obj: RouteOfAdministrationModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_ROUTEOFADMIN, Obj: RouteOfAdministrationModel{}, Key: "Id"})
 }

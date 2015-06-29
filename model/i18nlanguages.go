@@ -1,8 +1,6 @@
 package model
 
-import (
-	"github.com/freemed/freemed-server/db"
-)
+import ()
 
 const (
 	TABLE_I18NLANGUAGES = "i18nlanguages"
@@ -14,5 +12,5 @@ type I18nLanguageModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_I18NLANGUAGES, Obj: I18nLanguageModel{}})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_I18NLANGUAGES, Obj: I18nLanguageModel{}})
 }

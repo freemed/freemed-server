@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/freemed/freemed-server/db"
 	"time"
 )
 
@@ -27,5 +26,5 @@ type MessagesModel struct {
 }
 
 func init() {
-	db.DbTables = append(db.DbTables, db.DbTable{TableName: TABLE_MESSAGES, Obj: MessagesModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{TableName: TABLE_MESSAGES, Obj: MessagesModel{}, Key: "Id"})
 }
