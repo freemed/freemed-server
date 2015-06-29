@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/freemed/freemed-server/db"
+	"github.com/freemed/freemed-server/model"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/encoder"
@@ -11,7 +13,7 @@ import (
 )
 
 func init() {
-	apimap["auth"] = func(r martini.Router) {
+	db.ApiMap["auth"] = func(r martini.Router) {
 		r.Post("/login", binding.Json(AuthLoginObj{}), AuthLogin)
 		r.Delete("/logout", AuthLogout)
 	}
@@ -24,9 +26,9 @@ type AuthLoginObj struct {
 
 func AuthLogin(data AuthLoginObj, enc encoder.Encoder, r render.Render) {
 	log.Printf("AuthLogin(): user=%s", data.Username)
-	uid, res := checkUserPassword(data.Username, data.Password)
+	uid, res := model.CheckUserPassword(data.Username, data.Password)
 	if res {
-		s, err := createSession(uid)
+		s, err := model.CreateSession(uid)
 		if err != nil {
 			log.Printf("AuthLogin(): " + err.Error())
 			r.JSON(http.StatusInternalServerError, false)
@@ -50,7 +52,7 @@ func AuthLogout(req *http.Request, enc encoder.Encoder, r render.Render) {
 	}
 	sid := authHeader[7:]
 	log.Printf("AuthLogout(): Expire session %s", sid)
-	expireSession(sid)
+	model.ExpireSession(sid)
 	r.JSON(http.StatusOK, true)
 }
 

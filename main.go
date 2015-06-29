@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/freemed/freemed-server/db"
+	"github.com/freemed/freemed-server/model"
+	"github.com/freemed/freemed-server/util"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"log"
@@ -19,19 +22,23 @@ var (
 	DB_PASS        = flag.String("db-pass", "freemed", "Database password")
 	DB_HOST        = flag.String("db-host", "localhost", "Database host")
 	SESSION_LENGTH = flag.Int("session-length", 600, "Session expiry in seconds")
-
-	IsRunning = true
-	apimap    = map[string]func(martini.Router){}
 )
 
 func main() {
 	flag.Parse()
 
+	// Pass variables to packages
+	model.SessionLength = *SESSION_LENGTH
+	db.DbUser = *DB_USER
+	db.DbPass = *DB_PASS
+	db.DbName = *DB_NAME
+	db.DbHost = *DB_HOST
+
 	log.Print("Initializing database backend")
-	dbmap = initDb()
+	model.DbMap = db.InitDb()
 
 	log.Print("Initializing background services")
-	go sessionExpiryThread()
+	go model.SessionExpiryThread()
 
 	log.Print("Initializing web services")
 	m := martini.Classic()
@@ -42,11 +49,11 @@ func main() {
 		Exclude: "/api",
 	})
 
-	for k, v := range apimap {
+	for k, v := range db.ApiMap {
 		if k == "auth" {
-			m.Group("/api/"+k, v, contentMiddleware)
+			m.Group("/api/"+k, v, util.ContentMiddleware)
 		} else {
-			m.Group("/api/"+k, v, contentMiddleware, TokenFunc(tokenAuthFunc))
+			m.Group("/api/"+k, v, util.ContentMiddleware, TokenFunc(model.TokenAuthFunc))
 		}
 	}
 

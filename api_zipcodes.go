@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/freemed/freemed-server/db"
+	"github.com/freemed/freemed-server/model"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/encoder"
 	"github.com/martini-contrib/render"
@@ -14,7 +16,7 @@ import (
 )
 
 func init() {
-	apimap["zipcodes"] = func(r martini.Router) {
+	db.ApiMap["zipcodes"] = func(r martini.Router) {
 		r.Get("/picklist/:param", CityStateZipPicklist)
 	}
 }
@@ -25,7 +27,7 @@ type cszPicklistObj struct {
 }
 
 func CityStateZipPicklist(enc encoder.Encoder, r render.Render, params martini.Params) {
-	var o []ZipcodesModel
+	var o []model.ZipcodesModel
 	var buf bytes.Buffer
 
 	if _, ok := params["param"]; !ok {
@@ -40,34 +42,34 @@ func CityStateZipPicklist(enc encoder.Encoder, r render.Render, params martini.P
 	}
 	log.Print("CityStateZipPicklist(): param = '" + param + "'")
 
-	buf.WriteString("SELECT * FROM " + TABLE_ZIPCODES + " WHERE ")
+	buf.WriteString("SELECT * FROM " + model.TABLE_ZIPCODES + " WHERE ")
 
 	intval, _ := strconv.Atoi(param)
 	if len(param) >= 4 && param[2:3] == " " {
 		// ST CITY
 		buf.WriteString("state = UPPER(?) AND city LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = dbmap.Select(&o, buf.String(), param[0:2], param[3:])
+		_, err = model.DbMap.Select(&o, buf.String(), param[0:2], param[3:])
 	} else if len(param) > 4 && param[len(param)-4:len(param)-2] == ", " {
 		// CITY, ST
 		buf.WriteString("state = UPPER(?) AND city LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = dbmap.Select(&o, buf.String(), param[len(param)-2:len(param)], param[0:len(param)-4])
+		_, err = model.DbMap.Select(&o, buf.String(), param[len(param)-2:len(param)], param[0:len(param)-4])
 	} else if len(param) > 4 && param[len(param)-3:len(param)-2] == " " {
 		// CITY ST
 		buf.WriteString("state = UPPER(?) AND city LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = dbmap.Select(&o, buf.String(), param[len(param)-2:len(param)], param[0:len(param)-3])
+		_, err = model.DbMap.Select(&o, buf.String(), param[len(param)-2:len(param)], param[0:len(param)-3])
 	} else if len(param) >= 3 && !strings.ContainsAny(param, "0123456789") {
 		// CITY
 		buf.WriteString("city LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = dbmap.Select(&o, buf.String(), param)
+		_, err = model.DbMap.Select(&o, buf.String(), param)
 	} else if intval > 0 {
 		// ZIP
 		buf.WriteString("zip LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = dbmap.Select(&o, buf.String(), param)
+		_, err = model.DbMap.Select(&o, buf.String(), param)
 	} else {
 		// Absolutely nothing
 	}
