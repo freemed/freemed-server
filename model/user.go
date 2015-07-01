@@ -2,7 +2,7 @@ package model
 
 import (
 	"database/sql"
-	"github.com/freemed/freemed-server/util"
+	"github.com/freemed/freemed-server/common"
 	"github.com/martini-contrib/sessionauth"
 	"log"
 )
@@ -83,7 +83,7 @@ func CheckUserPassword(username, userpassword string) (int64, bool) {
 	u := &UserModel{}
 	err := DbMap.SelectOne(u, "SELECT * FROM "+TABLE_USER+" WHERE username = :user AND userpassword = :pass", map[string]interface{}{
 		"user": username,
-		"pass": util.Md5hash(userpassword),
+		"pass": common.Md5hash(userpassword),
 	})
 	if err != nil {
 		log.Print(err.Error())

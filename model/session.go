@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"github.com/freemed/freemed-server/util"
+	"github.com/freemed/freemed-server/common"
 	"log"
 	"os"
 	"time"
@@ -35,7 +35,7 @@ func (u *SessionModel) GetBySessionId(id interface{}) error {
 
 func CreateSession(uid int64) (SessionModel, error) {
 	hn, _ := os.Hostname()
-	sid := fmt.Sprintf("%d-%s", time.Now().Unix(), util.Md5hash(fmt.Sprintf("%d.%s.%d", time.Now().Unix(), hn, time.Now().UnixNano())))
+	sid := fmt.Sprintf("%d-%s", time.Now().Unix(), common.Md5hash(fmt.Sprintf("%d.%s.%d", time.Now().Unix(), hn, time.Now().UnixNano())))
 	s := SessionModel{
 		SessionId: sid,
 		UserId:    uid,
@@ -87,7 +87,7 @@ func TokenAuthFunc(sid string) (bool, SessionModel) {
 func SessionExpiryThread() {
 	log.Print("SessionExpiryThread: spinning up")
 	for {
-		if !util.IsRunning {
+		if !common.IsRunning {
 			log.Print("SessionExpiryThread: !IsRunning")
 			return
 		}
@@ -95,6 +95,6 @@ func SessionExpiryThread() {
 		if err != nil {
 			log.Print("SessionExpiryThread: " + err.Error())
 		}
-		util.SleepFor(30)
+		common.SleepFor(30)
 	}
 }

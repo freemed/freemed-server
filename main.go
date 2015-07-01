@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 	_ "github.com/freemed/freemed-server/api"
+	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
-	"github.com/freemed/freemed-server/util"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"log"
@@ -52,10 +52,10 @@ func main() {
 	for k, v := range model.ApiMap {
 		if k == "auth" || k == "public" {
 			log.Printf("Adding API module /api/%s", k)
-			m.Group("/api/"+k, v, util.ContentMiddleware)
+			m.Group("/api/"+k, v, common.ContentMiddleware)
 		} else {
 			log.Printf("Adding protected API module /api/%s", k)
-			m.Group("/api/"+k, v, util.ContentMiddleware, TokenFunc(model.TokenAuthFunc))
+			m.Group("/api/"+k, v, common.ContentMiddleware, TokenFunc(model.TokenAuthFunc))
 		}
 	}
 
