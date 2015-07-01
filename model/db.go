@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
 	"gopkg.in/gorp.v1"
 	"log"
@@ -10,7 +9,6 @@ import (
 )
 
 var (
-	ApiMap   = map[string]func(martini.Router){}
 	DbTables = make([]DbTable, 0)
 	DbUser   string
 	DbPass   string

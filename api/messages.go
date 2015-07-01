@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/encoder"
@@ -11,9 +12,13 @@ import (
 )
 
 func init() {
-	model.ApiMap["messages"] = func(r martini.Router) {
-		r.Get("/list_users", MessagesListUsers)
-		r.Get("/view", MessagesView)
+	common.ApiMap["messages"] = common.ApiMapping{
+		Authenticated: true,
+		JsonArmored:   true,
+		RouterFunction: func(r martini.Router) {
+			r.Get("/list_users", MessagesListUsers)
+			r.Get("/view", MessagesView)
+		},
 	}
 }
 

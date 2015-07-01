@@ -2,9 +2,11 @@ package common
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/encoder"
+	"log"
 	"net/http"
 	"time"
 )
@@ -35,4 +37,13 @@ func ContentMiddleware(c martini.Context, w http.ResponseWriter, r *http.Request
 		c.MapTo(encoder.JsonEncoder{}, (*encoder.Encoder)(nil))
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
+}
+
+func JsonEncode(o interface{}) []byte {
+	b, err := json.Marshal(o)
+	if err != nil {
+		log.Print(err.Error())
+		return []byte("false")
+	}
+	return b
 }

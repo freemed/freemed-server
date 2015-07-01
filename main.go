@@ -21,6 +21,9 @@ var (
 	DB_USER        = flag.String("db-user", "freemed", "Database username")
 	DB_PASS        = flag.String("db-pass", "freemed", "Database password")
 	DB_HOST        = flag.String("db-host", "localhost", "Database host")
+	REDIS_HOST     = flag.String("redis-host", "localhost:6379", "Redis database host")
+	REDIS_PASSWORD = flag.String("redis-password", "", "Redis database password")
+	REDIS_DBID     = flag.Int("redis-database-id", 0, "Redis database ID")
 	SESSION_LENGTH = flag.Int("session-length", 600, "Session expiry in seconds")
 )
 
@@ -37,8 +40,16 @@ func main() {
 	log.Print("Initializing database backend")
 	model.DbMap = model.InitDb()
 
-	log.Print("Initializing background services")
-	go model.SessionExpiryThread()
+	log.Print("Initializing session backend")
+	common.ActiveSession = &common.SessionConnector{
+		Address:    *REDIS_HOST,
+		Password:   *REDIS_PASSWORD,
+		DatabaseId: int64(*REDIS_DBID),
+	}
+	err := common.ActiveSession.Connect()
+	if err != nil {
+		panic(err)
+	}
 
 	log.Print("Initializing web services")
 	m := martini.Classic()
@@ -49,13 +60,21 @@ func main() {
 		Exclude: "/api",
 	})
 
-	for k, v := range model.ApiMap {
-		if k == "auth" || k == "public" {
-			log.Printf("Adding API module /api/%s", k)
-			m.Group("/api/"+k, v, common.ContentMiddleware)
+	for k, v := range common.ApiMap {
+		if !v.Authenticated {
+			log.Printf("Adding non-protected module /api/%s", k)
+			if v.JsonArmored {
+				m.Group("/api/"+k, v.RouterFunction, common.ContentMiddleware)
+			} else {
+				m.Group("/api/"+k, v.RouterFunction)
+			}
 		} else {
 			log.Printf("Adding protected API module /api/%s", k)
-			m.Group("/api/"+k, v, common.ContentMiddleware, TokenFunc(model.TokenAuthFunc))
+			if v.JsonArmored {
+				m.Group("/api/"+k, v.RouterFunction, common.ContentMiddleware, TokenFunc(common.TokenAuthFunc))
+			} else {
+				m.Group("/api/"+k, v.RouterFunction, common.ContentMiddleware)
+			}
 		}
 	}
 

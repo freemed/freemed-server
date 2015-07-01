@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/freemed/freemed-server/model"
+	"github.com/freemed/freemed-server/common"
 	"github.com/go-martini/martini"
 	"log"
 	"net/http"
@@ -12,7 +12,7 @@ type Token string
 
 // TokenFunc returns a Handler that authenticates via an Authentication: Bearer header using the provided function.
 // The function should return true for a valid token.
-func TokenFunc(authfn func(string) (bool, model.SessionModel)) martini.Handler {
+func TokenFunc(authfn func(string) (bool, common.SessionModel)) martini.Handler {
 	return func(res http.ResponseWriter, req *http.Request, c martini.Context) {
 		log.Print("TokenFunc()")
 		auth := req.Header.Get("Authorization")

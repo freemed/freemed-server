@@ -12,6 +12,11 @@ Uses:
  * [Martini](http://martini.codegangsta.io/): Web framework for Go
  * [GORP](http://github.com/go-gorp/gorp): Db access layer
  * [Go-MySQL-Driver](http://github.com/go-sql-driver/mysql): MySQL driver
+ * [go-redis](https://github.com/go-redis/redis): Redis driver
 
 Code in this repository can be run against a valid FreeMED 0.9.x series database with no modifications.
+
+## Architectural changes from FreeMED 0.9.x
+
+ * **Redis Sessions**. Sessions are stored in Redis, to decrease load on the MySQL server. (TODO: Move to Redis cluster for full redundancy)
 

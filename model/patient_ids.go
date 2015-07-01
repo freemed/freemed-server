@@ -1,11 +1,13 @@
 package model
 
 import (
+	"github.com/freemed/freemed-server/common"
 	"time"
 )
 
 const (
-	TABLE_PATIENT_ID = "patient_ids"
+	TABLE_PATIENT_ID  = "patient_ids"
+	MODULE_PATIENT_ID = ""
 )
 
 type PatientIdModel struct {
@@ -20,5 +22,13 @@ type PatientIdModel struct {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_PATIENT_ID, Obj: PatientIdModel{}, Key: "Id"})
+	DbTables = append(DbTables, DbTable{
+		TableName: TABLE_PATIENT_ID,
+		Obj:       PatientIdModel{},
+		Key:       "Id",
+	})
+	common.EmrModuleMap[MODULE_PATIENT_ID] = common.EmrModuleType{
+		Name: MODULE_PATIENT_ID,
+		Type: PatientIdModel{},
+	}
 }

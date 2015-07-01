@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/encoder"
@@ -15,8 +16,12 @@ import (
 )
 
 func init() {
-	model.ApiMap["zipcodes"] = func(r martini.Router) {
-		r.Get("/picklist/:param", CityStateZipPicklist)
+	common.ApiMap["zipcodes"] = common.ApiMapping{
+		Authenticated: true,
+		JsonArmored:   true,
+		RouterFunction: func(r martini.Router) {
+			r.Get("/picklist/:param", CityStateZipPicklist)
+		},
 	}
 }
 
