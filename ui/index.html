@@ -1,1 +1,91 @@
-TEST
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FreeMED</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
+  <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="js/app.js"></script>
+</head>
+<body>
+
+<!-- Header -->
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">FreeMED</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">Home</a></li>
+      </ul>
+    </div> <!--/.nav-collapse -->
+  </div>
+</nav>
+
+<!-- Page content container -->
+
+<div class="container" id="container"></div>
+
+<!-- Login dialog -->
+
+<div class="modal fade bs-modal-sm" id="loginDialog" tabindex="-1" role="dialog" aria-labelledby="loginDialogLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+        <br />
+        <div class="bs-example bs-example-tabs">
+            <ul id="myTab" class="nav nav-tabs">
+              <li class="active"><a href="#signin" data-toggle="tab">Login</a></li>
+              <li class=""><a href="#helplogin" data-toggle="tab">Help</a></li>
+            </ul>
+        </div>
+        <div class="modal-body">
+          <div id="myTabContent" class="tab-content">
+            <div class="tab-pane fade in" id="helplogin"></div>
+            <div class="tab-pane fade active in" id="signin">
+              <form class="form-horizontal" id="login-form">
+                <fieldset>
+                  <div class="control-group">
+                    <div class="controls">
+                      <input required="" id="login-username" name="userid" type="text" class="form-control" placeholder="Username" class="input-medium" />
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <div class="controls">
+                      <input required="" id="login-password" name="passwordinput" class="form-control" type="password" placeholder="Password" class="input-medium" />
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="signin"></label>
+                    <div class="controls" id="signinControls">
+                      <button id="login-submit" name="signin" class="btn btn-success">Login</button>
+                    </div> <!-- #signinControls -->
+                  </div> <!-- .control-group -->
+                </fieldset>
+              </form>
+            </div>
+          </div>
+        </div> 
+      </div>
+    </div>
+  </div> <!-- .modal-dialog -->
+</div> <!-- #loginDialog -->
+
+</body>
+</html>

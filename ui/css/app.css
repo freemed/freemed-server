@@ -1,0 +1,16 @@
+
+/*
+ *	LOGIN FORM
+ */
+
+
+/* Centered signin button */
+#signinControls {
+	text-align: center;
+}
+
+/* Breathing room for login form */
+DIV#signin FORM FIELDSET DIV.control-group DIV.controls INPUT {
+	margin-bottom: 10px;
+}
+
