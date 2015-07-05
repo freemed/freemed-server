@@ -10,6 +10,7 @@ import (
 	"github.com/martini-contrib/render"
 	"log"
 	"net/http"
+	"strings"
 )
 
 var (
@@ -61,21 +62,19 @@ func main() {
 	})
 
 	for k, v := range common.ApiMap {
-		if !v.Authenticated {
-			log.Printf("Adding non-protected module /api/%s", k)
-			if v.JsonArmored {
-				m.Group("/api/"+k, v.RouterFunction, common.ContentMiddleware)
-			} else {
-				m.Group("/api/"+k, v.RouterFunction)
-			}
-		} else {
-			log.Printf("Adding protected API module /api/%s", k)
-			if v.JsonArmored {
-				m.Group("/api/"+k, v.RouterFunction, common.ContentMiddleware, TokenFunc(common.TokenAuthFunc))
-			} else {
-				m.Group("/api/"+k, v.RouterFunction, common.ContentMiddleware)
-			}
+		mw := make([]martini.Handler, 0)
+		f := make([]string, 0)
+		if v.Authenticated {
+			mw = append(mw, TokenFunc(common.TokenAuthFunc))
+			f = append(f, "AUTH")
 		}
+		if v.JsonArmored {
+			mw = append(mw, common.ContentMiddleware)
+			f = append(f, "JSON")
+		}
+
+		log.Printf("Adding handler /api/%s [%s]", k, strings.Join(f, ","))
+		m.Group("/api/"+k, v.RouterFunction, mw...)
 	}
 
 	m.NotFound(static, http.NotFound)
