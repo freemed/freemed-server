@@ -13,17 +13,17 @@ import (
 func init() {
 	common.ApiMap["emr/data_store"] = common.ApiMapping{
 		Authenticated: true,
-		JsonArmored: false,
+		JsonArmored:   false,
 		RouterFunction: func(r martini.Router) {
-		r.Get("/get/:patient/:module/:id", DataStoreGet)
-		//r.Put("/put", DataStorePut)
+			r.Get("/get/:patient/:module/:id", DataStoreGet)
+			//r.Put("/put", DataStorePut)
 		},
 	}
 }
 
 func DataStoreGet(enc encoder.Encoder, r render.Render, params martini.Params, res http.ResponseWriter) {
 	var ok bool
-	var patient, module, id string	
+	var patient, module, id string
 	if patient, ok = params["patient"]; !ok {
 		log.Print("DataStoreGet(): No patient provided")
 		r.JSON(http.StatusInternalServerError, false)
@@ -53,4 +53,3 @@ func DataStoreGet(enc encoder.Encoder, r render.Render, params martini.Params, r
 	res.Write([]byte(content))
 	return
 }
-

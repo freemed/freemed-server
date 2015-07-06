@@ -46,6 +46,19 @@ $(document).ready(function() {
 var sessionAuth = function(xhr){xhr.setRequestHeader('Authorization', 'Bearer ' + sessionId);};
 var showError = function(x){ $('debug').append("<p><em>ERROR:</em> " + JSON.stringify(x) + "</p>"); };
 
+function test_listConfig() {
+	$.ajax({
+		url: base + "/config/all",
+		method: "GET",
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		error: showError,
+		success: function(data){
+			$('#debug').append("<p>/config/all: " + JSON.stringify(data) + "</p>");
+		}
+	});
+} // test_listMessagesUsers
+
 function test_listMessagesUsers() {
 	$.ajax({
 		url: base + "/messages/list_users",
@@ -56,6 +69,7 @@ function test_listMessagesUsers() {
 		success: function(data){
 			$('#debug').append("<p>/messages/list_users: " + JSON.stringify(data) + "</p>");
 			test_messagesView();
+			test_listConfig();
 		}
 	});
 } // test_listMessagesUsers

@@ -11,7 +11,7 @@ const (
 
 type ProcedureModel struct {
 	Patient             int64           `db:"procpatient" json:"patient_id"`
-	EpisodeOfCare       sql.NullString  `db:"proceoc" json:"episode_of_care"`
+	EpisodeOfCare       NullString      `db:"proceoc" json:"episode_of_care"`
 	CptCode             int64           `db:"proccpt" json:"cpt"`
 	CptCodeModifier1    int64           `db:"proccptmod" json:"cpt_modifier_1"`
 	CptCodeModifier2    int64           `db:"proccptmod2" json:"cpt_modifier_2"`
@@ -23,12 +23,12 @@ type ProcedureModel struct {
 	DiagnosisSet        string          `db:"procdiagset" json:"dx_set"`
 	Charges             float64         `db:"proccharges" json:"charges"`
 	Units               float64         `db:"procunits" json:"units"`
-	Voucher             sql.NullString  `db:"procvoucher" json:"voucher"`
+	Voucher             NullString      `db:"procvoucher" json:"voucher"`
 	Provider            int64           `db:"procphysician" json:"provider_id"`
 	Date                time.Time       `db:"procdt" json:"date"`
 	DateEnd             NullTime        `db:"procdtend" json:"date_end"`
 	PlaceOfService      int64           `db:"procpos" json:"pos_id"`
-	Comment             sql.NullString  `db:"proccomment" json:"comment"`
+	Comment             NullString      `db:"proccomment" json:"comment"`
 	OriginalBalance     float64         `db:"procbalorig" json:"balance_original"`
 	CurrentBalance      float64         `db:"procbalcurrent" json:"balance_current"`
 	AmountPaid          float64         `db:"procamtpain" json:"amount_paid"`
@@ -46,16 +46,16 @@ type ProcedureModel struct {
 	Coverage3           int64           `db:"proccov3" json:"coverage_id_3"`
 	Coverage4           int64           `db:"proccov4" json:"coverage_id_4"`
 
-	MedicaidReference     sql.NullString `db:"procmedicaidref" json:"medicaid_ref"`
-	MedicaidResubmission  sql.NullString `db:"procmedicaidresub" json:"medicaid_resubmission"`
-	LabCharges            float64        `db:"proclabcharges" json:"lab_charges"`
-	Status                sql.NullString `db:"procstatus" json:"status"`
-	SlidingScale          sql.NullString `db:"procslidingscale" json:"sliding_scale"`
-	TypeOfServiceOverride int64          `db:"proctosoverride" json:"type_of_service_override"`
-	Order                 int64          `db:"orderid" json:"order_id"`
-	User                  int64          `db:"user" json:"user_id"`
-	Active                string         `db:"active" json:"active"`
-	Id                    int64          `db:"id" json:"id"`
+	MedicaidReference     NullString `db:"procmedicaidref" json:"medicaid_ref"`
+	MedicaidResubmission  NullString `db:"procmedicaidresub" json:"medicaid_resubmission"`
+	LabCharges            float64    `db:"proclabcharges" json:"lab_charges"`
+	Status                NullString `db:"procstatus" json:"status"`
+	SlidingScale          NullString `db:"procslidingscale" json:"sliding_scale"`
+	TypeOfServiceOverride int64      `db:"proctosoverride" json:"type_of_service_override"`
+	Order                 int64      `db:"orderid" json:"order_id"`
+	User                  int64      `db:"user" json:"user_id"`
+	Active                string     `db:"active" json:"active"`
+	Id                    int64      `db:"id" json:"id"`
 }
 
 func init() {

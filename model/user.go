@@ -12,25 +12,25 @@ const (
 )
 
 type UserModel struct {
-	Id                  int64          `db:"id"`
-	Username            string         `db:"username"`
-	Password            string         `db:"userpassword"`
-	Type                sql.NullString `db:"usertype"`
-	ProviderId          int64          `db:"userrealphy"`
-	FirstName           sql.NullString `db:"userfname"`
-	MiddleName          sql.NullString `db:"usermname"`
-	LastName            sql.NullString `db:"userlname"`
-	Description         sql.NullString `db:"userdescrip"`
-	Level               []byte         `db:"userlevel"`
-	FacilityAccess      []byte         `db:"userfac"`
-	ProviderAccess      []byte         `db:"userphy"`
-	ProviderGroupAccess []byte         `db:"userphygrp"`
-	Options             []byte         `db:"usermanageopt"`
-	Email               sql.NullString `db:"useremail"`
-	Sms                 sql.NullInt64  `db:"usersms"`
-	SmsProvider         sql.NullInt64  `db:"usersmsprovider"`
-	Title               sql.NullString `db:"usertitle"`
-	authenticated       bool           `db:"-"`
+	Id                  int64         `db:"id"`
+	Username            string        `db:"username"`
+	Password            string        `db:"userpassword"`
+	Type                NullString    `db:"usertype"`
+	ProviderId          int64         `db:"userrealphy"`
+	FirstName           NullString    `db:"userfname"`
+	MiddleName          NullString    `db:"usermname"`
+	LastName            NullString    `db:"userlname"`
+	Description         NullString    `db:"userdescrip"`
+	Level               []byte        `db:"userlevel"`
+	FacilityAccess      []byte        `db:"userfac"`
+	ProviderAccess      []byte        `db:"userphy"`
+	ProviderGroupAccess []byte        `db:"userphygrp"`
+	Options             []byte        `db:"usermanageopt"`
+	Email               NullString    `db:"useremail"`
+	Sms                 sql.NullInt64 `db:"usersms"`
+	SmsProvider         sql.NullInt64 `db:"usersmsprovider"`
+	Title               NullString    `db:"usertitle"`
+	authenticated       bool          `db:"-"`
 }
 
 func init() {
