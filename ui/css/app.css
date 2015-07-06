@@ -1,5 +1,25 @@
 
 /*
+ *	COMMON
+ */
+
+H1.title {
+	display: none;
+}
+
+#mainFrame {
+	margin-top: 70px;
+}
+
+DIV.panel-body {
+	text-align: center;
+}
+
+H4#nav-title {
+	color: #ffffff;
+}
+
+/*
  *	LOGIN FORM
  */
 
