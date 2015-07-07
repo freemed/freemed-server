@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"encoding/json"
 	"strconv"
 )
 
@@ -16,6 +17,9 @@ func (s NullString) MarshalJSON() ([]byte, error) {
 	if !s.Valid {
 		return []byte("null"), nil
 	}
-	val, _ := s.Value()
-	return []byte(strconv.QuoteToASCII(val.(string))), nil
+	return []byte(strconv.QuoteToASCII(s.String)), nil
+}
+
+func (s NullString) UnmarshalJSON(b []byte) error {
+	return json.Unmarshal(b, &s.String)
 }

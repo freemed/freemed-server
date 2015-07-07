@@ -19,6 +19,11 @@ H4#nav-title {
 	color: #ffffff;
 }
 
+/* Override to put switches on their own lines */
+.bootstrap-switch {
+	display: block !important;
+}
+
 /*
  *	LOGIN FORM
  */

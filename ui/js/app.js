@@ -4,6 +4,14 @@ var apiBase = "../api";
 var currentPage = null;
 var sessionId = null;
 
+function sanitizeId( orig ) {
+	return String( orig )
+		.replace( / /g,  '_' )
+		.replace( /\//g, '_' )
+		.replace( /"/g,  '_' )
+		.replace( /'/g,  '_' );
+} // end function sanitizeId
+
 function displayError( err ) {
 	$( '#pageAlert' ).html( err );
 	$( '#pageAlert' ).addClass( 'alert-error' );

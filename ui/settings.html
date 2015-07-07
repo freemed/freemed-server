@@ -1,0 +1,96 @@
+
+<h1 class="title">System Settings</h1>
+
+<ul class="nav nav-tabs" role="tablist" id="config-nav"></ul>
+<div class="tab-content" id="config-tab-container">
+</div><!-- /tab-content -->
+
+<script>
+$(document).ready(function() {
+	// Loading code
+	//$('#patientPanel DIV.panel-body').html('Loaded.');
+	$.ajax({
+		url: apiBase + "/config/all",
+		method: "GET",
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		error: displayError,
+		success: configInitialPopulateData
+	});
+});
+
+var config_headings = [ ];
+var config_data = [ ];
+
+function configInitialPopulateData(data) {
+	config_data = data;
+	$.each( data, function( idx, val ) {
+		if ($.inArray( val.section, config_headings ) == -1 && val.section != null) {
+			console.log("Found new section " + val.section);
+			config_headings.push( val.section );
+		}
+	});
+
+	// Create tabs
+	$.each( config_headings, function( idx, val ) {
+		// <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Home</a></li>
+		$( '#config-nav' ).append('<li role="presentation" id="config-' + val + '"><a href="#config-tab-' + sanitizeId(val) + '" aria-controls="' + sanitizeId(val) + '" role="tab" data-toggle="tab">' + val + '</a></li>');
+		// <div role="tabpanel" class="tab-pane active" id="home">...</div>
+		$( '#config-tab-container' ).append( '<div role="tabpanel" class="tab-pane" id="config-tab-' + sanitizeId(val) + '"></div>' );
+		configPopulatePanel( val );
+	});
+
+} // end function configInitialPopulateData
+
+function configPopulatePanel( panel_section ) {
+	$.each( config_data, function( idx, val ) {
+		if (val.section == panel_section) {
+			configAddElement( 'config-tab-'+sanitizeId(panel_section), val );
+		}
+	});
+} // end function configPopulatePanel
+
+function configAddElement( elemId, c ) {
+	var b = '';
+	b += '<div class="form-group">';
+	b += '<label for="config-item-'+sanitizeId(c['key'])+'">'+c['title']+'</label>';
+	switch (c['type']) {
+		case "Number":
+			// TODO: IMPLEMENT: XXX
+			break;
+		case "Select":
+			b += '<select class="form-control" id="config-item-'+sanitizeId(c['key'])+'" name="config-item-'+sanitizeId(c['key'])+'">';
+			var items = c['options'].split(',');
+			$.each( items, function( idx, val ) {
+				b += '<option value="' + val + '"';
+				if ( c['value'] == val ) {
+					b += ' selected="selected" ';
+				}
+				b += '>' + val + '</option>';
+			});
+			b += '</select>';
+			break;
+		case "Text":
+		case "URL":
+			b += '<input type="text" class="form-control" id="config-item-'+sanitizeId(c['key'])+'" value="' + c['value'] +'" />';
+			b += '</div>';
+			break;
+		case "YesNo":
+			b += '<input type="checkbox" class="form-control" name="config-item-'+sanitizeId(c['key'])+'" id="config-item-'+sanitizeId(c['key'])+'" ';
+			if (c['value'] == 1) {
+				b += ' checked="checked" ';
+			}
+			b += ' />';
+			break;
+		default:
+			return;
+	}
+	b += '</div>';
+	$( '#' + elemId ).append( b );
+	if (c['type'] == 'YesNo') {
+		$('#config-item-' + sanitizeId(c['key'])).bootstrapSwitch();
+	}
+} // end function configAddElement
+
+</script>
+

@@ -13,6 +13,9 @@ Uses:
  * [GORP](http://github.com/go-gorp/gorp): Db access layer
  * [Go-MySQL-Driver](http://github.com/go-sql-driver/mysql): MySQL driver
  * [go-redis](https://github.com/go-redis/redis): Redis driver
+ * [jQuery](https://jquery.com): Fast Javascript framework
+ * [Bootstrap](http://getbootstrap.com): Responsive framework
+ * [Bootstrap-Switch](http://www.bootstrap-switch.org): Switches for Bootstrap
 
 Code in this repository can be run against a valid FreeMED 0.9.x series database with no modifications.
 
