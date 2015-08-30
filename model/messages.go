@@ -28,3 +28,16 @@ type MessagesModel struct {
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_MESSAGES, Obj: MessagesModel{}, Key: "Id"})
 }
+
+func MessageById(id int64) (*MessagesModel, error) {
+	obj, err := DbMap.Get(MessagesModel{}, id)
+	if err != nil {
+		return &MessagesModel{}, err
+	}
+	msg := obj.(*MessagesModel)
+	return msg, nil
+}
+
+func MessageSend(msg MessagesModel) error {
+	return DbMap.Insert(msg)
+}

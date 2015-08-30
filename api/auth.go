@@ -49,7 +49,7 @@ func AuthLogin(data AuthLoginObj, enc encoder.Encoder, r render.Render) {
 func AuthLogout(req *http.Request, enc encoder.Encoder, r render.Render) {
 	authHeader := req.Header.Get("Authorization")
 	if authHeader == "" || len(authHeader) < 20 || authHeader[:7] != "Bearer " {
-		log.Printf("AuthLogout(): Found Authorization header : %s", authHeader)
+		log.Printf("AuthLogout(): Invalid Authorization header : %s", authHeader)
 		r.JSON(http.StatusInternalServerError, false)
 		return
 	}

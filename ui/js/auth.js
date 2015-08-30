@@ -25,7 +25,7 @@ function login() {
 			sessionId = data.session_id;
 			loginStateChange(true, function() {
 				console.log('cb: sessionId = ' + sessionId);
-				if (currentPage == null || currentPage != 'login-splash') {
+				if (currentPage == null || currentPage == 'login-splash') {
 					loadPage('main');
 				}
 			});

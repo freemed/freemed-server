@@ -22,4 +22,5 @@ Code in this repository can be run against a valid FreeMED 0.9.x series database
 ## Architectural changes from FreeMED 0.9.x
 
  * **Redis Sessions**. Sessions are stored in Redis, to decrease load on the MySQL server. (TODO: Move to Redis cluster for full redundancy)
+ * **Authentication**. Switched from cookies to renewable ``Bearer`` Authorization headers.
 
