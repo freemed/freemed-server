@@ -23,3 +23,23 @@ func (nt NullTime) Value() (driver.Value, error) {
 	}
 	return nt.Time, nil
 }
+
+// JSON encoding support
+
+func (nt NullTime) MarshalJSON() ([]byte, error) {
+	if nt.Valid {
+		return nt.Time.MarshalJSON()
+	}
+	return []byte("null"), nil
+}
+
+func (nt *NullTime) UnmarshalJSON(data []byte) (err error) {
+	if data == nil || len(data) < 3 {
+		*nt = NullTime{Valid: false}
+		return
+	}
+
+	t, err := time.Parse(`"`+time.RFC3339+`"`, string(data))
+	*nt = NullTime{t, err == nil}
+	return
+}
