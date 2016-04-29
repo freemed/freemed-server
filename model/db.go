@@ -23,7 +23,7 @@ type DbTable struct {
 }
 
 func InitDb() *gorp.DbMap {
-	dbobj, err := sql.Open("mysql", DbUser+":"+DbPass+"@/"+DbName)
+	dbobj, err := sql.Open("mysql", DbUser+":"+DbPass+"@/"+DbName+"?parseTime=true")
 	if err != nil {
 		log.Fatalln("initDb: Fail to create database", err)
 	}
