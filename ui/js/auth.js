@@ -19,11 +19,14 @@ function login() {
 		}),
 		error: function(x){
 			console.log(JSON.stringify(x));
+			toastr.error('Unable to login -- please try again.', 'Login', {timeOut: 5000});
+			$('#login-password').val(''); // Clear password, for security purposes
 			loginStateChange(false, null);
 		},
 		success: function(data){
 			sessionId = data.session_id;
 			loginStateChange(true, function() {
+				$('#login-password').val(''); // Clear password, for security purposes
 				console.log('cb: sessionId = ' + sessionId);
 				if (currentPage == null || currentPage == 'login-splash') {
 					loadPage('main');

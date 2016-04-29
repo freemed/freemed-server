@@ -7,6 +7,10 @@ H1.title {
 	display: none;
 }
 
+.logo {
+	padding: 5px;
+}
+
 #mainFrame {
 	margin-top: 70px;
 }

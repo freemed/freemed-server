@@ -26,12 +26,18 @@ function displayError( err ) {
 
 function loadPage( id ) {
 	console.log('Loading page ' + id);
+
+	// Unload knockout bindings, if there are any
+	$('.koform').each(function(idx) {
+		ko.unapplyBindings($( this ), true);
+	});
+
 	var ts = new Date().getTime();
-	$( '#container' ).hide( 'slow' );
-	$( '#container' ).load( './' + id + '.html?ts=' + ts, function() {
+	$( '#mainFrame' ).hide( );
+	$( '#mainFrame' ).load( './' + id + '.html?ts=' + ts, function() {
 		console.log('Page fragment load completed.');
 		$( '#nav-title' ).html( $( 'H1.title' ).html() );
-		$( '#container' ).show( 'slow' );
+		$( '#mainFrame' ).show( 'slow' );
 
 		// Deal with errors
 		if ( status == "error" ) {
@@ -50,8 +56,33 @@ function selectMenu( item ) {
 	$( '#navbar UL.navbar-nav LI.page-' + item ).addClass('active');
 } // end function selectMenu
 
+ko.unapplyBindings = function ($node, remove) {
+	$node.find("*").each(function () {
+		$(this).unbind();
+	});
+	if (remove) {
+		ko.removeNode($node[0]);
+	} else {
+		ko.cleanNode($node[0]);
+	}
+};
+
+window.jQuery.ApiGET = function(apipath, successFunc) {
+		        $.ajax({
+		                url: apiBase + apipath,
+		                method: "GET",
+		                contentType: "application/json",
+		                beforeSend: sessionAuth,
+		                error: displayError,
+		                success: successFunc
+		        });
+		};
+
 $(document).ready(function() {
 	console.log('document.ready');
+
+	// Force toaster notifications to show how long until they go away
+	toastr.options.progressBar = true;
 
 	// All preperatory stuff
 	$( '.nav-authed' ).hide();
@@ -68,4 +99,5 @@ $(document).ready(function() {
 		$( '#loginDialog' ).modal('show');
 		$( "#login-username" ).focus();
 	}
+
 });

@@ -13,6 +13,12 @@ type NullString struct {
 	sql.NullString
 }
 
+func NewNullStringValue(s string) NullString {
+	v := NullString{}
+	v.String = s
+	return v
+}
+
 func (s NullString) MarshalJSON() ([]byte, error) {
 	if !s.Valid {
 		return []byte("null"), nil

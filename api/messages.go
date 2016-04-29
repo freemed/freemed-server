@@ -44,7 +44,7 @@ func MessagesListUsers(enc encoder.Encoder, r render.Render) {
 	return
 }
 
-func MessagesView(req *http.Request, enc encoder.Encoder, r render.Render) {
+func MessagesView(req *http.Request, enc encoder.Encoder, r render.Render, session common.SessionModel) {
 	var o []model.MessagesModel
 	q := req.URL.Query()
 
@@ -60,15 +60,15 @@ func MessagesView(req *http.Request, enc encoder.Encoder, r render.Render) {
 
 	if patient != 0 {
 		if unread_only {
-			_, err = model.DbMap.Select(&o, "SELECT * FROM "+model.TABLE_MESSAGES+" WHERE LENGTH(msgtag) < 1 AND msgpatient = ? AND msgread=0 AND msgtag=''", patient)
+			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgread=0 AND m.msgby = ?", patient, session.UserId)
 		} else {
-			_, err = model.DbMap.Select(&o, "SELECT * FROM "+model.TABLE_MESSAGES+" WHERE LENGTH(msgtag) < 1 AND msgpatient = ?", patient)
+			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgfor = ?", patient, session.UserId)
 		}
 	} else {
 		if unread_only {
-			_, err = model.DbMap.Select(&o, "SELECT * FROM "+model.TABLE_MESSAGES+" WHERE LENGTH(msgtag) < 1 AND msgfor = ? AND msgread=0 AND msgtag=''", patient)
+			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ? AND m.msgread = 0", session.UserId)
 		} else {
-			_, err = model.DbMap.Select(&o, "SELECT * FROM "+model.TABLE_MESSAGES+" WHERE LENGTH(msgtag) < 1 AND msgfor = ?", patient)
+			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ?", session.UserId)
 		}
 	}
 
@@ -125,7 +125,7 @@ func MessageSend(msg model.MessagesModel, session common.SessionModel, enc encod
 	msg.Sent = time.Now()
 
 	// Set unique key
-	msg.Unique = fmt.Sprintf("%d", time.Now().Unix())
+	msg.Unique = model.NewNullStringValue(fmt.Sprintf("%d", time.Now().Unix()))
 
 	err := model.MessageSend(msg)
 	if err != nil {

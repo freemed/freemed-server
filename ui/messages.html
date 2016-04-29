@@ -2,12 +2,50 @@
 <h1 class="title">Messages</h1>
 
 <script>
+function Message(data) {
+	this.sender = ko.observable(data.sender);
+	this.msgtime = ko.observable(data.msgtime);
+	this.msgsubject = ko.observable(data.msgsubject);
+}
+
+function MessagesViewModel() {
+	var self = this;
+	self.messages = ko.observableArray([]);
+
+	$.ApiGET("/messages/view", function(d) {
+		self.messages($.map(d, function(m) { return new Message(m); }));
+	});
+}
+
 $(document).ready(function() {
 	// Menu selection
 	selectMenu('messages');
 
-	// Loading code
-	$('#patientPanel DIV.panel-body').html('Loaded.');
+	ko.applyBindings(new MessagesViewModel());
 });
 </script>
+
+<div class="btn-toolbar" role="toolbar" aria-label="Toolbar">
+	<div class="btn-group" role="group" aria-label="New">
+		 <button type="button" class="btn btn-default" onClick="loadPage('messages.compose');"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New</button>
+	</div>
+	<div class="btn-group" role="group" aria-label="Mark as Read">
+		<button type="button" class="btn btn-default"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Mark as Read</button>
+	</div>
+</div>
+
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>Sender</th>
+			<th>Subject</th>
+		</tr>
+	</thead>
+	<tbody data-bind="foreach: messages" class="koform">
+		<tr>
+			<td data-bind="text: sender"></td>
+			<td data-bind="text: msgsubject"></td>
+		</tr>
+	</tbody>
+</table>
 
