@@ -17,6 +17,8 @@ Uses:
  * [Bootstrap](http://getbootstrap.com): Responsive framework
  * [Bootstrap-Switch](http://www.bootstrap-switch.org): Switches for Bootstrap
  * [Knockout](http://knockoutjs.com/): MVVM UI toolkit
+ * [Knockout.Mapping](https://github.com/SteveSanderson/knockout.mapping): Automatic JS object mapping for Knockout
+ * [toastr](https://github.com/CodeSeven/toastr): Toaster widget
 
 Code in this repository can be run against a valid FreeMED 0.9.x series database with no modifications.
 

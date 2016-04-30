@@ -5,11 +5,11 @@ import (
 )
 
 var (
-	ApiMap   = map[string]ApiMapping{ }
+	ApiMap = map[string]ApiMapping{}
 )
 
 type ApiMapping struct {
-	Authenticated bool
-	JsonArmored bool
+	Authenticated  bool
+	JsonArmored    bool
 	RouterFunction func(martini.Router)
 }
