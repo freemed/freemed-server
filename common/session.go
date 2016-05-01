@@ -29,6 +29,18 @@ type SessionModel struct {
 	SessionData []byte `json:"session_data"`
 }
 
+// SessionFromMap is a horror-show hack, designed to get around an annoying
+// limitation in Gin which encodes the SessionModel object as a
+// map[string]interface{} within another one.
+func SessionFromMap(m map[string]interface{}) SessionModel {
+	return SessionModel{
+		SessionId: m["session_id"].(string),
+		UserId:    int64(m["user_id"].(float64)),
+		Expires:   int64(m["expiry_time"].(float64)),
+		//SessionData: m["session_data"].([]byte),
+	}
+}
+
 func (s *SessionConnector) Connect() error {
 	s.client = redis.NewClient(&redis.Options{
 		Addr:     s.Address,

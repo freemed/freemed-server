@@ -3,7 +3,6 @@ package model
 import (
 	"database/sql"
 	"github.com/freemed/freemed-server/common"
-	"github.com/martini-contrib/sessionauth"
 	"log"
 )
 
@@ -37,12 +36,6 @@ func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_USER, Obj: UserModel{}, Key: "Id"})
 }
 
-// GetAnonymousUser should generate an anonymous user model
-// for all sessions. This should be an unauthenticated 0 value struct.
-func GenerateAnonymousUser() sessionauth.User {
-	return &UserModel{}
-}
-
 // Login will preform any actions that are required to make a user model
 // officially authenticated.
 func (u *UserModel) Login() {
@@ -68,10 +61,24 @@ func (u *UserModel) UniqueId() interface{} {
 	return u.Id
 }
 
+// GetUserByName will populate a user object from a database model with
+// a matching id.
+func GetUserByName(username string) (UserModel, error) {
+	var u UserModel
+	err := DbMap.SelectOne(&u, "SELECT * FROM "+TABLE_USER+" WHERE username = ?", username)
+	return u, err
+}
+
+func GetUserById(userId string) (UserModel, error) {
+	var u UserModel
+	err := DbMap.SelectOne(&u, "SELECT * FROM "+TABLE_USER+" WHERE id = ?", userId)
+	return u, err
+}
+
 // GetById will populate a user object from a database model with
 // a matching id.
 func (u *UserModel) GetById(id interface{}) error {
-	err := DbMap.SelectOne(u, "SELECT * FROM "+TABLE_USER+" WHERE id = $1", id)
+	err := DbMap.SelectOne(u, "SELECT * FROM "+TABLE_USER+" WHERE id = ?", id)
 	if err != nil {
 		return err
 	}

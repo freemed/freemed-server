@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/encoder"
-	"github.com/martini-contrib/render"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 )
@@ -19,8 +16,8 @@ func init() {
 	common.ApiMap["zipcodes"] = common.ApiMapping{
 		Authenticated: true,
 		JsonArmored:   true,
-		RouterFunction: func(r martini.Router) {
-			r.Get("/picklist/:param", CityStateZipPicklist)
+		RouterFunction: func(r *gin.RouterGroup) {
+			r.GET("/picklist/:param", CityStateZipPicklist)
 		},
 	}
 }
@@ -30,18 +27,14 @@ type cszPicklistObj struct {
 	Id       string `json:"id" binding:"required"`
 }
 
-func CityStateZipPicklist(enc encoder.Encoder, r render.Render, params martini.Params) {
+func CityStateZipPicklist(r *gin.Context) {
 	var o []model.ZipcodesModel
 	var buf bytes.Buffer
+	var err error
 
-	if _, ok := params["param"]; !ok {
-		r.JSON(http.StatusInternalServerError, false)
-		return
-	}
-	param, err := url.QueryUnescape(params["param"])
-	if err != nil {
-		log.Print(err.Error())
-		r.JSON(http.StatusInternalServerError, false)
+	param := r.Param("param")
+	if param == "" {
+		r.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 	log.Print("CityStateZipPicklist(): param = '" + param + "'")
@@ -80,7 +73,7 @@ func CityStateZipPicklist(enc encoder.Encoder, r render.Render, params martini.P
 
 	if err != nil {
 		log.Print(err.Error())
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

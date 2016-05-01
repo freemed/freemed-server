@@ -9,7 +9,7 @@ Refactoring of **FreeMED** in Golang / Martini.
 Uses:
 
  * [Go](https://golang.org/): Efficient programming language
- * [Martini](http://martini.codegangsta.io/): Web framework for Go
+ * [Gin](https://github.com/gin-gonic/gin/): Web framework for Go
  * [GORP](http://github.com/go-gorp/gorp): Db access layer
  * [Go-MySQL-Driver](http://github.com/go-sql-driver/mysql): MySQL driver
  * [go-redis](https://github.com/go-redis/redis): Redis driver
@@ -26,4 +26,8 @@ Code in this repository can be run against a valid FreeMED 0.9.x series database
 
  * **Redis Sessions**. Sessions are stored in Redis, to decrease load on the MySQL server. (TODO: Move to Redis cluster for full redundancy)
  * **Authentication**. Switched from cookies to renewable ``Bearer`` Authorization headers.
+
+## Other CC/Opensource Resources
+
+ * Background image : [CC BY-SA 2.0](https://commons.wikimedia.org/wiki/Category:Medical#/media/File:Laptop_and_stethoscope_%286123892769%29.jpg)
 

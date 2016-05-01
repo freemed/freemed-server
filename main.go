@@ -6,8 +6,7 @@ import (
 	_ "github.com/freemed/freemed-server/api"
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strings"
@@ -25,7 +24,8 @@ var (
 	REDIS_HOST     = flag.String("redis-host", "localhost:6379", "Redis database host")
 	REDIS_PASSWORD = flag.String("redis-password", "", "Redis database password")
 	REDIS_DBID     = flag.Int("redis-database-id", 0, "Redis database ID")
-	SESSION_LENGTH = flag.Int("session-length", 600, "Session expiry in seconds")
+	SESSION_LENGTH = flag.Int("session-length", 60, "Session/token expiry in minutes")
+	SESSION_KEY    = flag.String("session-key", "12345", "Session secret key")
 )
 
 func main() {
@@ -53,31 +53,42 @@ func main() {
 	}
 
 	log.Print("Initializing web services")
-	m := martini.Classic()
+	m := gin.New()
+	m.Use(gin.Logger())
+	m.Use(gin.Recovery())
 
-	m.Use(render.Renderer())
+	// Serve up the static UI...
+	m.Static("/ui", "./ui")
 
-	static := Static("ui", StaticOptions{
-		Exclude: "/api",
+	// ... with a redirection for the root page
+	m.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "./ui/index.html")
 	})
 
+	// All authorized pieces live in /api
+	a := m.Group("/api")
+
+	// JWT pieces
+	auth := m.Group("/auth")
+	auth.POST("/login", getAuthMiddleware().LoginHandler)
+	auth.GET("/refresh_token", getAuthMiddleware().RefreshHandler)
+	auth.DELETE("/logout", authMiddlewareLogout)
+	auth.GET("/logout", authMiddlewareLogout) // for compatibility -- really shouldn't use this
+
+	// Iterate through initializing API maps
 	for k, v := range common.ApiMap {
-		mw := make([]martini.Handler, 0)
 		f := make([]string, 0)
 		if v.Authenticated {
-			mw = append(mw, TokenFunc(common.TokenAuthFunc))
 			f = append(f, "AUTH")
-		}
-		if v.JsonArmored {
-			mw = append(mw, common.ContentMiddleware)
-			f = append(f, "JSON")
 		}
 
 		log.Printf("Adding handler /api/%s [%s]", k, strings.Join(f, ","))
-		m.Group("/api/"+k, v.RouterFunction, mw...)
+		g := a.Group("/" + k)
+		if v.Authenticated {
+			g.Use(getAuthMiddleware().MiddlewareFunc())
+		}
+		v.RouterFunction(g)
 	}
-
-	m.NotFound(static, http.NotFound)
 
 	if *HTTPS_KEY != "" && *HTTPS_CERT != "" {
 		log.Printf("Launching https on port :%d", *HTTPS_PORT)

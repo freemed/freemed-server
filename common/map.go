@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/go-martini/martini"
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -11,5 +11,5 @@ var (
 type ApiMapping struct {
 	Authenticated  bool
 	JsonArmored    bool
-	RouterFunction func(martini.Router)
+	RouterFunction func(*gin.RouterGroup)
 }

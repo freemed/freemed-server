@@ -3,10 +3,7 @@ package api
 import (
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
-	"github.com/go-martini/martini"
-	//"github.com/martini-contrib/binding"
-	"github.com/martini-contrib/encoder"
-	"github.com/martini-contrib/render"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 )
@@ -15,13 +12,13 @@ func init() {
 	common.ApiMap["userinterface"] = common.ApiMapping{
 		Authenticated: true,
 		JsonArmored:   true,
-		RouterFunction: func(r martini.Router) {
+		RouterFunction: func(r *gin.RouterGroup) {
 			// GetCurrentUsername
-			r.Get("/CurrentUsername", UserInterface_GetCurrentUsername)
+			r.GET("/CurrentUsername", UserInterface_GetCurrentUsername)
 			// GetCurrentProvider
-			r.Get("/CurrentProvider", UserInterface_GetCurrentProvider)
+			r.GET("/CurrentProvider", UserInterface_GetCurrentProvider)
 			// CheckDuplicate
-			r.Get("/CheckDuplicate/:username", UserInterface_CheckDuplicate)
+			r.GET("/CheckDuplicate/:username", UserInterface_CheckDuplicate)
 			// GetUsers
 			// GetEmrConfiguration
 			// GetNewMessages
@@ -38,11 +35,18 @@ func init() {
 	}
 }
 
-func UserInterface_GetCurrentUsername(session common.SessionModel, enc encoder.Encoder, r render.Render) {
+func UserInterface_GetCurrentUsername(r *gin.Context) {
+	session, err := common.GetSession(r)
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
 	u, err := model.DbMap.Get(model.UserModel{}, session.UserId)
 	if err != nil {
 		log.Print(err.Error())
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -50,11 +54,18 @@ func UserInterface_GetCurrentUsername(session common.SessionModel, enc encoder.E
 	return
 }
 
-func UserInterface_GetCurrentProvider(session common.SessionModel, enc encoder.Encoder, r render.Render) {
+func UserInterface_GetCurrentProvider(r *gin.Context) {
+	session, err := common.GetSession(r)
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
 	providerId, err := model.DbMap.SelectInt("SELECT IFNULL(userrealphy,0) FROM user WHERE id = ?", session.UserId)
 	if err != nil {
 		log.Print(err.Error())
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -62,18 +73,24 @@ func UserInterface_GetCurrentProvider(session common.SessionModel, enc encoder.E
 	return
 }
 
-func UserInterface_CheckDuplicate(session common.SessionModel, params martini.Params, enc encoder.Encoder, r render.Render) {
-	var username string
-	var ok bool
-	if username, ok = params["username"]; !ok {
-		r.JSON(http.StatusInternalServerError, false)
+func UserInterface_CheckDuplicate(r *gin.Context) {
+	//session, err := common.GetSession(r)
+	//if err != nil {
+	//	log.Print(err.Error())
+	//	r.AbortWithError(http.StatusInternalServerError, err)
+	//	return
+	//}
+
+	username := r.Param("username")
+	if username == "" {
+		r.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
 	c, err := model.DbMap.SelectInt("SELECT COUNT(*) FROM user WHERE username = ?", username)
 	if err != nil {
 		log.Print(err.Error())
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

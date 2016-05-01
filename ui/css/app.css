@@ -32,6 +32,14 @@ H4#nav-title {
  *	LOGIN FORM
  */
 
+BODY {
+	background: url(../img/Laptop_and_stethoscope.jpg) no-repeat center center fixed;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+}
+
 
 /* Centered signin button */
 #signinControls {

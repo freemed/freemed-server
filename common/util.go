@@ -3,11 +3,10 @@ package common
 import (
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/encoder"
+	"github.com/gin-gonic/gin"
 	"log"
-	"net/http"
 	"time"
 )
 
@@ -28,17 +27,6 @@ func SleepFor(sec int64) {
 	}
 }
 
-func ContentMiddleware(c martini.Context, w http.ResponseWriter, r *http.Request) {
-	switch r.Header.Get("Content-Type") {
-	case "application/xml":
-		c.MapTo(encoder.XmlEncoder{}, (*encoder.Encoder)(nil))
-		w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-	default:
-		c.MapTo(encoder.JsonEncoder{}, (*encoder.Encoder)(nil))
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	}
-}
-
 func JsonEncode(o interface{}) []byte {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -46,4 +34,21 @@ func JsonEncode(o interface{}) []byte {
 		return []byte("false")
 	}
 	return b
+}
+
+// GetSession returns the SessionModel associated with the current session from JWT_PAYLOAD
+func GetSession(c *gin.Context) (SessionModel, error) {
+	jwtPayload, ok := c.Get("JWT_PAYLOAD")
+	if !ok {
+		return SessionModel{}, errors.New("JWT_PAYLOAD not found")
+	}
+	switch v := jwtPayload.(type) {
+	default:
+		log.Printf("GetSession(): Unexpected type %T", v)
+		return SessionModel{}, errors.New(fmt.Sprintf("JWT_PAYLOAD has type %T", v))
+	case map[string]interface{}:
+		payloadMap := jwtPayload.(map[string]interface{})
+		log.Printf("session map : %v", payloadMap["session"])
+		return SessionFromMap(payloadMap["session"].(map[string]interface{})), nil
+	}
 }

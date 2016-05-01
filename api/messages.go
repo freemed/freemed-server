@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/binding"
-	"github.com/martini-contrib/encoder"
-	"github.com/martini-contrib/render"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,11 +15,11 @@ func init() {
 	common.ApiMap["messages"] = common.ApiMapping{
 		Authenticated: true,
 		JsonArmored:   true,
-		RouterFunction: func(r martini.Router) {
-			r.Get("/list_users", MessagesListUsers)
-			r.Get("/view", MessagesView)
-			r.Get("/view/:id", MessageGet)
-			r.Post("/send", binding.Json(model.MessagesModel{}, MessageSend))
+		RouterFunction: func(r *gin.RouterGroup) {
+			r.GET("/list_users", MessagesListUsers)
+			r.GET("/view", MessagesView)
+			r.GET("/view/:id", MessageGet)
+			r.POST("/send", MessageSend)
 		},
 	}
 }
@@ -32,28 +29,34 @@ type messagesUserObj struct {
 	Id       string `json:"id" binding:"required"`
 }
 
-func MessagesListUsers(enc encoder.Encoder, r render.Render) {
+func MessagesListUsers(r *gin.Context) {
 	var o []messagesUserObj
 	_, err := model.DbMap.Select(&o, "SELECT username, id FROM "+model.TABLE_USER)
 	if err != nil {
 		log.Print(err.Error())
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, o)
 	return
 }
 
-func MessagesView(req *http.Request, enc encoder.Encoder, r render.Render, session common.SessionModel) {
-	var o []model.MessagesModel
-	q := req.URL.Query()
+func MessagesView(r *gin.Context) {
+	session, err := common.GetSession(r)
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-	unread_only, err := strconv.ParseBool(q.Get("unread_only"))
+	var o []model.MessagesModel
+
+	unread_only, err := strconv.ParseBool(r.Query("unread_only"))
 	if err != nil {
 		unread_only = false
 	}
 
-	patient, err := strconv.ParseInt(q.Get("patient"), 10, 64)
+	patient, err := strconv.ParseInt(r.Query("patient"), 10, 64)
 	if err != nil {
 		patient = 0
 	}
@@ -74,40 +77,46 @@ func MessagesView(req *http.Request, enc encoder.Encoder, r render.Render, sessi
 
 	if err != nil {
 		log.Print(err.Error())
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, o)
 	return
 }
 
-func MessageGet(session common.SessionModel, params martini.Params, enc encoder.Encoder, r render.Render) {
-	var idString string
-	var ok bool
-	if idString, ok = params["id"]; !ok {
+func MessageGet(r *gin.Context) {
+	session, err := common.GetSession(r)
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	idString := r.Param("id")
+	if idString == "" {
 		log.Print("MessageGet(): No id provided")
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
 	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
 		log.Print(err.Error())
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	msg, err := model.MessageById(id)
 	if err != nil {
 		log.Print(err.Error())
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	// Access control: do not allow access from other user
 	if msg.For != session.UserId {
 		log.Print("MessageGet(): not allowed")
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
@@ -115,8 +124,20 @@ func MessageGet(session common.SessionModel, params martini.Params, enc encoder.
 	return
 }
 
-func MessageSend(msg model.MessagesModel, session common.SessionModel, enc encoder.Encoder, r render.Render) {
+func MessageSend(r *gin.Context) {
+	session, err := common.GetSession(r)
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 	log.Printf("MessageSend(): user=%d", session.UserId)
+
+	var msg model.MessagesModel
+	if r.BindJSON(&msg) == nil {
+		r.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
 	// Ensure that we can't send as any other user
 	msg.Sender = session.UserId
@@ -127,10 +148,10 @@ func MessageSend(msg model.MessagesModel, session common.SessionModel, enc encod
 	// Set unique key
 	msg.Unique = model.NewNullStringValue(fmt.Sprintf("%d", time.Now().Unix()))
 
-	err := model.MessageSend(msg)
+	err = model.MessageSend(msg)
 	if err != nil {
 		log.Print(err)
-		r.JSON(http.StatusInternalServerError, false)
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

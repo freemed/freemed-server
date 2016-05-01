@@ -10,12 +10,12 @@ function authenticated() {
 
 function login() {
 	$.ajax({
-		url: apiBase + "/auth/login",
+		url: apiBase + "/../auth/login",
 		method: "POST",
 		contentType: "application/json",
 		data: JSON.stringify({
-			user: $('#login-username').val(),
-			pass: $('#login-password').val()
+			username: $('#login-username').val(),
+			password: $('#login-password').val()
 		}),
 		error: function(x){
 			console.log(JSON.stringify(x));
@@ -24,7 +24,7 @@ function login() {
 			loginStateChange(false, null);
 		},
 		success: function(data){
-			sessionId = data.session_id;
+			sessionId = data.token;
 			loginStateChange(true, function() {
 				$('#login-password').val(''); // Clear password, for security purposes
 				console.log('cb: sessionId = ' + sessionId);
@@ -53,7 +53,7 @@ function loginStateChange(loggedin, cb) {
 
 function logout() {
 	$.ajax({
-		url: apiBase + "/auth/logout",
+		url: apiBase + "/../auth/logout",
 		method: "DELETE",
 		contentType: "application/json",
 		beforeSend: sessionAuth,
