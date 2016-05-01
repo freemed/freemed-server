@@ -15,7 +15,6 @@ import (
 func init() {
 	common.ApiMap["zipcodes"] = common.ApiMapping{
 		Authenticated: true,
-		JsonArmored:   true,
 		RouterFunction: func(r *gin.RouterGroup) {
 			r.GET("/picklist/:param", CityStateZipPicklist)
 		},

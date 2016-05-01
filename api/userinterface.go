@@ -11,7 +11,6 @@ import (
 func init() {
 	common.ApiMap["userinterface"] = common.ApiMapping{
 		Authenticated: true,
-		JsonArmored:   true,
 		RouterFunction: func(r *gin.RouterGroup) {
 			// GetCurrentUsername
 			r.GET("/CurrentUsername", UserInterface_GetCurrentUsername)

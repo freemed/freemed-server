@@ -11,7 +11,6 @@ import (
 func init() {
 	common.ApiMap["emr/data_store"] = common.ApiMapping{
 		Authenticated: true,
-		JsonArmored:   false,
 		RouterFunction: func(r *gin.RouterGroup) {
 			r.GET("/get/:patient/:module/:id", DataStoreGet)
 			//r.PUT("/put", DataStorePut)

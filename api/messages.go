@@ -14,7 +14,6 @@ import (
 func init() {
 	common.ApiMap["messages"] = common.ApiMapping{
 		Authenticated: true,
-		JsonArmored:   true,
 		RouterFunction: func(r *gin.RouterGroup) {
 			r.GET("/list_users", MessagesListUsers)
 			r.GET("/view", MessagesView)

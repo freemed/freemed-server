@@ -4,7 +4,7 @@
 
 [![GoDoc](https://godoc.org/github.com/freemed/freemed-server?status.png)](https://godoc.org/github.com/freemed/freemed-server)
 
-Refactoring of **FreeMED** in Golang / Martini.
+Refactoring of **FreeMED** in Golang / Gin.
 
 Uses:
 

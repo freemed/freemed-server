@@ -10,6 +10,5 @@ var (
 
 type ApiMapping struct {
 	Authenticated  bool
-	JsonArmored    bool
 	RouterFunction func(*gin.RouterGroup)
 }
