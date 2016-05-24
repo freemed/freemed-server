@@ -133,8 +133,8 @@ func MessageSend(r *gin.Context) {
 	log.Printf("MessageSend(): user=%d", session.UserId)
 
 	var msg model.MessagesModel
-	if r.BindJSON(&msg) == nil {
-		r.AbortWithStatus(http.StatusBadRequest)
+	if err = r.BindJSON(&msg); err != nil {
+		r.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
