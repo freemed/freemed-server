@@ -48,6 +48,7 @@ function loginStateChange(loggedin, cb) {
 		console.log('Login failed');
 		$( 'LI.nav-authed' ).hide();
 		$( '#loginDialog' ).modal('show');
+		$( '#login-username' ).focus();
 	}
 } // end function loginStateChange
 
