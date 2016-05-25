@@ -24,17 +24,17 @@ var sessionId = "";
 $(document).ready(function() {
 
 	$.ajax({
-		url: base + "/auth/login",
+		url: base + "/../auth/login",
 		method: "POST",
 		contentType: "application/json",
 		data: JSON.stringify({
-			user: "root",
-			pass: "password"
+			username: "root",
+			password: "password"
 		}),
 		error: function(x){ alert(JSON.stringify(x)); },
 		success: function(data){
 			$('#debug').append("<p>/auth/login: " + JSON.stringify(data) + "</p>");
-			sessionId = data.session_id;
+			sessionId = data.token;
 			$('#debug').append('<p>session: ' + sessionId + '</p>');
 	
 			test_listMessagesUsers();
@@ -83,10 +83,27 @@ function test_messagesView() {
 		error: showError,
 		success: function(data){
 			$('#debug').append("<p>/messages/view: " + JSON.stringify(data) + "</p>");
-			test_zipcodesPicklist();
+			test_patientCalls();
 		}
 	});
 } // test_messagesView
+
+function test_patientCalls() {
+	$.ajax({
+		url: base + "/patient/search",
+		method: "POST",
+		data: JSON.stringify({
+			age: 61
+		}),
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		error: showError,
+		success: function(data){
+			$('#debug').append("<p>/patient/search: " + JSON.stringify(data) + "</p>");
+			test_zipcodesPicklist();
+		}
+	});
+} // test_patientCalls
 
 function test_zipcodesPicklist() {
 	$.ajax({
@@ -124,7 +141,7 @@ function test_zipcodesPicklist() {
 
 function test_logout() {
 	$.ajax({
-		url: base + "/auth/logout",
+		url: base + "/../auth/logout",
 		method: "DELETE",
 		contentType: "application/json",
 		beforeSend: sessionAuth,
