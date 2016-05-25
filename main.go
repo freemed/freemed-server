@@ -3,9 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/braintree/manners"
 	_ "github.com/freemed/freemed-server/api"
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
+	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -57,8 +59,12 @@ func main() {
 	m.Use(gin.Logger())
 	m.Use(gin.Recovery())
 
+	// Enable gzip compression
+	m.Use(gzip.Gzip(gzip.DefaultCompression))
+
 	// Serve up the static UI...
 	m.Static("/ui", "./ui")
+	m.StaticFile("/favicon.ico", "./ui/favicon.ico")
 
 	// ... with a redirection for the root page
 	m.GET("/", func(c *gin.Context) {
@@ -93,15 +99,11 @@ func main() {
 	if *HTTPS_KEY != "" && *HTTPS_CERT != "" {
 		log.Printf("Launching https on port :%d", *HTTPS_PORT)
 		go func() {
-			if err := http.ListenAndServeTLS(fmt.Sprintf(":%d", *HTTPS_PORT), *HTTPS_CERT, *HTTPS_KEY, m); err != nil {
-				log.Fatal(err)
-			}
+			log.Fatal(manners.ListenAndServeTLS(fmt.Sprintf(":%d", *HTTP_PORT), *HTTPS_CERT, *HTTPS_KEY, m))
 		}()
 	}
 
 	// HTTP
 	log.Printf("Launching http on port :%d", *HTTP_PORT)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", *HTTP_PORT), m); err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(manners.ListenAndServe(fmt.Sprintf(":%d", *HTTP_PORT), m))
 }

@@ -20,6 +20,7 @@ Uses:
  * [Knockout](http://knockoutjs.com/): MVVM UI toolkit
  * [Knockout.Mapping](https://github.com/SteveSanderson/knockout.mapping): Automatic JS object mapping for Knockout
  * [toastr](https://github.com/CodeSeven/toastr): Toaster widget
+ * [manners](https://github.com/braintree/manners): Graceful http/https serving
 
 Code in this repository can be run against a valid FreeMED 0.9.x series database with no modifications.
 
