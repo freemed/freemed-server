@@ -2,6 +2,7 @@
 
 [![Build Status](https://secure.travis-ci.org/freemed/freemed-server.png)](http://travis-ci.org/freemed/freemed-server)
 [![Go Report Card](https://goreportcard.com/badge/github.com/freemed/freemed-server)](https://goreportcard.com/report/github.com/freemed/freemed-server)
+[![codecov](https://codecov.io/gh/freemed/freemed-server/branch/master/graph/badge.svg)](https://codecov.io/gh/freemed/freemed-server)
 [![GoDoc](https://godoc.org/github.com/freemed/freemed-server?status.png)](https://godoc.org/github.com/freemed/freemed-server)
 [![Join the chat at https://gitter.im/gin-gonic/gin](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/freemed/freemed-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
