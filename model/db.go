@@ -14,6 +14,7 @@ var (
 	DbPass   string
 	DbName   string
 	DbHost   string
+	DbFlags  = "parseTime=true&multiStatements=true"
 )
 
 type DbTable struct {
@@ -23,7 +24,7 @@ type DbTable struct {
 }
 
 func InitDb() *gorp.DbMap {
-	dbobj, err := sql.Open("mysql", DbUser+":"+DbPass+"@/"+DbName+"?parseTime=true")
+	dbobj, err := sql.Open("mysql", DbUser+":"+DbPass+"@/"+DbName+"?"+DbFlags)
 	if err != nil {
 		log.Fatalln("initDb: Fail to create database", err)
 	}
