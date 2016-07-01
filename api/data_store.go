@@ -39,9 +39,8 @@ func DataStoreGet(r *gin.Context) {
 		return
 	}
 
-	// FIXME: THIS PROBABLY NEEDS TO DIRECTLY RETURN []BYTE
-	var content string
-	_, err := model.DbMap.SelectStr(content, "SELECT contents FROM pds WHERE patient = ? AND module = LOWER(?) AND id = ?", patient, module, id)
+	var content []byte
+	err := model.DbMap.SelectOne(&content, "SELECT contents FROM pds WHERE patient = ? AND module = LOWER(?) AND id = ?", patient, module, id)
 	if err != nil {
 		log.Print(err.Error())
 		r.JSON(http.StatusInternalServerError, false)
@@ -49,6 +48,6 @@ func DataStoreGet(r *gin.Context) {
 	}
 
 	// TODO: FIXME: Need to properly determine mimetype
-	r.Data(http.StatusOK, "application/x-binary", []byte(content))
+	r.Data(http.StatusOK, "application/x-binary", content)
 	return
 }

@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	TABLE_PATIENT = "patient"
+	TABLE_PATIENT         = "patient"
 	TABLE_PATIENT_ADDRESS = "patient_address"
 )
 
