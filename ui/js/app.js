@@ -27,13 +27,14 @@ function displayError( err ) {
 function loadPage( id ) {
 	console.log('Loading page ' + id);
 
-	// Unload knockout bindings, if there are any
-	$('.koform').each(function(idx) {
-		ko.unapplyBindings($( this ), true);
-	});
-
 	var ts = new Date().getTime();
+
+	if (id != 'login-splash') {
+		console.log('Removing bindings from #mainFrame');
+		ko.cleanNode($('#mainFrame')[0]);
+	}
 	$( '#mainFrame' ).hide( );
+
 	$( '#mainFrame' ).load( './' + id + '.html?ts=' + ts, function() {
 		console.log('Page fragment load completed.');
 		$( '#nav-title' ).html( $( 'H1.title' ).html() );
@@ -56,17 +57,7 @@ function selectMenu( item ) {
 	$( '#navbar UL.navbar-nav LI.page-' + item ).addClass('active');
 } // end function selectMenu
 
-ko.unapplyBindings = function ($node, remove) {
-	$node.find("*").each(function () {
-		$(this).unbind();
-	});
-	if (remove) {
-		ko.removeNode($node[0]);
-	} else {
-		ko.cleanNode($node[0]);
-	}
-};
-
+// $.ApiGet() wraps an API call with proper authentication and error handling.
 window.jQuery.ApiGET = function(apipath, successFunc) {
 		        $.ajax({
 		                url: apiBase + apipath,

@@ -21,7 +21,7 @@ $(document).ready(function() {
 	// Menu selection
 	selectMenu('messages');
 
-	ko.applyBindings(new MessagesViewModel());
+	ko.applyBindings(new MessagesViewModel(), document.getElementById('mainFrame'));
 });
 </script>
 
@@ -41,7 +41,7 @@ $(document).ready(function() {
 			<th>Subject</th>
 		</tr>
 	</thead>
-	<tbody data-bind="foreach: messages" class="koform">
+	<tbody data-bind="foreach: messages">
 		<tr>
 			<td data-bind="text: sender"></td>
 			<td data-bind="text: msgsubject"></td>

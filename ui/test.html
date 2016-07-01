@@ -103,6 +103,17 @@ function test_patientCalls() {
 			test_zipcodesPicklist();
 		}
 	});
+/*
+	$.ajax({
+		url: "/api/patient/1/info",
+		method: "GET",
+		contentType: "application/json",
+		beforeSend: sessionAuth,
+		success: function(data){
+			console.log("/patient/1/info: " + JSON.stringify(data));
+		}
+	});
+*/
 } // test_patientCalls
 
 function test_zipcodesPicklist() {

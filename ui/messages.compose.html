@@ -2,24 +2,56 @@
 <h1 class="title">Messages: Compose</h1>
 
 <script>
-function MessageModel() {
-	
-}
-
+var messageModel = {
+	cancel: function() {
+		// Cancel action will go back to messages view
+		loadPage( 'messages' );	
+	},
+	submit: function() {
+		console.log("messageModel.submit");
+		// TODO: POST DATA
+	},
+	msgfor: ko.observable(),
+	msgsubject: ko.observable(),
+	msgtext: ko.observable()
+};
 
 $(document).ready(function() {
 	// Menu selection
 	selectMenu('messages.compose');
 
-	// Loading code: TODO
+	// Loading code
+	ko.applyBindings(messageModel, document.getElementById('mainFrame'));
 });
 </script>
 
-<form>
+<div class="panel panel-default">
+	<div class="panel-heading">New Message</div>
+	<div class="panel-body">
 
-<div class="input-group">
-	<label for=""></label>
-	<input name="msgsubject" id="msgsubject" type="text">
-</div>
+		<form>
 
-</form>
+			<div class="form-group">
+				<label for="msgfor">To</label>
+				<input name="msgfor" id="msgfor" type="text" class="form-control" data-bind="text: msgfor" />
+			</div>
+
+			<div class="form-group">
+				<label for="msgsubject">Subject</label>
+				<input name="msgsubject" id="msgsubject" type="text" class="form-control" data-bind="text: msgsubject" />
+			</div>
+
+			<div class="form-group">
+				<label for="msgtext">Message</label>
+				<textarea name="msgtext" id="msgtext" type="text" class="form-control" data-bind="text: msgtext"></textarea>
+			</div>
+
+			<button type="submit" class="btn btn-primary" disabled="disabled" data-bind="click: submit">Send</button>
+			<button type="submit" class="btn btn-default" data-bind="click: cancel">Cancel</button>
+
+		</form>
+
+	</div> <!-- /panel-body -->
+
+</div> <!-- /panel -->
+
