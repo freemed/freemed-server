@@ -14,9 +14,9 @@ func init() {
 	common.ApiMap["patient"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.GET("/:id/info", PatientInformation)
-			r.GET("/:id/attachments", PatientEmrAttachments)
-			r.GET("/:id/attachments/:module", PatientEmrAttachments)
+			r.GET("/:id/info", patientInformation)
+			r.GET("/:id/attachments", patientEmrAttachments)
+			r.GET("/:id/attachments/:module", patientEmrAttachments)
 		},
 	}
 }
@@ -32,10 +32,10 @@ type patientEmrAttachmentsResult struct {
 	ModuleName  string           `db:"type" json:"module_name"`
 	ModuleClass string           `db:"module_namespace" json:"module_namespace"`
 	Locked      int              `db:"locked" json:"locked"`
-	Id          int              `db:"id" json:"internal_id"`
+	ID          int              `db:"id" json:"internal_id"`
 }
 
-func PatientEmrAttachments(r *gin.Context) {
+func patientEmrAttachments(r *gin.Context) {
 	id := r.Param("id")
 	if id == "" {
 		r.AbortWithStatus(http.StatusBadRequest)
@@ -66,7 +66,7 @@ func PatientEmrAttachments(r *gin.Context) {
 
 type patientInformationResult struct {
 	Name           string `db:"patient_name" json:"patient_name"`
-	Id             string `db:"patient_id" json:"patient_id"`
+	ID             string `db:"patient_id" json:"patient_id"`
 	DateOfBirth    string `db:"date_of_birth" json:"date_of_birth"`
 	Language       string `db:"language" json:"language"`
 	DateOfBirthMDY string `db:"date_of_birth_mdy" json:"date_of_birth_mdy"`
@@ -84,7 +84,7 @@ type patientInformationResult struct {
 	Pharmacy model.NullString `db:"pharmacy" json:"pharmacy"`
 }
 
-func PatientInformation(r *gin.Context) {
+func patientInformation(r *gin.Context) {
 	id := r.Param("id")
 	if id == "" {
 		r.AbortWithStatus(http.StatusBadRequest)

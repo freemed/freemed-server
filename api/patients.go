@@ -2,23 +2,24 @@ package api
 
 import (
 	"fmt"
-	"github.com/freemed/freemed-server/common"
-	"github.com/freemed/freemed-server/model"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/model"
+	"github.com/gin-gonic/gin"
 )
 
 func init() {
 	common.ApiMap["patients"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.POST("/searchDuplicates", PatientSearchForDuplicates)
-			r.POST("/search", PatientSearch)
-			r.GET("/picklist/:param", PatientPicklist)
-			r.GET("/total", PatientTotalInSystem)
+			r.POST("/searchDuplicates", patientSearchForDuplicates)
+			r.POST("/search", patientSearch)
+			r.GET("/picklist/:param", patientPicklist)
+			r.GET("/total", patientTotalInSystem)
 		},
 	}
 }
@@ -27,18 +28,18 @@ type patientSearchResult struct {
 	LastName    string `db:"last_name" json:"last_name"`
 	FirstName   string `db:"first_name" json:"first_name"`
 	MiddleName  string `db:"middle_name" json:"middle_name"`
-	PatientId   string `db:"patient_id" json:"patient_id"`
+	PatientID   string `db:"patient_id" json:"patient_id"`
 	Age         int64  `db:"age" json:"age"`
 	DateOfBirth string `db:"date_of_birth" json:"date_of_birth"`
-	Id          int64  `db:"id" json:"id"`
+	ID          int64  `db:"id" json:"id"`
 }
 
 type picklistItem struct {
 	Value string `db:"value" json:"value"`
-	Id    int64  `db:"id" json:"id"`
+	ID    int64  `db:"id" json:"id"`
 }
 
-func PatientPicklist(r *gin.Context) {
+func patientPicklist(r *gin.Context) {
 	param := r.Param("param")
 	if param == "" {
 		r.AbortWithStatus(http.StatusBadRequest)
@@ -107,7 +108,7 @@ func PatientPicklist(r *gin.Context) {
 	return
 }
 
-func PatientSearch(r *gin.Context) {
+func patientSearch(r *gin.Context) {
 	var params gin.H
 	if err := r.BindJSON(&params); err != nil {
 		log.Print(err.Error())
@@ -199,7 +200,7 @@ func PatientSearch(r *gin.Context) {
 	return
 }
 
-func PatientTotalInSystem(r *gin.Context) {
+func patientTotalInSystem(r *gin.Context) {
 	var o int64
 	err := model.DbMap.SelectOne(&o, "SELECT COUNT(*) FROM patient WHERE ptarchive=0")
 	if err != nil {
@@ -212,7 +213,7 @@ func PatientTotalInSystem(r *gin.Context) {
 	return
 }
 
-func PatientSearchForDuplicates(r *gin.Context) {
+func patientSearchForDuplicates(r *gin.Context) {
 	var params gin.H
 	if err := r.BindJSON(&params); err != nil {
 		log.Print(err.Error())

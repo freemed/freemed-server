@@ -3,30 +3,31 @@ package api
 import (
 	"bytes"
 	"fmt"
-	"github.com/freemed/freemed-server/common"
-	"github.com/freemed/freemed-server/model"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/model"
+	"github.com/gin-gonic/gin"
 )
 
 func init() {
 	common.ApiMap["zipcodes"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.GET("/picklist/:param", CityStateZipPicklist)
+			r.GET("/picklist/:param", cityStateZipPicklist)
 		},
 	}
 }
 
 type cszPicklistObj struct {
 	Username string `json:"username" binding:"required"`
-	Id       string `json:"id" binding:"required"`
+	ID       string `json:"id" binding:"required"`
 }
 
-func CityStateZipPicklist(r *gin.Context) {
+func cityStateZipPicklist(r *gin.Context) {
 	var o []model.ZipcodesModel
 	var buf bytes.Buffer
 	var err error

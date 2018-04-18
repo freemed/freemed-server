@@ -2,33 +2,34 @@ package api
 
 import (
 	"fmt"
-	"github.com/freemed/freemed-server/common"
-	"github.com/freemed/freemed-server/model"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/model"
+	"github.com/gin-gonic/gin"
 )
 
 func init() {
 	common.ApiMap["messages"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.GET("/list_users", MessagesListUsers)
-			r.GET("/view", MessagesView)
-			r.GET("/view/:id", MessageGet)
-			r.POST("/send", MessageSend)
+			r.GET("/list_users", messagesListUsers)
+			r.GET("/view", messagesView)
+			r.GET("/view/:id", messageGet)
+			r.POST("/send", messageSend)
 		},
 	}
 }
 
 type messagesUserObj struct {
 	Username string `json:"username" binding:"required"`
-	Id       string `json:"id" binding:"required"`
+	ID       string `json:"id" binding:"required"`
 }
 
-func MessagesListUsers(r *gin.Context) {
+func messagesListUsers(r *gin.Context) {
 	var o []messagesUserObj
 	_, err := model.DbMap.Select(&o, "SELECT username, id FROM "+model.TABLE_USER)
 	if err != nil {
@@ -40,7 +41,7 @@ func MessagesListUsers(r *gin.Context) {
 	return
 }
 
-func MessagesView(r *gin.Context) {
+func messagesView(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Print(err.Error())
@@ -50,9 +51,9 @@ func MessagesView(r *gin.Context) {
 
 	var o []model.MessagesModel
 
-	unread_only, err := strconv.ParseBool(r.Query("unread_only"))
+	unreadOnly, err := strconv.ParseBool(r.Query("unread_only"))
 	if err != nil {
-		unread_only = false
+		unreadOnly = false
 	}
 
 	patient, err := strconv.ParseInt(r.Query("patient"), 10, 64)
@@ -61,13 +62,13 @@ func MessagesView(r *gin.Context) {
 	}
 
 	if patient != 0 {
-		if unread_only {
+		if unreadOnly {
 			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgread=0 AND m.msgby = ?", patient, session.UserId)
 		} else {
 			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgfor = ?", patient, session.UserId)
 		}
 	} else {
-		if unread_only {
+		if unreadOnly {
 			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ? AND m.msgread = 0", session.UserId)
 		} else {
 			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ?", session.UserId)
@@ -83,7 +84,7 @@ func MessagesView(r *gin.Context) {
 	return
 }
 
-func MessageGet(r *gin.Context) {
+func messageGet(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Print(err.Error())
@@ -123,7 +124,7 @@ func MessageGet(r *gin.Context) {
 	return
 }
 
-func MessageSend(r *gin.Context) {
+func messageSend(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Print(err.Error())

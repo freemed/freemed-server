@@ -1,24 +1,25 @@
 package api
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
-	"log"
-	"net/http"
 )
 
 func init() {
 	common.ApiMap["emr/data_store"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.GET("/get/:patient/:module/:id", DataStoreGet)
-			//r.PUT("/put", DataStorePut)
+			r.GET("/get/:patient/:module/:id", dataStoreGet)
+			//r.PUT("/put", dataStorePut)
 		},
 	}
 }
 
-func DataStoreGet(r *gin.Context) {
+func dataStoreGet(r *gin.Context) {
 	var patient, module, id string
 	patient = r.Param("patient")
 	if patient == "" {
