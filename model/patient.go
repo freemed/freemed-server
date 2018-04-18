@@ -63,9 +63,9 @@ type PatientModel struct {
 	BillingType     string     `db:"ptbilltype" json:"billing_type"`
 	PrimaryFacility int64      `db:"ptprimaryfacility" json:"primary_facility"`
 	PrimaryLanguage string     `db:"ptprimarylanguage" json:"primary_language"`
-	Patient         int64      `db:"patient" json:"patient_id"`
+	Patient         int64      `db:"patient" json:"patient"`
 	Module          string     `db:"module" json:"module"`
-	RecordId        int64      `db:"oid" json:"oid"`
+	RecordID        int64      `db:"oid" json:"oid"`
 	Stamp           time.Time  `db:"stamp" json:"stamp"`
 	Summary         string     `db:"summary" json:"summary"`
 	Locked          bool       `db:"locked" json:"locked"`

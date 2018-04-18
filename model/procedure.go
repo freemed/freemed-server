@@ -37,7 +37,7 @@ type ProcedureModel struct {
 	Authorization       int64           `db:"procauth" json:"authorization_id"`
 	ReferringProvider   int64           `db:"procrefdoc" json:"referring_provider_id"`
 	ReferralDate        NullTime        `db:"procrefdt" json:"referral_date"`
-	AmountAllowed       sql.NullFloat64 `db:"procamtallowed" json:"amount_allowed`
+	AmountAllowed       sql.NullFloat64 `db:"procamtallowed" json:"amount_allowed"`
 	BilledDate          NullTime        `db:"procdtbilled" json:"billed_date"`
 	CoverageCurrent     int64           `db:"proccurcovid" json:"current_coverage_id"`
 	CoverageCurrentType int64           `db:"proccurcovtp" json:"current_coverage_type_id"`

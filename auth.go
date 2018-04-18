@@ -34,7 +34,7 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 			PayloadFunc: func(userId string) map[string]interface{} {
 				user, err := model.GetUserByName(userId)
 				if err != nil {
-					log.Printf("PayloadFunc((): " + err.Error())
+					log.Printf("PayloadFunc((): %s", err.Error())
 				}
 				s, _ := common.ActiveSession.CreateSession(user.Id)
 				//log.Printf("PayloadFunc(): user = %s, session = %v", user, s)

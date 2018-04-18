@@ -1,12 +1,13 @@
 package api
 
 import (
-	"github.com/freemed/freemed-server/common"
-	"github.com/freemed/freemed-server/model"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/model"
+	"github.com/gin-gonic/gin"
 )
 
 func init() {
@@ -67,7 +68,7 @@ type patientInformationResult struct {
 	Name           string `db:"patient_name" json:"patient_name"`
 	Id             string `db:"patient_id" json:"patient_id"`
 	DateOfBirth    string `db:"date_of_birth" json:"date_of_birth"`
-	Language       string `db:'language" json:"language"`
+	Language       string `db:"language" json:"language"`
 	DateOfBirthMDY string `db:"date_of_birth_mdy" json:"date_of_birth_mdy"`
 	Age            string `db:"age" json:"age"`
 	Address1       string `db:"address_line_1" json:"address_line_1"`

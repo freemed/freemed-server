@@ -17,6 +17,7 @@ func init() {
 		RouterFunction: func(r *gin.RouterGroup) {
 			r.POST("/searchDuplicates", PatientSearchForDuplicates)
 			r.POST("/search", PatientSearch)
+			r.GET("/picklist/:param", PatientPicklist)
 			r.GET("/total", PatientTotalInSystem)
 		},
 	}
@@ -30,6 +31,80 @@ type patientSearchResult struct {
 	Age         int64  `db:"age" json:"age"`
 	DateOfBirth string `db:"date_of_birth" json:"date_of_birth"`
 	Id          int64  `db:"id" json:"id"`
+}
+
+type picklistItem struct {
+	Value string `db:"value" json:"value"`
+	Id    int64  `db:"id" json:"id"`
+}
+
+func PatientPicklist(r *gin.Context) {
+	param := r.Param("param")
+	if param == "" {
+		r.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	clauses := make([]string, 0)
+	params := make([]interface{}, 0)
+
+	limit := 20 // only return 20 results
+
+	var first, last, either string
+	if strings.Index(param, ",") > -1 {
+		// If there's a comma ...
+		parts := strings.SplitN(param, ",", 2)
+		last = strings.TrimSpace(parts[0])
+		first = strings.TrimSpace(parts[1])
+	} else {
+		if strings.Index(param, " ") > -1 {
+			// Space but no comma
+			parts := strings.SplitN(param, " ", 2)
+			first = strings.TrimSpace(parts[0])
+			last = strings.TrimSpace(parts[1])
+		} else {
+			either = strings.TrimSpace(param)
+		}
+	}
+
+	if either != "" {
+		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%')")
+		params = append(params, either)
+		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%')")
+		params = append(params, either)
+	}
+
+	if first != "" && last != "" {
+		clauses = append(clauses, "( ptlname LIKE CONCAT(?, '%') AND ptfname LIKE CONCAT(?, '%') )")
+		params = append(params, last)
+		params = append(params, first)
+	} else if first != "" {
+		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%')")
+		params = append(params, first)
+		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
+		params = append(params, first)
+	} else if last != "" {
+		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%')")
+		params = append(params, last)
+		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
+		params = append(params, last)
+	} else {
+		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
+		params = append(params, either)
+	}
+
+	params = append(params, limit)
+
+	query := "SELECT CONCAT(ptlname, ', ', ptfname, ' (', ptid, ')') AS value, id FROM patient WHERE ( " + strings.Join(clauses, " OR ") + " ) AND ( ISNULL(ptarchive) OR ptarchive=0 ) LIMIT ?"
+	var o []picklistItem
+	_, err := model.DbMap.Select(&o, query, params...)
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	r.JSON(http.StatusOK, o)
+	return
 }
 
 func PatientSearch(r *gin.Context) {
