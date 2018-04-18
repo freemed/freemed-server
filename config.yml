@@ -1,0 +1,23 @@
+debug: false
+database:
+  name: freemed
+  user: freemed
+  pass: freemed
+  host: 
+redis:
+  host: localhost:6379
+  pass:
+  dbid:
+web:
+  port: 3000
+  tls-port: 4000
+  keys:
+    cert:
+    key:
+paths:
+  base-path: .
+  db-migrations: db/migrations
+  logs: .
+session:
+  expiry: 10
+  key: freemed

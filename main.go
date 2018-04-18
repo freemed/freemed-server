@@ -3,53 +3,87 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
+	"net/http"
+	"runtime/pprof"
+	"strings"
+
 	"github.com/braintree/manners"
 	_ "github.com/freemed/freemed-server/api"
 	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/config"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"log"
-	"net/http"
-	"strings"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var (
-	HTTP_PORT      = flag.Int("http-port", 3000, "HTTP serving port")
-	HTTPS_PORT     = flag.Int("https-port", 3443, "HTTPS serving port")
-	HTTPS_CERT     = flag.String("https-cert", "", "HTTPS PEM certificate")
-	HTTPS_KEY      = flag.String("https-key", "", "HTTPS PEM key")
-	DB_NAME        = flag.String("db-name", "freemed", "Database name")
-	DB_USER        = flag.String("db-user", "freemed", "Database username")
-	DB_PASS        = flag.String("db-pass", "freemed", "Database password")
-	DB_HOST        = flag.String("db-host", "localhost", "Database host")
-	REDIS_HOST     = flag.String("redis-host", "localhost:6379", "Redis database host")
-	REDIS_PASSWORD = flag.String("redis-password", "", "Redis database password")
-	REDIS_DBID     = flag.Int("redis-database-id", 0, "Redis database ID")
-	SESSION_LENGTH = flag.Int("session-length", 60, "Session/token expiry in minutes")
-	SESSION_KEY    = flag.String("session-key", "12345", "Session secret key")
+	ConfigFile  = flag.String("config", "config.yml", "Configuration file")
+	Debug       = flag.Bool("debug", false, "Enable debugging")
+	LogToStdout = flag.Bool("log-stdout", false, "Enable redirecting all log output to stdout")
+	CpuProfile  = flag.String("cpu-profile", "", "Write cpu profile to file")
+
+	Version string
 )
 
 func main() {
 	flag.Parse()
 
-	// Pass variables to packages
-	model.SessionLength = *SESSION_LENGTH
-	model.DbUser = *DB_USER
-	model.DbPass = *DB_PASS
-	model.DbName = *DB_NAME
-	model.DbHost = *DB_HOST
+	if *Debug {
+		log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
+	} else {
+		log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	}
+
+	if *CpuProfile != "" {
+		f, err := os.Create(*CpuProfile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
+	c, err := config.LoadYamlConfigWithDefaults(*ConfigFile)
+	if err != nil {
+		log.Printf("FreeMED version %s\n\n", Version)
+		panic(err)
+	}
+	if c == nil {
+		log.Printf("FreeMED version %s\n\n", Version)
+		panic("UNABLE TO LOAD CONFIG")
+	}
+	config.Config = *c
+
+	if !*LogToStdout {
+		log.SetOutput(&lumberjack.Logger{
+			Filename:   fmt.Sprintf("%s/%s/server.log", config.Config.Paths.BasePath, config.Config.Paths.Logs),
+			MaxSize:    500, // megabytes
+			MaxBackups: 20,
+			MaxAge:     28,   // days
+			LocalTime:  true, // don't use UTC
+		})
+	}
+
+	if *Debug {
+		log.Print("Overriding existing debug configuration")
+		config.Config.Debug = true
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	log.Print("Initializing database backend")
 	model.DbMap = model.InitDb()
 
 	log.Print("Initializing session backend")
 	common.ActiveSession = &common.SessionConnector{
-		Address:    *REDIS_HOST,
-		Password:   *REDIS_PASSWORD,
-		DatabaseId: int64(*REDIS_DBID),
+		Address:    config.Config.Redis.Host,
+		Password:   config.Config.Redis.Pass,
+		DatabaseId: int64(config.Config.Redis.DatabaseId),
 	}
-	err := common.ActiveSession.Connect()
+	err = common.ActiveSession.Connect()
 	if err != nil {
 		panic(err)
 	}
@@ -96,14 +130,14 @@ func main() {
 		v.RouterFunction(g)
 	}
 
-	if *HTTPS_KEY != "" && *HTTPS_CERT != "" {
-		log.Printf("Launching https on port :%d", *HTTPS_PORT)
+	if config.Config.Web.Keys.Key != "" && config.Config.Web.Keys.Cert != "" {
+		log.Printf("Launching https on port :%d", config.Config.Web.TlsPort)
 		go func() {
-			log.Fatal(manners.ListenAndServeTLS(fmt.Sprintf(":%d", *HTTP_PORT), *HTTPS_CERT, *HTTPS_KEY, m))
+			log.Fatal(manners.ListenAndServeTLS(fmt.Sprintf(":%d", config.Config.Web.Port), config.Config.Web.Keys.Cert, config.Config.Web.Keys.Key, m))
 		}()
 	}
 
 	// HTTP
-	log.Printf("Launching http on port :%d", *HTTP_PORT)
-	log.Fatal(manners.ListenAndServe(fmt.Sprintf(":%d", *HTTP_PORT), m))
+	log.Printf("Launching http on port :%d", config.Config.Web.Port)
+	log.Fatal(manners.ListenAndServe(fmt.Sprintf(":%d", config.Config.Web.Port), m))
 }

@@ -2,18 +2,16 @@ package model
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
-	"gopkg.in/gorp.v1"
 	"log"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
+	"gopkg.in/gorp.v1"
+	"github.com/freemed/freemed-server/config"
 )
 
 var (
 	DbTables = make([]DbTable, 0)
-	DbUser   string
-	DbPass   string
-	DbName   string
-	DbHost   string
 	DbFlags  = "parseTime=true&multiStatements=true"
 )
 
@@ -24,10 +22,14 @@ type DbTable struct {
 }
 
 func InitDb() *gorp.DbMap {
-	dbobj, err := sql.Open("mysql", DbUser+":"+DbPass+"@/"+DbName+"?"+DbFlags)
+	dbobj, err := sql.Open("mysql", config.Config.Database.User+":"+config.Config.Database.Pass+"@"+config.Config.Database.Host+"/"+config.Config.Database.Name+"?"+DbFlags)
 	if err != nil {
 		log.Fatalln("initDb: Fail to create database", err)
 	}
+
+	// Remove all idle connections to stop long running failures
+	dbobj.SetMaxIdleConns(0)
+	dbobj.SetMaxOpenConns(50)
 
 	dbmap := &gorp.DbMap{
 		Db:      dbobj,

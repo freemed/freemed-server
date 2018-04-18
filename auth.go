@@ -1,13 +1,15 @@
 package main
 
 import (
-	"github.com/appleboy/gin-jwt"
-	"github.com/freemed/freemed-server/common"
-	"github.com/freemed/freemed-server/model"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/appleboy/gin-jwt"
+	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/config"
+	"github.com/freemed/freemed-server/model"
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -19,8 +21,8 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 	if !authMiddlewareInitialized {
 		authMiddleware = &jwt.GinJWTMiddleware{
 			Realm:   "FreeMED",
-			Key:     []byte(*SESSION_KEY),
-			Timeout: time.Minute * time.Duration(*SESSION_LENGTH),
+			Key:     []byte(config.Config.Session.Key),
+			Timeout: time.Minute * time.Duration(config.Config.Session.Expiry),
 			Authenticator: func(userId string, password string, c *gin.Context) (string, bool) {
 				_, res := model.CheckUserPassword(userId, password)
 				return userId, res
