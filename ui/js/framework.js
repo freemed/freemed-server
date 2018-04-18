@@ -4,14 +4,14 @@
 
 ////////// Global Variable and Settings //////////
 
-
 var apiBase = "../api";
 var currentPage = null;
 var sessionId = null;
-
+var startPage = 'main';
+var pageParams = null;
+var globalTimeout = 5000; // ms
 
 ////////// Authentication Functions //////////
-
 
 var sessionAuth = function(xhr) {
 	xhr.setRequestHeader('Authorization', 'Bearer ' + sessionId);
@@ -64,7 +64,7 @@ function loginStateChange(loggedin, cb) {
 		$( '#login-username' ).focus();
 	}
 } // end function loginStateChange
-
+ 
 function logout() {
 	$.ajax({
 		url: apiBase + "/../auth/logout",
@@ -94,46 +94,59 @@ function displayError( err ) {
 function loadPage( id ) {
 	console.log('Loading page ' + id);
 
+	var origId = id;
+	var idx = id.indexOf('#');
+	if (idx != -1) {
+		// Pass parameters
+		pageParams = id.substr(idx+1);
+		id = id.substr(0, idx);
+		console.log("loadPage(): pageParams = '" + pageParams + "', id = '" + id + "'");
+	}
+
 	var ts = new Date().getTime();
 
 	if (id != 'login-splash') {
 		console.log('Removing bindings from #mainFrame');
 		ko.cleanNode($('#mainFrame')[0]);
 	}
-	$( '#mainFrame' ).hide( );
 
-	$( '#mainFrame' ).load( './' + id + '.html?ts=' + ts, function() {
-		console.log('Page fragment load completed.');
-		$( '#nav-title' ).html( $( 'H1.title' ).html() );
-		$( '#mainFrame' ).show( 'slow' );
-
+	$( '#mainFrame' ).load( './fragment/' + id + '.html?ts=' + ts, function(response, status, xhr) {
 		// Deal with errors
 		if ( status == "error" ) {
+			if (xhr.status == 0) {
+				toastr.error("Unable to reach server; try again.");
+				return
+			}
 			var msg = "Sorry but there was an error: ";
-			displayError( msg + xhr.status + " " + xhr.statusText );
+			toastr.error( msg + xhr.status + " " + xhr.statusText );
 			return;
 		}
 
+		$( '#mainFrame' ).hide( );
+		console.log('Page fragment ' + id + ' load completed.');
+		$( '#nav-title' ).html( $( 'H1.title' ).html() );
+		$( '#mainFrame' ).show( 'slow' );
+
 		// Nav changes -- if there are any
+		window.location.hash = origId;
 		selectMenu( id );
 	});
 } // end function loadPage
 
 function selectMenu( item ) {
 	$( '#navbar UL.navbar-nav LI' ).removeClass('active');
-	$( '#navbar UL.navbar-nav LI.page-' + item ).addClass('active');
+	$( '#navbar UL.navbar-nav LI.page-' + item.replace('.', '-') ).addClass('active');
 } // end function selectMenu
 
 
 ////////// jQuery Extensions //////////
 
-
 window.jQuery.ApiDELETE = function(apipath, successFunc) {
         $.ajax({
                 url: apiBase + apipath,
                 method: "DELETE",
+		cache: false,
                 contentType: "application/json",
-                beforeSend: sessionAuth,
                 error: displayError,
                 success: successFunc
         });
@@ -143,8 +156,8 @@ window.jQuery.ApiGET = function(apipath, successFunc) {
         $.ajax({
                 url: apiBase + apipath,
                 method: "GET",
+		cache: false,
                 contentType: "application/json",
-                beforeSend: sessionAuth,
                 error: displayError,
                 success: successFunc
         });
@@ -154,14 +167,145 @@ window.jQuery.ApiPOST = function(apipath, data, successFunc) {
         $.ajax({
                 url: apiBase + apipath,
                 method: "POST",
+		cache: false,
 		data: data,
                 contentType: "application/json",
-                beforeSend: sessionAuth,
                 error: displayError,
                 success: successFunc
         });
 };
 
+////////// Knockout Extensions //////////
+
+var KO_FIELD_STRING  = 0;
+var KO_FIELD_NUMERIC = 1;
+
+function koValid(field, fieldType) {
+	var value = ko.utils.unwrapObservable( field );
+
+	console.log("koValid(" + field + ", " + fieldType + ")");
+	if (typeof value === 'undefined') {
+		console.log("koValid(): field == undefined");
+		return false;
+	}
+	if (fieldType == KO_FIELD_STRING) {
+		console.log("koValid(): KO_FIELD_STRING");
+		if (value == "") {
+			console.log("koValid(): KO_FIELD_STRING -- empty");
+			return false;
+		}
+	}
+	if (fieldType == KO_FIELD_NUMERIC) {
+		console.log("koValid(): KO_FIELD_NUMERIC");
+		if (value < 1) {
+			console.log("koValid(): KO_FIELD_NUMERIC -- < 1");
+			return false;
+		}
+	}
+
+	// By default
+	return true;
+} // end koValid
+
+// http://jsfiddle.net/rniemeyer/sHB9p/
+var koOptionsProvider = (function () {
+	"use strict";
+	var self = {};
+
+	// Container for options data, a sort of dictionary of option arrays.
+	self.options = {};
+    
+	self.init = function (optionData) {
+		// Pre-populate any provided options data here...
+	};
+
+	self.reset = function( name ) {
+		self.options[name] = ko.observableArray([ ]);
+		return self.options[name];
+	};
+
+	self.get = function( opts ) {
+		if (!self.options[opts.name]) {
+			self.options[opts.name] = ko.observableArray([{ value: opts.initialValue }]);
+		}
+
+		var apiUrl = opts.apiUrl;
+
+		// Interpolate parameter, if there is one
+		if ( apiUrl.indexOf( '*' ) != -1 ) {
+			apiUrl = apiUrl.replace( '*', opts.valueObservable() );
+		}
+            
+		$.ApiGET( opts.apiUrl, function( data ) {
+			self.options[opts.name]( data );
+		});
+
+		// Return reference to observable immediately.
+		return self.options[opts.name];
+	};
+    
+	return self;
+})();
+
+ko.bindingHandlers.lazyOptions = {
+	init: function(element, valueAccessor, allBindings) {
+		var initialized = false;
+		var focused = ko.observable();
+
+		// Create a new computed to represent our options
+		var options = ko.computed({
+			disposeWhenNodeIsRemoved: element,
+			read: function() {
+				var value;
+
+				// Before focus, return an array with a single
+				// option that matches the current value
+				if (!initialized && !focused()) {
+					// Determine the value by looking at
+					// what the value binding is bound
+					// against
+					value = allBindings.get("value")();
+					return [value];
+				}
+
+				// Otherwise return the actual options
+				initialized = true;
+				return ko.unwrap(valueAccessor());
+			}
+		}); // options
+
+		// Apply the options binding with sub-options
+		ko.applyBindingsToNode(element, { 
+			hasFocus: focused,
+			options: options,
+			optionsCaption: allBindings.get("optionsCaption")
+		}); 
+	} // init
+}; // ko.bindingHandlers.lazyOptions
+
+function asyncComputed(evaluator, owner) {
+	var result = ko.observable();
+	ko.computed(function() {
+	// Get the $.Deferred value, and then set up a callback so that when it's done,
+	// the output is transferred onto our "result" observable
+		evaluator.call(owner).done(result);
+	});
+	return result;
+} // asyncComputed
+
+ko.bindingHandlers.numberInput = {
+	init: function (element, valueAccessor, allBindingsAccessor) {
+		var value = valueAccessor();
+		element.value = value();
+		element.onchange = function () {            
+			var strValue = this.value;
+			var numValue = Number(strValue);
+			numValue = isNaN(numValue) ? 0 : numValue;
+			this.value = numValue;
+			value(numValue);
+		};
+	}    
+};
 
 ////////// Miscellaneous Functions //////////
 
@@ -174,3 +318,25 @@ function sanitizeId( orig ) {
 		.replace( /'/g,  '_' );
 } // end function sanitizeId
 
+// Generate a password string
+function randString(id){
+	var dataSet = $(id).attr('data-character-set').split(',');  
+	var possible = '';
+	if($.inArray('a-z', dataSet) >= 0){
+		possible += 'abcdefghijklmnopqrstuvwxyz';
+	}
+	if($.inArray('A-Z', dataSet) >= 0){
+		possible += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	}
+	if($.inArray('0-9', dataSet) >= 0){
+		possible += '0123456789';
+	}
+	if($.inArray('#', dataSet) >= 0){
+		possible += '![]{}()%&*$#^<>~@|';
+	}
+	var text = '';
+	for(var i=0; i < $(id).attr('data-size'); i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
+}

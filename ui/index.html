@@ -1,115 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FreeMED</title>
-  <link href="css/libs/bootstrap.css" rel="stylesheet">
-  <link href="css/libs/bootstrap-switch.min.css" rel="stylesheet">
-  <link href="css/libs/toastr.min.css" rel="stylesheet">
-  <link href="css/app.css" rel="stylesheet">
-  <link rel="icon" type="image/png" href="/ui/img/favicon.ico" />
-  <link rel="shortcut icon" type="image/png" href="/ui/img/favicon.ico" />
-  <!--[if lt IE 9]>
-    <script src="js/libs/html5shiv.min.js"></script>
-    <script src="js/libs/respond.min.js"></script>
-  <![endif]-->
-  <script src="js/libs/jquery.min.js"></script>
-  <script src="js/libs/toastr.min.js"></script>
-  <script src="js/libs/bootstrap.min.js"></script>
-  <script src="js/libs/bootstrap-switch.min.js"></script>
-  <script src="js/libs/knockout-min.js"></script>
-  <script src="js/libs/knockout.mapping.min.js"></script>
-  <script src="js/libs/selectize.min.js"></script>
-  <script src="js/knockout-selectize.min.js"></script>
-  <script src="js/framework.js"></script>
-  <script src="js/app.js"></script>
-</head>
-<body>
-
-<!-- Header -->
-
-<!-- Fixed navbar -->
-<nav class="navbar navbar-inverse navbar-fixed-top">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="#">FreeMED</a>
-    </div>
-    <div id="navbar" class="navbar-collapse collapse">
-      <div class="navbar-form navbar-right">
-        <h4 id="nav-title"></h4>
-      </div>
-      <ul class="nav navbar-nav">
-        <li class="nav-authed page-main"><a href="#" onclick="loadPage('main');">Home</a></li>
-        <li class="nav-authed page-messages"><a href="#" onclick="loadPage('messages');">Messages</a></li>
-        <li class="nav-authed page-preferences"><a href="#" onclick="loadPage('preferences');">Preferences</a></li>
-        <li class="nav-authed"><a href="#" onclick="logout();">Logout</a></li>
-      </ul>
-    </div> <!--/.nav-collapse -->
-  </div>
-</nav>
-
-<!-- Page content container -->
-
-<div class="container" id="mainFrame">
-	<!-- For displaying alerts -->
-	<div id="pageAlert" class="alert" role="alert" style="display: none;"></div>
-	<div id="container"></div>
-</div>
-
-<!-- Login dialog -->
-
-<div class="modal fade bs-modal-sm" id="loginDialog" tabindex="-1" role="dialog" aria-labelledby="loginDialogLabel" aria-hidden="true">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-        <div align="center" class="logo">
-          <img src="img/logo.png" width="160" height="54" />
-        </div>
-        <br />
-        <div class="bs-example bs-example-tabs">
-            <ul id="myTab" class="nav nav-tabs">
-              <li class="active"><a href="#signin" data-toggle="tab">Login</a></li>
-              <li class=""><a href="#helplogin" data-toggle="tab">Help</a></li>
-            </ul>
-        </div>
-        <div class="modal-body">
-          <div id="myTabContent" class="tab-content">
-            <div class="tab-pane fade in" id="helplogin"></div>
-            <div class="tab-pane fade active in" id="signin">
-              <form class="form-horizontal" id="login-form">
-                <fieldset>
-                  <div class="control-group">
-                    <div class="controls">
-                      <input required="" id="login-username" name="userid" type="text" class="form-control" placeholder="Username" class="input-medium" autofocus="yes" />
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>FreeMED</title>
+        <link href="css/libs/bootstrap.css" rel="stylesheet">
+        <link href="css/libs/toastr.min.css" rel="stylesheet">
+        <link href="css/app.css" rel="stylesheet">
+        <link rel="icon" type="image/png" href="img/favicon.ico">
+        <link rel="shortcut icon" type="image/png" href="img/favicon.ico">
+        <!--[if lt IE 9]>
+	<script src="js/libs/html5shiv.min.js"></script>
+	<script src="js/libs/respond.min.js"></script>
+        <![endif]-->
+	<script src="js/libs/jquery.min.js"></script>
+	<script src="js/libs/toastr.min.js"></script>
+	<script src="js/libs/popper.min.js"></script>
+	<script src="js/libs/bootstrap.min.js"></script>
+	<script src="js/libs/bootstrap-switch.min.js"></script>
+	<script src="js/libs/knockout-min.js"></script>
+	<script src="js/libs/knockout.mapping.min.js"></script>
+	<script src="js/libs/selectize.min.js"></script>
+	<!--
+	<script src="js/knockout-selectize.min.js"></script>
+	-->
+	<script src="js/framework.js"></script>
+	<script src="js/app.js"></script>
+    </head>
+    <body>
+        <!-- Header -->
+        <!-- Fixed navbar -->
+        <nav class="navbar navbar-dark bg-dark fixed-top navbar-expand-md">
+            <div class="container">
+                <button type="button" class="navbar-toggler collapsed" data-toggle="collapse"
+                data-target="#navbar" aria-expanded="false" aria-controls="navbar"> <span class="sr-only">Toggle navigation</span>
+&#x2630;</button> <a class="navbar-brand"
+                href="#">FreeMED</a>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <div class="form-inline ml-auto">
+                         <h4 id="nav-title"></h4>
                     </div>
-                  </div>
-                  <div class="control-group">
-                    <div class="controls">
-                      <input required="" id="login-password" name="passwordinput" class="form-control" type="password" placeholder="Password" class="input-medium" />
-                    </div>
-                  </div>
-                  <div class="control-group">
-                    <label class="control-label" for="signin"></label>
-                    <div class="controls" id="signinControls">
-                      <button id="login-submit" name="signin" class="btn btn-success">Login</button>
-                    </div> <!-- #signinControls -->
-                  </div> <!-- .control-group -->
-                </fieldset>
-              </form>
+                    <ul class="nav navbar-nav">
+                        <li class="nav-authed page-main nav-item"><a href="#" onclick="loadPage('main');" class="nav-link">Home</a>
+                        </li>
+                        <li class="nav-authed page-messages nav-item"><a href="#" onclick="loadPage('messages');" class="nav-link">Messages</a>
+                        </li>
+                        <li class="nav-authed page-preferences nav-item"><a href="#" onclick="loadPage('preferences');" class="nav-link">Preferences</a>
+                        </li>
+                        <li class="nav-authed nav-item"><a href="#" onclick="logout();" class="nav-link">Logout</a>
+                        </li>
+                    </ul>
+                </div>
+                <!--/.nav-collapse -->
             </div>
-          </div>
-        </div> 
-      </div>
-    </div>
-  </div> <!-- .modal-dialog -->
-</div> <!-- #loginDialog -->
-
-</body>
+        </nav>
+        <!-- Page content container -->
+        <div class="container" id="mainFrame">
+            <!-- For displaying alerts -->
+            <div id="pageAlert" class="alert" role="alert" style="display: none;"></div>
+            <div id="container"></div>
+        </div>
+        <!-- Login dialog -->
+        <div class="modal fade bs-modal-sm" id="loginDialog" tabindex="-1" role="dialog" aria-labelledby="loginDialogLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div align="center" class="logo">
+                        <img src="img/logo.png" width="160" height="54">
+                    </div>
+                    <br>
+                    <div class="bs-example bs-example-tabs">
+                        <ul id="myTab" class="nav nav-tabs" role="tablist">
+                            <li class="active nav-item"><a id="login-tab" href="#signin" data-toggle="tab" class="nav-link" role="tab">Login</a></li>
+                            <li class="nav-item"><a id="help-tab" href="#helplogin" data-toggle="tab" class="nav-link" role="tab">Help</a></li>
+                        </ul>
+                    </div>
+                    <div class="modal-body">
+                        <div id="myTabContent" class="tab-content">
+                            <div class="tab-pane fade in" id="helplogin" role="tabpanel" aria-labelledby="help-tab"></div>
+                            <div class="tab-pane fade show active in" id="signin" role="tabpanel" aria-labelledby="login-tab">
+                                <form id="login-form">
+                                    <div class="form-group">
+                                        <input required id="login-username" name="userid" type="text" class="form-control" placeholder="Username" autofocus="yes">
+                                    </div>
+                                    <div class="form-group">
+                                        <input required id="login-password" name="passwordinput" class="form-control" type="password" placeholder="Password">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-form-label" for="signin"></label>
+                                        <div class="controls" id="signinControls">
+                                            <button id="login-submit" name="signin" class="btn btn-success">Login</button>
+                                        </div>
+                                        <!-- #signinControls -->
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- .modal-dialog -->
+        <!-- #loginDialog -->
+    </body>
 </html>
