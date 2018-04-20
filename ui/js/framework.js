@@ -6,7 +6,7 @@
 
 var apiBase = "../api";
 var currentPage = null;
-var sessionId = null;
+var sessionId;
 var startPage = 'main';
 var pageParams = null;
 var globalTimeout = 5000; // ms
@@ -38,6 +38,7 @@ function login() {
 		},
 		success: function(data){
 			sessionId = data.token;
+			$.sessionStorage.setItem('sessionId', sessionId);
 			loginStateChange(true, function() {
 				$('#login-password').val(''); // Clear password, for security purposes
 				console.log('cb: sessionId = ' + sessionId);
@@ -73,6 +74,7 @@ function logout() {
 		beforeSend: sessionAuth,
 		error: displayError,
 		success: function(data) {
+			$.sessionStorage.removeItem('sessionId');
 			loadPage('login-splash');
 			loginStateChange(false, null);
 		}

@@ -13,6 +13,12 @@ $(document).ready(function() {
 	// Force toaster notifications to show how long until they go away
 	toastr.options.progressBar = true;
 
+	if (sessionId == null) {
+		sessionId = $.sessionStorage.getItem('sessionId');
+	} else {
+		$.sessionStorage.setItem('sessionId', sessionId);
+	}
+
 	// All preperatory stuff
 	$( '.nav-authed' ).hide();
 
@@ -28,6 +34,7 @@ $(document).ready(function() {
 		$( '#loginDialog' ).modal('show');
 		$( "#login-username" ).focus();
 	} else {
+		$( 'LI.nav-authed' ).show();
 		if (location.href.indexOf('#') > 1) {
 			var hash = location.href.substr(location.href.indexOf('#') + 1);
 			if (typeof hash !== 'undefined' && hash != '') {
