@@ -1,7 +1,5 @@
 package model
 
-import ()
-
 const (
 	TABLE_FACILITY = "facility"
 )
@@ -19,7 +17,7 @@ type FacilityModel struct {
 	Fax            NullString `db:"psrfax" json:"fax"`
 	Email          NullString `db:"psremail" json:"email"`
 	Ein            NullString `db:"psrein" json:"ein"`
-	NpiId          NullString `db:"psrnpi" json:"npi_identifier"`
+	NpiID          NullString `db:"psrnpi" json:"npi_identifier"`
 	Taxonomy       NullString `db:"psrtaxonomy" json:"taxonomy"`
 	Internal       NullString `db:"psrintext" json:"internal"`
 	PlaceOfService int64      `db:"psrpos" json:"pos_id"`
@@ -30,4 +28,5 @@ type FacilityModel struct {
 
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_FACILITY, Obj: FacilityModel{}, Key: "Id"})
+	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "facility", Query: "SELECT CONCAT(psrname, ', ', psrcity, ', ', psrstate) AS v, id AS k FROM " + TABLE_FACILITY + " WHERE CONCAT(psrname, ', ', psrcity, ', ', psrstate) LIKE CONCAT('%', :query, '%') ORDER BY psrname, psrcity, psrstate"})
 }

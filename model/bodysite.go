@@ -1,7 +1,5 @@
 package model
 
-import ()
-
 const (
 	TABLE_BODYSITE = "bodysite"
 )
@@ -14,4 +12,5 @@ type BodySiteModel struct {
 
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_BODYSITE, Obj: BodySiteModel{}, Key: "Id"})
+	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "bodysite", Query: "SELECT CONCAT(display_value, ' (', abbrev, ')') AS v, id AS k FROM " + TABLE_BODYSITE + " WHERE CONCAT(display_value, ' (', abbrev, ')') LIKE CONCAT('%', :query, '%') ORDER BY display_value, abbrev"})
 }

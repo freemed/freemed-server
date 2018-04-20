@@ -28,4 +28,5 @@ type CptCodeModel struct {
 
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_CPT, Obj: CptCodeModel{}, Key: "Id"})
+	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "cpt", Query: "SELECT cptnameext AS v, id AS k FROM " + TABLE_CPT + " WHERE cptnameext LIKE CONCAT('%', :query, '%') ORDER BY cptnameext"})
 }

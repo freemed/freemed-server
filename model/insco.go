@@ -38,4 +38,5 @@ type InscoModel struct {
 
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_INSCO, Obj: InscoModel{}, Key: "Id"})
+	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "insco", Query: "SELECT name AS v, id AS k FROM " + TABLE_INSCO + " WHERE name LIKE CONCAT('%', :query, '%') ORDER BY name"})
 }

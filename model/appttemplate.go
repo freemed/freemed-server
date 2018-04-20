@@ -1,7 +1,5 @@
 package model
 
-import ()
-
 const (
 	TABLE_APPTTEMPLATE = "appttemplate"
 )
@@ -16,4 +14,5 @@ type AppointmentTemplateModel struct {
 
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_APPTTEMPLATE, Obj: AppointmentTemplateModel{}, Key: "Id"})
+	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "appttemplate", Query: "SELECT CONCAT(atname, ' (', atduration, 'm)') AS v, id AS k FROM " + TABLE_APPTTEMPLATE + " WHERE atname LIKE CONCAT('%', :query, '%') ORDER BY atname, atduration"})
 }

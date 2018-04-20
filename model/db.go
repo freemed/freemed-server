@@ -11,14 +11,36 @@ import (
 )
 
 var (
-	DbTables = make([]DbTable, 0)
-	DbFlags  = "parseTime=true&multiStatements=true"
+	DbTables           = make([]DbTable, 0)
+	DbSupportPicklists = make([]DbSupportPicklist, 0)
+	DbFlags            = "parseTime=true&multiStatements=true"
 )
 
+// DbTable represents the internal metadata for a managed database table
 type DbTable struct {
 	TableName string
 	Obj       interface{}
 	Key       string
+}
+
+// DbModuleWithHooks defines local behavior for programmatic hooks regarding data for modules
+type DbModuleWithHooks interface {
+	// PreAdd defines code executed before an insert
+	PreAdd() error
+	// PreMod defines code executed before an update
+	PreMod() error
+	// PostAdd defines code executed after an insert
+	PostAdd() error
+	// PostMod defines code executed after an update
+	PostMod() error
+	// PreDel defines code executed before a deletion
+	PreDel() error
+}
+
+// DbSupportPicklist represents dynamically assembled maintenance module picklist targets for "maintenance" modules
+type DbSupportPicklist struct {
+	ModuleName string
+	Query      string
 }
 
 func InitDb() *gorp.DbMap {

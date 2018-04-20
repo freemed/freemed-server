@@ -24,4 +24,5 @@ type BillingContactModel struct {
 
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_BILLINGCONTACT, Obj: BillingContactModel{}, Key: "Id"})
+	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "billingcontact", Query: "SELECT CONCAT(bclname, ',  ', bcfname, ' ', bcmname) AS v, id AS k FROM " + TABLE_BILLINGCONTACT + " WHERE CONCAT(bclname, ', ', bcfname, ' ', bcmname) LIKE CONCAT('%', :query, '%') ORDER BY bclname, bcfname, bcmname"})
 }

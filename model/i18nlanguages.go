@@ -13,4 +13,5 @@ type I18nLanguageModel struct {
 
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_I18NLANGUAGES, Obj: I18nLanguageModel{}})
+	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "i18nlanguages", Query: "SELECT language AS v, abbrev AS k FROM " + TABLE_I18NLANGUAGES + " WHERE language LIKE CONCAT('%', :query, '%') ORDER BY language"})
 }
