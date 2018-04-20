@@ -46,7 +46,7 @@ type AppConfig struct {
 		Logs             string   `yaml:"logs" xml:"logs"`
 	} `yaml:"paths"`
 	Urls struct {
-		XMLName              xml.Name `yaml:"-" xml:"urls"`
+		XMLName xml.Name `yaml:"-" xml:"urls"`
 	} `yaml:"urls"`
 	Session struct {
 		XMLName xml.Name `yaml:"-" xml:"session"`

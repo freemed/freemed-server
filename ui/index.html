@@ -14,29 +14,27 @@
 	<script src="js/libs/html5shiv.min.js"></script>
 	<script src="js/libs/respond.min.js"></script>
         <![endif]-->
-	<script src="js/libs/jquery.min.js"></script>
-	<script src="js/libs/toastr.min.js"></script>
-	<script src="js/libs/popper.min.js"></script>
-	<script src="js/libs/bootstrap.min.js"></script>
-	<script src="js/libs/bootstrap-switch.min.js"></script>
-	<script src="js/libs/knockout-min.js"></script>
-	<script src="js/libs/knockout.mapping.min.js"></script>
-	<script src="js/libs/selectize.min.js"></script>
-	<!--
-	<script src="js/knockout-selectize.min.js"></script>
-	-->
-	<script src="js/framework.js"></script>
-	<script src="js/app.js"></script>
+	    <script src="js/libs/jquery.min.js"></script>
+    	<script src="js/libs/toastr.min.js"></script>
+	    <script src="js/libs/popper.min.js"></script>
+	    <script src="js/libs/bootstrap.min.js"></script>
+	    <script src="js/libs/bootstrap-switch.min.js"></script>
+	    <script src="js/libs/knockout-min.js"></script>
+	    <script src="js/libs/knockout.mapping.min.js"></script>
+	    <script src="js/libs/selectize.min.js"></script>
+	    <!--
+	    <script src="js/knockout-selectize.min.js"></script>
+	    -->
+	    <script src="js/framework.js"></script>
+	    <script src="js/app.js"></script>
     </head>
     <body>
         <!-- Header -->
         <!-- Fixed navbar -->
         <nav class="navbar navbar-dark bg-dark fixed-top navbar-expand-md">
             <div class="container">
-                <button type="button" class="navbar-toggler collapsed" data-toggle="collapse"
-                data-target="#navbar" aria-expanded="false" aria-controls="navbar"> <span class="sr-only">Toggle navigation</span>
-&#x2630;</button> <a class="navbar-brand"
-                href="#">FreeMED</a>
+                <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar"> <span class="sr-only">Toggle navigation</span> &#x2630;</button>
+                <a class="navbar-brand" href="#">FreeMED</a>
                 <div id="navbar" class="navbar-collapse collapse">
                     <div class="form-inline ml-auto">
                          <h4 id="nav-title"></h4>
@@ -51,9 +49,8 @@
                         <li class="nav-authed nav-item"><a href="#" onclick="logout();" class="nav-link">Logout</a>
                         </li>
                     </ul>
-                </div>
-                <!--/.nav-collapse -->
-            </div>
+                </div> <!-- /navbar -->
+            </div> <!-- /container -->
         </nav>
         <!-- Page content container -->
         <div class="container" id="mainFrame">
@@ -90,17 +87,14 @@
                                         <label class="col-form-label" for="signin"></label>
                                         <div class="controls" id="signinControls">
                                             <button id="login-submit" name="signin" class="btn btn-success">Login</button>
-                                        </div>
-                                        <!-- #signinControls -->
+                                        </div> <!-- #signinControls -->
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <!-- .modal-dialog -->
-        <!-- #loginDialog -->
+            </div> <!-- .modal-dialog -->
+        </div> <!-- #loginDialog -->
     </body>
 </html>
