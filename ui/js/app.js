@@ -14,9 +14,14 @@ $(document).ready(function() {
 	toastr.options.progressBar = true;
 
 	if (sessionId == null) {
-		sessionId = $.sessionStorage.getItem('sessionId');
+		var sessionIdRaw = $.sessionStorage.getItem('sessionId');
+		if (sessionIdRaw != null && sessionIdRaw['expiry']) {
+			if (sessionIdRaw.expiry > new Date().value) {
+				sessionId = sessionIdRaw.sessionId;
+			}
+		}
 	} else {
-		$.sessionStorage.setItem('sessionId', sessionId);
+		storeSessionId(sessionId);
 	}
 
 	// All preperatory stuff

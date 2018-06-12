@@ -10,12 +10,20 @@ var sessionId;
 var startPage = 'main';
 var pageParams = null;
 var globalTimeout = 5000; // ms
+var sessionExpiry = 600; // seconds
 
 ////////// Authentication Functions //////////
 
 var sessionAuth = function(xhr) {
 	xhr.setRequestHeader('Authorization', 'Bearer ' + sessionId);
 };
+
+function storeSessionId(sessionId) {
+	$.sessionStorage.setItem('sessionId', JSON.stringify({
+		'sessionId': sessionId,
+		'expiry': new Date().value + (1000 * sessionExpiry)
+	}));
+}
 
 function authenticated() {
 	return sessionId != null;
@@ -38,7 +46,7 @@ function login() {
 		},
 		success: function(data){
 			sessionId = data.token;
-			$.sessionStorage.setItem('sessionId', sessionId);
+			storeSessionId(sessionId);
 			loginStateChange(true, function() {
 				$('#login-password').val(''); // Clear password, for security purposes
 				console.log('cb: sessionId = ' + sessionId);
@@ -139,7 +147,6 @@ function selectMenu( item ) {
 	$( '#navbar UL.navbar-nav LI' ).removeClass('active');
 	$( '#navbar UL.navbar-nav LI.page-' + item.replace('.', '-') ).addClass('active');
 } // end function selectMenu
-
 
 ////////// jQuery Extensions //////////
 
