@@ -6,4 +6,4 @@
  * Tagging support with [bootstrap-tags](https://github.com/maxwells/bootstrap-tags)
  * [FuelUX](http://getfuelux.com/javascript.html) - Especially *Placard* support for changing titles, and *Scheduler* for date picker functionality.
  * PDF generation routines from [gofpdf](https://github.com/jung-kurt/gofpdf)
-
+ * Implement HL7 interchange with [HL7 FHIR](https://github.com/dshills/gofhir)
