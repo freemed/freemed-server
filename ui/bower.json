@@ -27,7 +27,8 @@
     "toastr": "^2.1.3",
     "bootstrap-switch": "^3.3.4",
     "select2": "^4.0.5",
-    "jquery-html5storage": "https://github.com/artberri/jquery-html5storage.git#^1.0.0"
+    "jquery-html5storage": "https://github.com/artberri/jquery-html5storage.git#^1.0.0",
+    "fullcalendar": "^3.9.0"
   },
   "resolutions": {
     "jquery": "^3.3.1"
