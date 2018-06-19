@@ -12,6 +12,7 @@ var pageParams = null;
 var globalTimeout = 5000; // ms
 var sessionExpiry = 600; // seconds
 
+
 ////////// Authentication Functions //////////
 
 var sessionAuth = function(xhr) {
@@ -148,6 +149,7 @@ function selectMenu( item ) {
 	$( '#navbar UL.navbar-nav LI.page-' + item.replace('.', '-') ).addClass('active');
 } // end function selectMenu
 
+
 ////////// jQuery Extensions //////////
 
 window.jQuery.ApiDELETE = function(apipath, successFunc) {
@@ -183,6 +185,7 @@ window.jQuery.ApiPOST = function(apipath, data, successFunc) {
                 success: successFunc
         });
 };
+
 
 ////////// Knockout Extensions //////////
 
@@ -363,8 +366,8 @@ ko.bindingHandlers.numberInput = {
 	}    
 };
 
-////////// Miscellaneous Functions //////////
 
+////////// Miscellaneous Functions //////////
 
 function sanitizeId( orig ) {
 	return String( orig )

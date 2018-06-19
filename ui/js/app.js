@@ -13,11 +13,15 @@ $(document).ready(function() {
 	// Force toaster notifications to show how long until they go away
 	toastr.options.progressBar = true;
 
+	// Session resumption logic
 	if (sessionId == null) {
 		var sessionIdRaw = $.sessionStorage.getItem('sessionId');
-		if (sessionIdRaw != null && sessionIdRaw['expiry']) {
-			if (sessionIdRaw.expiry > new Date().value) {
-				sessionId = sessionIdRaw.sessionId;
+		console.log('sessionIdRaw = ' + sessionIdRaw);
+		if (sessionIdRaw != null) {
+			var sobj = JSON.parse(sessionIdRaw);
+			if (!sobj["expiry"] || sobj["expiry"] == null || (sobj["expiry"] > new Date().value)) {
+				sessionId = sobj.sessionId;
+				console.log('sessionId = ' + sessionId);
 			}
 		}
 	} else {
