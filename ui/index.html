@@ -45,9 +45,6 @@
                 <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar"> <span class="sr-only">Toggle navigation</span> &#x2630;</button>
                 <a class="navbar-brand" href="#">FreeMED</a>
                 <div id="navbar" class="navbar-collapse collapse">
-                    <div class="form-inline ml-auto">
-                         <h4 id="nav-title"></h4>
-                    </div>
                     <ul class="nav navbar-nav">
                         <li class="nav-authed page-main nav-item"><a href="#" onclick="loadPage('main');" class="nav-link">Home</a>
                         </li>
@@ -58,6 +55,11 @@
                         <li class="nav-authed nav-item"><a href="#" onclick="logout();" class="nav-link">Logout</a>
                         </li>
                     </ul>
+                    <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
+                        <li>
+                            <span id="nav-title" class="d-none d-lg-inline-block mb-3 mb-md-0 ml-md-3" title="Page Title"></span>
+                        </li>
+                    </ul>    
                 </div> <!-- /navbar -->
             </div> <!-- /container -->
         </nav>

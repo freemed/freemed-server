@@ -19,8 +19,9 @@ H1.title {
 	text-align: center;
 }
 
-H4#nav-title {
+#nav-title {
 	color: #ffffff;
+	font-weight: bold;
 }
 
 /* Override to put switches on their own lines */
