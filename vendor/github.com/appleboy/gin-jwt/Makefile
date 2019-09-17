@@ -1,65 +1,60 @@
 .PHONY: test
 
+GO ?= go
 GOFMT ?= gofmt "-s"
-PACKAGES ?= $(shell go list ./... | grep -v /vendor/)
-GOFILES := find . -name "*.go" -type f -not -path "./vendor/*"
+PACKAGES ?= $(shell $(GO) list ./...)
+GOFILES := $(shell find . -name "*.go" -type f)
 
-install:
-	@hash govendor > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
-		go get -u github.com/kardianos/govendor; \
-	fi
-	govendor sync
-
-embedmd:
+install-embedmd:
 	@hash embedmd > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
-		go get -u github.com/campoy/embedmd; \
+		$(GO) get -u github.com/campoy/embedmd; \
 	fi
+
+embedmd-check: install-embedmd
 	embedmd -d *.md
 
+embedmd: install-embedmd
+	embedmd -w *.md
+
+.PHONY: fmt
 fmt:
-	$(GOFILES) | xargs $(GOFMT) -w
+	$(GOFMT) -w $(GOFILES)
 
 .PHONY: fmt-check
 fmt-check:
-	# get all go files and run go fmt on them
-	@files=$$($(GOFILES) | xargs $(GOFMT) -l); if [ -n "$$files" ]; then \
+	@diff=$$($(GOFMT) -d $(GOFILES)); \
+	if [ -n "$$diff" ]; then \
 		echo "Please run 'make fmt' and commit the result:"; \
-		echo "$${files}"; \
+		echo "$${diff}"; \
 		exit 1; \
-		fi;
+	fi;
 
 test: fmt-check
-	for PKG in $(PACKAGES); do go test -v -cover -coverprofile $$GOPATH/src/$$PKG/coverage.txt $$PKG || exit 1; done;
-
-html:
-	go tool cover -html=.cover/coverage.txt
+	@$(GO) test -v -cover -coverprofile coverage.txt $(PACKAGES) && echo "\n==>\033[32m Ok\033[m\n" || exit 1
 
 vet:
-	go vet $(PACKAGES)
-
-errcheck:
-	@which errcheck > /dev/null; if [ $$? -ne 0 ]; then \
-		go get -u github.com/kisielk/errcheck; \
-	fi
-	errcheck $(PACKAGES)
+	$(GO) vet $(PACKAGES)
 
 lint:
-	@which golint > /dev/null; if [ $$? -ne 0 ]; then \
-		go get -u github.com/golang/lint/golint; \
+	@hash revive > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/mgechev/revive; \
 	fi
-	for PKG in $(PACKAGES); do golint -set_exit_status $$PKG || exit 1; done;
+	revive -config .revive.toml ./... || exit 1
 
-unconvert:
-	@which unconvert > /dev/null; if [ $$? -ne 0 ]; then \
-		go get -u github.com/mdempsky/unconvert; \
+.PHONY: misspell-check
+misspell-check:
+	@hash misspell > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/client9/misspell/cmd/misspell; \
 	fi
-	for PKG in $(PACKAGES); do unconvert -v $$PKG || exit 1; done;
+	misspell -error $(GOFILES)
 
-coverage:
-	curl -s https://codecov.io/bash > .codecov && \
-	chmod +x .codecov && \
-	./.codecov -f .cover/coverage.txt
+.PHONY: misspell
+misspell:
+	@hash misspell > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/client9/misspell/cmd/misspell; \
+	fi
+	misspell -w $(GOFILES)
 
 clean:
-	rm -rf .cover
-	find . -name "coverage.txt"
+	$(GO) clean -modcache -cache -i
+	find . -name "coverage.txt" -delete
