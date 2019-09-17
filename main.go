@@ -20,10 +20,10 @@ import (
 )
 
 var (
-	ConfigFile  = flag.String("config", "config.yml", "Configuration file")
-	Debug       = flag.Bool("debug", false, "Enable debugging")
-	LogToStdout = flag.Bool("log-stdout", false, "Enable redirecting all log output to stdout")
-	CpuProfile  = flag.String("cpu-profile", "", "Write cpu profile to file")
+	configFile  = flag.String("config", "config.yml", "Configuration file")
+	debug       = flag.Bool("debug", false, "Enable debugging")
+	logToStdout = flag.Bool("log-stdout", false, "Enable redirecting all log output to stdout")
+	cpuProfile  = flag.String("cpu-profile", "", "Write cpu profile to file")
 
 	Version string
 )
@@ -31,14 +31,14 @@ var (
 func main() {
 	flag.Parse()
 
-	if *Debug {
+	if *debug {
 		log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
 	} else {
 		log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	}
 
-	if *CpuProfile != "" {
-		f, err := os.Create(*CpuProfile)
+	if *cpuProfile != "" {
+		f, err := os.Create(*cpuProfile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -46,7 +46,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	c, err := config.LoadYamlConfigWithDefaults(*ConfigFile)
+	c, err := config.LoadYamlConfigWithDefaults(*configFile)
 	if err != nil {
 		log.Printf("FreeMED version %s\n\n", Version)
 		panic(err)
@@ -57,7 +57,7 @@ func main() {
 	}
 	config.Config = *c
 
-	if !*LogToStdout {
+	if !*logToStdout {
 		log.SetOutput(&lumberjack.Logger{
 			Filename:   fmt.Sprintf("%s/%s/server.log", config.Config.Paths.BasePath, config.Config.Paths.Logs),
 			MaxSize:    500, // megabytes
@@ -67,7 +67,7 @@ func main() {
 		})
 	}
 
-	if *Debug {
+	if *debug {
 		log.Print("Overriding existing debug configuration")
 		config.Config.Debug = true
 	} else {

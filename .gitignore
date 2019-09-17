@@ -1,2 +1,7 @@
 freemed-server
 .*.swp
+go.sum
+### Build artifacts
+ui/bower_components
+### Any logs left behind
+*.log
