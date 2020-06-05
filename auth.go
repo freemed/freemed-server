@@ -1,11 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/appleboy/gin-jwt"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/config"
 	"github.com/freemed/freemed-server/model"
@@ -15,35 +16,55 @@ import (
 var (
 	authMiddleware            *jwt.GinJWTMiddleware
 	authMiddlewareInitialized bool
+	identityKey               = "id"
 )
 
+type login struct {
+	Username string `form:"username" json:"username" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
+}
+
 func getAuthMiddleware() *jwt.GinJWTMiddleware {
+	var err error
 	if !authMiddlewareInitialized {
-		authMiddleware = &jwt.GinJWTMiddleware{
-			Realm:   "FreeMED",
-			Key:     []byte(config.Config.Session.Key),
-			Timeout: time.Minute * time.Duration(config.Config.Session.Expiry),
-			Authenticator: func(userId string, password string, c *gin.Context) (string, bool) {
-				_, res := model.CheckUserPassword(userId, password)
-				return userId, res
+		authMiddleware, err = jwt.New(&jwt.GinJWTMiddleware{
+			Realm:       "FreeMED",
+			Key:         []byte(config.Config.Session.Key),
+			Timeout:     time.Minute * time.Duration(config.Config.Session.Expiry),
+			MaxRefresh:  time.Hour,
+			IdentityKey: identityKey,
+			Authenticator: func(c *gin.Context) (interface{}, error) {
+				var loginVals login
+				if err := c.ShouldBind(&loginVals); err != nil {
+					return nil, jwt.ErrMissingLoginValues
+				}
+				userID := loginVals.Username
+				password := loginVals.Password
+
+				id, res := model.CheckUserPassword(userID, password)
+				log.Printf("id = %d, res = %#v", id, res)
+				if res && id > 0 {
+					log.Printf("Get user by id")
+					mod, err := model.GetUserById(fmt.Sprintf("%d", id))
+					log.Printf("mod = %#v, err = %#v", mod, err)
+					if err != nil {
+						return nil, err
+					}
+					return &mod, nil
+				}
+				return &model.UserModel{}, jwt.ErrFailedAuthentication
 			},
-			Authorizator: func(userId string, c *gin.Context) bool {
+			Authorizator: func(data interface{}, c *gin.Context) bool {
 				// TODO: FIXME: XXX
 				return true
 			},
-			PayloadFunc: func(userId string) map[string]interface{} {
-				user, err := model.GetUserByName(userId)
-				if err != nil {
-					log.Printf("PayloadFunc((): %s", err.Error())
+			PayloadFunc: func(data interface{}) jwt.MapClaims {
+				if v, ok := data.(*model.UserModel); ok {
+					return jwt.MapClaims{
+						identityKey: v.Id,
+					}
 				}
-				s, _ := common.ActiveSession.CreateSession(user.Id)
-				//log.Printf("PayloadFunc(): user = %s, session = %v", user, s)
-				return map[string]interface{}{
-					"uid":        user.Id,
-					"session":    s,
-					"session_id": s.SessionId,
-					"expires":    s.Expires,
-				}
+				return jwt.MapClaims{}
 			},
 			Unauthorized: func(c *gin.Context, code int, message string) {
 				c.JSON(code, gin.H{
@@ -51,6 +72,12 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 					"message": message,
 				})
 			},
+			TokenLookup:   "header: Authorization, query: token, cookie: jwt",
+			TokenHeadName: "Bearer",
+			TimeFunc:      time.Now,
+		})
+		if err != nil {
+			panic(err)
 		}
 		authMiddlewareInitialized = true
 	}

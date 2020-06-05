@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/appleboy/gin-jwt v2.5.0+incompatible
+	github.com/appleboy/gin-jwt/v2 v2.6.3
 	github.com/braintree/manners v0.0.0-20150503212558-0b5e6b2c2843
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-contrib/sse v0.1.0
@@ -24,5 +25,5 @@ require (
 	gopkg.in/gorp.v1 v1.7.2
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0-20170531160350-a96e63847dc3
 	gopkg.in/redis.v3 v3.6.4
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.7
 )
