@@ -48,10 +48,36 @@ func patientEmrAttachments(r *gin.Context) {
 
 	module := r.Param("module")
 	if module == "" {
-		query = "SELECT p.patient AS patient, p.module AS module, p.oid AS oid, p.annotation AS annotation, p.summary AS summary, p.stamp AS stamp, DATE_FORMAT(p.stamp, '%m/%d/%Y') AS date_mdy, m.module_name AS type, m.module_class AS module_namespace, p.locked AS locked, p.id AS id FROM patient_emr p LEFT OUTER JOIN modules m ON m.module_table = p.module WHERE p.patient = ? AND m.module_hidden = 0"
+		query = "SELECT p.patient AS patient" +
+			", p.module AS module" +
+			", p.oid AS oid" +
+			", p.annotation AS annotation" +
+			", p.summary AS summary" +
+			", p.stamp AS stamp" +
+			", DATE_FORMAT(p.stamp, '%m/%d/%Y') AS date_mdy" +
+			", m.module_name AS type" +
+			", m.module_class AS module_namespace" +
+			", p.locked AS locked" +
+			", p.id AS id" +
+			" FROM patient_emr p" +
+			" LEFT OUTER JOIN modules m ON m.module_table = p.module" +
+			" WHERE p.patient = ? AND m.module_hidden = 0"
 		_, err = model.DbMap.Select(&o, query, id)
 	} else {
-		query = "SELECT p.patient AS patient, p.module AS module, p.oid AS oid, p.annotation AS annotation, p.summary AS summary, p.stamp AS stamp, DATE_FORMAT(p.stamp, '%m/%d/%Y') AS date_mdy, m.module_name AS type, m.module_class AS module_namespace, p.locked AS locked, p.id AS id FROM patient_emr p LEFT OUTER JOIN modules m ON m.module_table = p.module WHERE p.patient = ? AND p.module = ? AND m.module_hidden = 0"
+		query = "SELECT p.patient AS patient" +
+			", p.module AS module" +
+			", p.oid AS oid" +
+			", p.annotation AS annotation" +
+			", p.summary AS summary" +
+			", p.stamp AS stamp" +
+			", DATE_FORMAT(p.stamp, '%m/%d/%Y') AS date_mdy" +
+			", m.module_name AS type" +
+			", m.module_class AS module_namespace" +
+			", p.locked AS locked" +
+			", p.id AS id" +
+			" FROM patient_emr p" +
+			" LEFT OUTER JOIN modules m ON m.module_table = p.module" +
+			" WHERE p.patient = ? AND p.module = ? AND m.module_hidden = 0"
 		_, err = model.DbMap.Select(&o, query, id, module)
 	}
 
@@ -62,26 +88,6 @@ func patientEmrAttachments(r *gin.Context) {
 	}
 	r.JSON(http.StatusOK, o)
 	return
-}
-
-type patientInformationResult struct {
-	Name           string `db:"patient_name" json:"patient_name"`
-	ID             string `db:"patient_id" json:"patient_id"`
-	DateOfBirth    string `db:"date_of_birth" json:"date_of_birth"`
-	Language       string `db:"language" json:"language"`
-	DateOfBirthMDY string `db:"date_of_birth_mdy" json:"date_of_birth_mdy"`
-	Age            string `db:"age" json:"age"`
-	Address1       string `db:"address_line_1" json:"address_line_1"`
-	Address2       string `db:"address_line_2" json:"address_line_2"`
-	HasAllergy     bool   `db:"hasallergy" json:"hasallergy"`
-	City           string `db:"city" json:"city"`
-	State          string `db:"state" json:"state"`
-	Postal         string `db:"postal" json:"postal"`
-	Csz            string `db:"csz" json:"csz"`
-	//model.PatientModel
-	Pcp      model.NullString `db:"pcp" json:"pcp"`
-	Facility model.NullString `db:"facility" json:"facility"`
-	Pharmacy model.NullString `db:"pharmacy" json:"pharmacy"`
 }
 
 func patientInformation(r *gin.Context) {
@@ -115,7 +121,25 @@ func patientInformation(r *gin.Context) {
 		"LEFT OUTER JOIN pharmacy ph ON ( ph.id = p.ptpharmacy) " +
 		"WHERE p.id = ? GROUP BY p.id"
 
-	var o patientInformationResult
+	var o struct {
+		Name           string `db:"patient_name" json:"patient_name"`
+		ID             string `db:"patient_id" json:"patient_id"`
+		DateOfBirth    string `db:"date_of_birth" json:"date_of_birth"`
+		Language       string `db:"language" json:"language"`
+		DateOfBirthMDY string `db:"date_of_birth_mdy" json:"date_of_birth_mdy"`
+		Age            string `db:"age" json:"age"`
+		Address1       string `db:"address_line_1" json:"address_line_1"`
+		Address2       string `db:"address_line_2" json:"address_line_2"`
+		HasAllergy     bool   `db:"hasallergy" json:"hasallergy"`
+		City           string `db:"city" json:"city"`
+		State          string `db:"state" json:"state"`
+		Postal         string `db:"postal" json:"postal"`
+		Csz            string `db:"csz" json:"csz"`
+		//model.PatientModel
+		Pcp      model.NullString `db:"pcp" json:"pcp"`
+		Facility model.NullString `db:"facility" json:"facility"`
+		Pharmacy model.NullString `db:"pharmacy" json:"pharmacy"`
+	}
 	err := model.DbMap.SelectOne(&o, query, id, id)
 	if err != nil {
 		log.Print(err.Error())

@@ -116,7 +116,7 @@ func messageGet(r *gin.Context) {
 	// Access control: do not allow access from other user
 	if msg.For != session.UserId {
 		log.Print("MessageGet(): not allowed")
-		r.AbortWithStatus(http.StatusInternalServerError)
+		r.AbortWithError(http.StatusBadRequest, fmt.Errorf("not allowed"))
 		return
 	}
 

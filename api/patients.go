@@ -69,34 +69,38 @@ func patientPicklist(r *gin.Context) {
 	}
 
 	if either != "" {
-		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%')")
+		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%%')")
 		params = append(params, either)
-		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%')")
+		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%%')")
 		params = append(params, either)
 	}
 
 	if first != "" && last != "" {
-		clauses = append(clauses, "( ptlname LIKE CONCAT(?, '%') AND ptfname LIKE CONCAT(?, '%') )")
+		clauses = append(clauses, "( ptlname LIKE CONCAT(?, '%%') AND ptfname LIKE CONCAT(?, '%%') )")
 		params = append(params, last)
 		params = append(params, first)
 	} else if first != "" {
-		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%')")
+		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%%')")
 		params = append(params, first)
-		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
+		clauses = append(clauses, "ptid LIKE CONCAT(?, '%%')")
 		params = append(params, first)
 	} else if last != "" {
-		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%')")
+		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%%')")
 		params = append(params, last)
-		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
+		clauses = append(clauses, "ptid LIKE CONCAT(?, '%%')")
 		params = append(params, last)
 	} else {
-		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
+		clauses = append(clauses, "ptid LIKE CONCAT(?, '%%')")
 		params = append(params, either)
 	}
 
 	params = append(params, limit)
 
-	query := "SELECT CONCAT(ptlname, ', ', ptfname, ' (', ptid, ')') AS value, id FROM patient WHERE ( " + strings.Join(clauses, " OR ") + " ) AND ( ISNULL(ptarchive) OR ptarchive=0 ) LIMIT ?"
+	query := "SELECT CONCAT(ptlname, ', ', ptfname, ' (', ptid, ')') AS value" +
+		", id FROM patient" +
+		" WHERE ( " + strings.Join(clauses, " OR ") + " )" +
+		" AND ( ISNULL(ptarchive) OR ptarchive=0 )" +
+		" LIMIT ?"
 	var o []picklistItem
 	_, err := model.DbMap.Select(&o, query, params...)
 	if err != nil {
@@ -119,7 +123,7 @@ func patientSearch(r *gin.Context) {
 
 	if len(params) < 1 {
 		log.Print("PatientSearch(): no usable search parameters found")
-		r.AbortWithStatus(http.StatusBadRequest)
+		r.AbortWithError(http.StatusBadRequest, fmt.Errorf("no usable search parameters found"))
 	}
 
 	limit := 20
@@ -192,7 +196,19 @@ func patientSearch(r *gin.Context) {
 	}
 
 	// Build query
-	query := fmt.Sprintf("SELECT p.ptlname AS last_name, p.ptfname AS first_name, p.ptmname AS middle_name, p.ptid AS patient_id, FLOOR( ( TO_DAYS(NOW()) - TO_DAYS(p.ptdob) ) / 365 ) AS age, p.ptdob AS date_of_birth, p.id AS id FROM "+model.TABLE_PATIENT+" p LEFT OUTER JOIN "+model.TABLE_PATIENT_ADDRESS+" pa ON p.id = pa.patient WHERE "+strings.Join(k, " AND ")+" AND pa.active = 1 "+archive+" ORDER BY p.ptlname, p.ptfname, p.ptmname LIMIT %d", limit)
+	query := fmt.Sprintf(
+		"SELECT p.ptlname AS last_name"+
+			", p.ptfname AS first_name"+
+			", p.ptmname AS middle_name"+
+			", p.ptid AS patient_id"+
+			", FLOOR( ( TO_DAYS(NOW()) - TO_DAYS(p.ptdob) ) / 365 ) AS age"+
+			", p.ptdob AS date_of_birth"+
+			", p.id AS id"+
+			" FROM "+model.TABLE_PATIENT+" p"+
+			" LEFT OUTER JOIN "+model.TABLE_PATIENT_ADDRESS+" pa ON p.id = pa.patient"+
+			" WHERE "+strings.Join(k, " AND ")+" AND pa.active = 1 "+archive+
+			" ORDER BY p.ptlname, p.ptfname, p.ptmname LIMIT %d",
+		limit)
 
 	log.Printf("patientSearch(): query: %s", query)
 	var o []patientSearchResult
