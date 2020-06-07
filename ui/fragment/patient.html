@@ -1,0 +1,66 @@
+
+<h1 class="title">Patient</h1>
+
+<script>
+function Patient(data) {
+	this.patient_id = ko.observable(data.patient_id);
+	this.patient_name = ko.observable(data.patient_name);
+	this.facility = ko.observable(data.facility);
+	this.age = ko.observable(data.age);
+	this.csz = ko.observable(data.csz);
+}
+
+function Attachment(data) {
+	this.module = ko.observable(data.module);
+}
+
+function PatientViewModel() {
+	var self = this;
+	self.patient = ko.observable();
+	self.attachments = ko.observableArray([]);
+
+	$.ApiGET("/patient/"+encodeURIComponent(pageParams)+"/info", function(d) {
+		console.log(d);
+		self.patient = new Patient(d);
+		console.log(self.patient);
+	});
+	$.ApiGET("/patient/"+encodeURIComponent(pageParams)+"/attachments", function(d) {
+		console.log(d);
+		self.attachments($.map(d, function(m) { return new Attachment(m); }));
+		console.log(self.attachments);
+	});
+}
+
+$(document).ready(function() {
+	// Menu selection
+	selectMenu('patients');
+
+	ko.applyBindings(new PatientViewModel(), document.getElementById('mainFrame'));
+});
+</script>
+
+<div class="container">
+
+	<div class="row">
+		<div class="col-lg">
+			<div class="btn-toolbar" role="toolbar" aria-label="Toolbar">
+				<div class="btn-group" role="group">
+					<button type="button" class="btn btn-default" onClick="loadPage('patient.search');">
+						<img src="node_modules/bootstrap-icons/icons/backspace.svg" alt="" width="32" height="32" title="Bootstrap">
+						Patient Search
+					</button>
+					<button type="button" class="btn btn-default" onClick="loadPage('patient.search');">
+						<img src="node_modules/bootstrap-icons/icons/backspace.svg" alt="" width="32" height="32" title="Bootstrap">
+						Patient Search
+					</button>
+				</div> <!-- /btn-group -->
+			</div> <!-- /btn-toolbar -->
+		</div> <!-- /col-lg -->
+	</div> <!-- /row -->
+	<div class="row">
+		<div data-bind="foreach: patient">
+			<div data-bind="text: ptid"></div>
+		</div>
+	</div> <!-- /row -->
+
+</div> <!-- /container -->

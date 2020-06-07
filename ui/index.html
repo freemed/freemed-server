@@ -6,11 +6,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>FreeMED</title>
         <link href="node_modules/@bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-	<link href="node_modules/@bower_components/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css" rel="stylesheet">
+	    <link href="node_modules/@bower_components/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css" rel="stylesheet">
         <link href="node_modules/@bower_components/select2/dist/css/select2.min.css" rel="stylesheet">
-	<link href="node_modules/@ttskch/select2-bootstrap4-theme/dist/select2-bootstrap4.min.css" rel="stylesheet">
+    	<link href="node_modules/@ttskch/select2-bootstrap4-theme/dist/select2-bootstrap4.min.css" rel="stylesheet">
         <link href="node_modules/@bower_components/toastr/toastr.min.css" rel="stylesheet">
-        <link href="node_modules/@bower_components/fullcalendar/dist/fullcalendar.min.css" rel="stylesheet">
+        <link href="node_modules/@fullcalendar/core/main.min.css" rel="stylesheet">
+        <link href="node_modules/@fullcalendar/daygrid/main.css" rel="stylesheet" />
+        <link href="node_modules/@fullcalendar/timegrid/main.css" rel="stylesheet" /> 
+        <link href="node_modules/@fullcalendar/list/main.css" rel="stylesheet" /> 
+        <link href="node_modules/@fullcalendar/bootstrap/main.min.css" rel="stylesheet">
+	    <link href="node_modules/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet" />
         <link href="css/app.css" rel="stylesheet">
         <link rel="icon" type="image/png" href="img/favicon.ico">
         <link rel="shortcut icon" type="image/png" href="img/favicon.ico">
@@ -18,17 +23,22 @@
 	    <script src="js/libs/html5shiv.min.js"></script>
 	    <script src="js/libs/respond.min.js"></script>
         <![endif]-->
-	<script src="node_modules/@bower_components/jquery/dist/jquery.min.js"></script>
-	<script src="node_modules/@bower_components/jquery-html5storage/html5storage.min.js"></script>
+	    <script src="node_modules/@bower_components/jquery/dist/jquery.min.js"></script>
+	    <script src="node_modules/@bower_components/jquery-html5storage/html5storage.min.js"></script>
         <script src="node_modules/@bower_components/toastr/toastr.min.js"></script>
-	<script src="node_modules/@bower_components/popper.js/dist/popper.min.js"></script>
-	<script src="node_modules/@bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-	<script src="node_modules/@bower_components/bootstrap-switch/dist/js/bootstrap-switch.min.js"></script>
-	<script src="node_modules/@bower_components/knockout/dist/knockout.js"></script>
-	<script src="node_modules/@bower_components/knockout.mapping/knockout.mapping.js"></script>
-	<script src="node_modules/@bower_components/select2/dist/js/select2.min.js"></script>
-	<script src="node_modules/@bower_components/moment/min/moment.min.js"></script>
-	<script src="node_modules/@bower_components/fullcalendar/dist/fullcalendar.min.js"></script>
+        <script src="node_modules/@bower_components/popper.js/dist/umd/popper.min.js"></script>
+        <script src="node_modules/@bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="node_modules/@bower_components/bootstrap-switch/dist/js/bootstrap-switch.min.js"></script>
+        <script src="node_modules/@bower_components/knockout/dist/knockout.js"></script>
+        <script src="node_modules/@bower_components/knockout.mapping/knockout.mapping.js"></script>
+        <script src="node_modules/@bower_components/select2/dist/js/select2.min.js"></script>
+        <script src="node_modules/@bower_components/moment/min/moment.min.js"></script>
+        <script src="node_modules/@fullcalendar/core/main.min.js"></script>
+        <script src="node_modules/@fullcalendar/daygrid/main.min.js"></script>
+        <script src="node_modules/@fullcalendar/timegrid/main.min.js"></script>
+        <script src="node_modules/@fullcalendar/list/main.min.js"></script>
+        <script src="node_modules/@fullcalendar/interaction/main.min.js"></script>
+        <script src="node_modules/@fullcalendar/bootstrap/main.min.js"></script>
         <script language="javascript">
                $(document).ready(function() {
                        console.log( "Loading application logic with cache busting");
@@ -50,6 +60,8 @@
                         <li class="nav-authed page-main nav-item"><a href="#" onclick="loadPage('main');" class="nav-link">Home</a>
                         </li>
                         <li class="nav-authed page-messages nav-item"><a href="#" onclick="loadPage('messages');" class="nav-link">Messages</a>
+                        </li>
+                        <li class="nav-authed page-scheduler nav-item"><a href="#" onclick="loadPage('scheduler');" class="nav-link">Scheduler</a>
                         </li>
                         <li class="nav-authed page-preferences nav-item"><a href="#" onclick="loadPage('preferences');" class="nav-link">Preferences</a>
                         </li>

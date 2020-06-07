@@ -1,0 +1,80 @@
+
+<h1 class="title">Patient Search</h1>
+
+<script>
+$(document).ready(function() {
+	function PatientItem(data) {
+		this.ptid = ko.observable(data.ptid);
+		this.ptlname = ko.observable(data.ptlname);
+		this.ptfname = ko.observable(data.ptfname);
+		this.ptdob = ko.observable(data.ptdob);
+	}
+
+	function PatientListModel() {
+		var self = this;
+		self.patients = ko.observableArray([]);
+	}
+
+	// Menu selection
+	selectMenu('patient.search');
+
+	// Create Select2 widget
+	$('#patientSearchSelect').select2({
+		theme: 'bootstrap4',
+		placeholder: "Smart Select: Select Patient",
+		minimumInputLength: 2,
+		width: '100%',
+		ajax: {
+			url: function (params) {
+				return apiBase + '/patients/picklist/' + params.term;
+			},
+			beforeSend: sessionAuth,
+			dataType: "json",
+			processResults: function (data) {
+				var results = [];
+				$.each(data, function(k, v) {
+					results.push({id: v.id, text: v.value});
+				});
+				return {
+					results: results
+				};
+    		}
+		}
+	});
+	$('#patientSearchSelect').on('select2:select', function (e) {
+		loadPage('patient#' + e.params.data.id);
+	});
+
+	//ko.applyBindings(new PatientListModel(), document.getElementById('mainFrame'));
+});
+</script>
+
+<div class="container">
+	<div class="row">
+		<div class="col-lg">
+			<select class="select2 form-control" id="patientSearchSelect"></select>
+		</div> <!-- /col-lg -->
+	</div> <!-- /row -->
+
+	<div class="row">
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>Last Name</th>
+					<th>First Name</th>
+					<th>Patient ID</th>
+					<th>Date of Birth</th>
+				</tr>
+			</thead>
+			<tbody data-bind="foreach: patients">
+				<tr>
+					<td data-bind="text: ptlname"></td>
+					<td data-bind="text: ptfname"></td>
+					<td data-bind="text: ptid"></td>
+					<td data-bind="text: ptdob"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div> <!-- /row -->
+
+</div> <!-- /container -->
