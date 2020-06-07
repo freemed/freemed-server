@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/freemed/freemed-server)](https://goreportcard.com/report/github.com/freemed/freemed-server)
 [![codecov](https://codecov.io/gh/freemed/freemed-server/branch/master/graph/badge.svg)](https://codecov.io/gh/freemed/freemed-server)
 [![GoDoc](https://godoc.org/github.com/freemed/freemed-server?status.png)](https://godoc.org/github.com/freemed/freemed-server)
-[![Join the chat at https://gitter.im/gin-gonic/gin](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/freemed/freemed-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/freemed/freemed-server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/freemed/freemed-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Refactoring of **FreeMED** in Golang / Gin.
 
@@ -29,6 +29,10 @@ The frontend uses:
  * [toastr](https://github.com/CodeSeven/toastr): Toaster widget
  
 Code in this repository can be run against a valid FreeMED 0.9.x series database with no modifications.
+
+## Caveats
+
+ * MySQL's `ONLY_FULL_GROUP_BY` needs to be disabled -- at least until the queries have been rewritten to no longer require it. This can be temporarily accomplished with `SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`, but should have the actual MySQL server configuration adjusted for it in production systems.
 
 ## Architectural changes from FreeMED 0.9.x
 
