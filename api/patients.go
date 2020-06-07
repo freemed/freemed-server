@@ -143,42 +143,42 @@ func patientSearch(r *gin.Context) {
 			}
 		case "city":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "pa.city LIKE '%' + ? + '%'")
+				k = append(k, "pa.city LIKE CONCAT('%%', ?, '%%')")
 				v = append(v, paramValue)
 			}
 		case "dmv":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.dmv LIKE '%' + ? + '%'")
+				k = append(k, "p.dmv LIKE CONCAT('%%', ?, '%%')")
 				v = append(v, paramValue)
 			}
 		case "email":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.pemail LIKE '%' + ? + '%'")
+				k = append(k, "p.pemail LIKE CONCAT('%%', ?, '%%')")
 				v = append(v, paramValue)
 			}
 		case "first_name":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.ptfname LIKE '%' + ? + '%'")
+				k = append(k, "p.ptfname LIKE CONCAT('%%', ?, '%%')")
 				v = append(v, paramValue)
 			}
 		case "last_name":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.ptlname LIKE '%' + ? + '%'")
+				k = append(k, "p.ptlname LIKE CONCAT('%%', ?, '%%')")
 				v = append(v, paramValue)
 			}
 		case "patient_id":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.ptid LIKE '%' + ? + '%'")
+				k = append(k, "p.ptid LIKE CONCAT('%%', ?, '%%')")
 				v = append(v, paramValue)
 			}
 		case "ssn":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.ssn LIKE '%' + ? + '%'")
+				k = append(k, "p.ssn LIKE CONCAT('%%', ?, '%%')")
 				v = append(v, paramValue)
 			}
 		case "zip":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "pa.zip LIKE '%' + ? + '%'")
+				k = append(k, "pa.zip LIKE CONCAT('%%', ?, '%%')")
 				v = append(v, paramValue)
 			}
 		default:
@@ -186,9 +186,15 @@ func patientSearch(r *gin.Context) {
 		}
 	}
 
+	if len(v) < 1 {
+		r.AbortWithError(http.StatusBadRequest, fmt.Errorf("no valid parameters presented"))
+		return
+	}
+
 	// Build query
 	query := fmt.Sprintf("SELECT p.ptlname AS last_name, p.ptfname AS first_name, p.ptmname AS middle_name, p.ptid AS patient_id, FLOOR( ( TO_DAYS(NOW()) - TO_DAYS(p.ptdob) ) / 365 ) AS age, p.ptdob AS date_of_birth, p.id AS id FROM "+model.TABLE_PATIENT+" p LEFT OUTER JOIN "+model.TABLE_PATIENT_ADDRESS+" pa ON p.id = pa.patient WHERE "+strings.Join(k, " AND ")+" AND pa.active = 1 "+archive+" ORDER BY p.ptlname, p.ptfname, p.ptmname LIMIT %d", limit)
 
+	log.Printf("patientSearch(): query: %s", query)
 	var o []patientSearchResult
 	_, err := model.DbMap.Select(&o, query, v...)
 	if err != nil {
