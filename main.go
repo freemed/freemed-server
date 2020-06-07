@@ -9,7 +9,7 @@ import (
 	"runtime/pprof"
 	"strings"
 
-	jwt "github.com/appleboy/gin-jwt"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/braintree/manners"
 	_ "github.com/freemed/freemed-server/api"
 	"github.com/freemed/freemed-server/common"

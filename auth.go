@@ -42,11 +42,10 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 				password := loginVals.Password
 
 				id, res := model.CheckUserPassword(userID, password)
-				log.Printf("id = %d, res = %#v", id, res)
+				log.Printf("Authenticator(): id = %d, res = %#v", id, res)
 				if res && id > 0 {
-					log.Printf("Get user by id")
 					mod, err := model.GetUserById(fmt.Sprintf("%d", id))
-					log.Printf("mod = %#v, err = %#v", mod, err)
+					log.Printf("Authenticator(): mod = %#v, err = %#v", mod, err)
 					if err != nil {
 						return nil, err
 					}
@@ -72,7 +71,7 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 					"message": message,
 				})
 			},
-			TokenLookup:   "header: Authorization, query: token, cookie: jwt",
+			TokenLookup:   "header:Authorization,query:token,cookie:jwt",
 			TokenHeadName: "Bearer",
 			TimeFunc:      time.Now,
 		})
