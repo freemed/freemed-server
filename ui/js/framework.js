@@ -60,8 +60,10 @@ function login() {
 } // end function login
 
 sessionRenewalProcess = function() {
+	console.log("Refreshing auth token");
 	$.ajax({
 		url: apiBase + "/../auth/refresh_token",
+		beforeSend: sessionAuth,
 		method: "GET",
 		contentType: "application/json",
 		error: function(x) {
