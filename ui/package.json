@@ -10,7 +10,8 @@
     "@bower_components/moment": "moment/moment#^2.20.1",
     "@bower_components/popper.js": "FezVrasta/popper.js#^1.14.3",
     "@bower_components/select2": "ivaynberg/select2#^4.0.5",
-    "@bower_components/toastr": "johnpapa/toastr-bower#^2.1.3"
+    "@bower_components/toastr": "johnpapa/toastr-bower#^2.1.3",
+    "@ttskch/select2-bootstrap4-theme": "^1.4.0"
   },
   "engines": {
     "yarn": ">= 1.0.0"
