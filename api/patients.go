@@ -69,14 +69,14 @@ func patientPicklist(r *gin.Context) {
 	}
 
 	if either != "" {
-		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%%')")
+		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%')")
 		params = append(params, either)
-		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%%')")
+		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%')")
 		params = append(params, either)
 	}
 
 	if first != "" && last != "" {
-		clauses = append(clauses, "( ptlname LIKE CONCAT(?, '%%') AND ptfname LIKE CONCAT(?, '%%') )")
+		clauses = append(clauses, "( ptlname LIKE CONCAT(?, '%') AND ptfname LIKE CONCAT(?, '%') )")
 		params = append(params, last)
 		params = append(params, first)
 	} else if first != "" {
@@ -85,12 +85,12 @@ func patientPicklist(r *gin.Context) {
 		clauses = append(clauses, "ptid LIKE CONCAT(?, '%%')")
 		params = append(params, first)
 	} else if last != "" {
-		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%%')")
+		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%')")
 		params = append(params, last)
-		clauses = append(clauses, "ptid LIKE CONCAT(?, '%%')")
+		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
 		params = append(params, last)
 	} else {
-		clauses = append(clauses, "ptid LIKE CONCAT(?, '%%')")
+		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
 		params = append(params, either)
 	}
 
