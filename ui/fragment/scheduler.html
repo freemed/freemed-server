@@ -76,10 +76,25 @@
                 }
                 $.ApiPOST("/scheduler/reschedule/" + info.event.id, changes, function(data, status, xhr){
                     if (status > 399) {
-                        toastr.error('Unable to reschedule event.', 'Scheduler', {timeOut: 3000});
+                        toastr.error('Unable to reschedule appointment.', 'Scheduler', {timeOut: 3000});
                         return;
                     }
                     toastr.info('Appointment rescheduled.', 'Scheduler', {timeOut: 2000});
+                });
+            },
+            eventResize: function(info) {
+                console.log(info);
+                var changes = {};
+                if (info.prevEvent.start != info.event.start) {
+                    console.log(info.prevEvent.start.toString() + " != " + info.event.start.toString());
+                    changes["duration"] = Math.floor((info.event.end.getTime() - info.event.start.getTime()) / (1000 * 60));
+                }
+                $.ApiPOST("/scheduler/reschedule/" + info.event.id, changes, function(data, status, xhr){
+                    if (status > 399) {
+                        toastr.error('Unable to adjust appointment duration.', 'Scheduler', {timeOut: 3000});
+                        return;
+                    }
+                    toastr.info('Appointment duration changed.', 'Scheduler', {timeOut: 2000});
                 });
             },
             events: function(info, successCallback, failureCallback) {
