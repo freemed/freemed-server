@@ -1,16 +1,69 @@
 <h1 class="title">Scheduler</h1>
 
 <script>
+    function modalEvent(id) {
+        $.ApiGET("/scheduler/event/" + id, function(data,status,xhr) {
+            if (status > 399) {
+                toastr.error('Unable to retrieve event.', 'Scheduler', {timeOut: 3000});
+                return
+            }
+            // Interpolate ...
+            var startDate = new Date(data.date_of.slice(0,10));
+            startDate.setHours(data.hour);
+            startDate.setMinutes(data.minute);
+            console.log(startDate);
+            var s = (data.hour * 60) + data.minute;
+            var endDate = new Date(data.date_of.slice(0,10));
+            endDate.setHours(parseInt((s + data.duration) / 60));
+            endDate.setMinutes((s + data.duration) % 60);
+
+            // Create "title"
+            var title = data.patient;
+            if (data.provider != null) {
+                title += "("+data.provider+")";
+            }
+            title += " [" + data.note + "]";
+
+            $('#event-patient').text(data.patient);
+
+            // Determine if there's any color associated
+            var color = "";
+            if (data.template_color != null) {
+                color = data.template_color;
+            }
+            $('#event-modal').modal('show');
+        });
+
+    } // end function modalEvent
     $(document).ready(function() {
         var calendarEl = document.getElementById('scheduler');
         var calendar = new FullCalendar.Calendar(calendarEl, {
             plugins: [ 'dayGrid', 'timeGrid', 'list', 'interaction', 'bootstrap' ],
             themeSystem: 'bootstrap',
             defaultView: "timeGridWeek",
+            weekends: false, // don't display weekends
+            businessHours: {
+                daysOfWeek: [ 1, 2, 3, 4, 5 ],
+                startTime: "08:00", // FIXME: TODO: IMPLEMENT: XXX
+                endTime: "18:00" // FIXME: TODO: IMPLEMENT: XXX
+            },
+            eventLimit: 4, // any more than 4 in a day, popover
+            nowIndicator: true,
+            navLinks: true,
+            editable: true,
             header: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            eventClick: function(info) {
+                console.log(info)
+                console.log('Event: ' + info.event.title);
+                console.log('Coordinates: ' + info.jsEvent.pageX + ',' + info.jsEvent.pageY);
+                console.log('View: ' + info.view.type);
+
+                // Create a modal box to get more information / edit
+                modalEvent(info.event.id);
             },
             events: function(info, successCallback, failureCallback) {
                 $.ApiGET("/scheduler/dailyapptrange/"+dateToJSONLocal(info.start)+"/"+dateToJSONLocal(info.end), function(data,status,xhr){
@@ -63,3 +116,25 @@
 </script>
 
 <div id="scheduler"></div>
+
+<div class="modal" tabindex="-1" role="dialog" id="event-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Appointment : <span id="event-patient"></span></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div> <!-- /modal-header -->
+        <div class="modal-body">
+          <div class="container-fluid">
+            
+          </div> <!-- /container-fluid -->
+        </div> <!-- /modal-body -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary">Save changes</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div> <!-- /modal-footer -->
+      </div> <!-- /modal-content -->
+    </div> <!-- /modal-dialog -->
+</div> <!-- /modal -->
