@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -55,4 +56,29 @@ func GetSession(c *gin.Context) (SessionModel, error) {
 	sm.UserId = int64(userid.(float64))
 	sm.SessionId = jwt.GetToken(c)
 	return sm, nil
+}
+
+// ParseInt forces an integer to be parsed and returns 0 if unparseable
+func ParseInt(s string) int64 {
+	i, _ := strconv.ParseInt(s, 10, 64)
+	return i
+}
+
+// ParseDate parses a string into a date
+func ParseDate(s string) (t time.Time, e error) {
+	formats := []string{
+		"2006-01-02",
+		"01/02/2006",
+		// TODO: FIXME: IMPLEMENT: More commmon formats
+	}
+	if s == "" {
+		return time.Now(), fmt.Errorf("Unable to parse null date")
+	}
+	for _, f := range formats {
+		t, e = time.Parse(f, s)
+		if e == nil {
+			return
+		}
+	}
+	return time.Now(), fmt.Errorf("Unable to parse date")
 }

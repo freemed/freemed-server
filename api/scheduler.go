@@ -19,41 +19,42 @@ func init() {
 			r.GET("/dailyapptrange/:from/:to", schedulerDailyApptRange)
 			r.GET("/dailyapptscheduler/:date", schedulerDailyApptScheduler)
 			r.GET("/dateappt/:date", schedulerFindDateAppt)
+			r.GET("/event/:id", schedulerGetEvent)
 		},
 	}
 }
 
-func schedulerDailyApptRange(c *gin.Context) {
-	pFrom, err := dateParse(c.Param("from"))
-	if err != nil {
-		c.Error(err)
-	}
-	pTo, err := dateParse(c.Param("to"))
-	if err != nil {
-		c.Error(err)
-	}
-	provider, _ := strconv.ParseInt(c.Query("provider"), 10, 64)
-	vars := []interface{}{}
+type schedulerItem struct {
+	DateOf                time.Time        `json:"date_of" db:"date_of"`
+	DateOfMDY             string           `json:"date_of_mdy" db:"date_of_mdy"`
+	Hour                  int              `json:"hour" db:"hour"`
+	Minute                int              `json:"minute" db:"minute"`
+	AppointmentTime       string           `json:"appointment_time" db:"appointment_time"`
+	Duration              int              `json:"duration" db:"duration"`
+	ProviderName          model.NullString `json:"provider" db:"provider"`
+	ProviderID            model.NullInt64  `json:"provider_id" db:"provider_id"`
+	ResourceType          string           `json:"resource_type" db:"resource_type"`
+	PatientName           string           `json:"patient" db:"patient"`
+	PatientID             int64            `json:"patient_id" db:"patient_id"`
+	Note                  string           `json:"note" db:"note"`
+	String                model.NullString `json:"status" db:"status"`
+	StatusColor           model.NullString `json:"status_color" db:"status_color"`
+	SchedulerID           int64            `json:"scheduler_id" db:"scheduler_id"`
+	AppointmentTemplateID model.NullInt64  `json:"appointment_template_id" db:"appointment_template_id"`
+	TemplateColor         model.NullString `json:"template_color" db:"template_color"`
+}
 
-	type schedulerItem struct {
-		DateOf                time.Time        `json:"date_of" db:"date_of"`
-		DateOfMDY             string           `json:"date_of_mdy" db:"date_of_mdy"`
-		Hour                  int              `json:"hour" db:"hour"`
-		Minute                int              `json:"minute" db:"minute"`
-		AppointmentTime       string           `json:"appointment_time" db:"appointment_time"`
-		Duration              int              `json:"duration" db:"duration"`
-		ProviderName          model.NullString `json:"provider" db:"provider"`
-		ProviderID            model.NullInt64  `json:"provider_id" db:"provider_id"`
-		ResourceType          string           `json:"resource_type" db:"resource_type"`
-		PatientName           string           `json:"patient" db:"patient"`
-		PatientID             int64            `json:"patient_id" db:"patient_id"`
-		Note                  string           `json:"note" db:"note"`
-		String                model.NullString `json:"status" db:"status"`
-		StatusColor           model.NullString `json:"status_color" db:"status_color"`
-		SchedulerID           int64            `json:"scheduler_id" db:"scheduler_id"`
-		AppointmentTemplateID model.NullInt64  `json:"appointment_template_id" db:"appointment_template_id"`
-		TemplateColor         model.NullString `json:"template_color" db:"template_color"`
+func schedulerDailyApptRange(c *gin.Context) {
+	pFrom, err := common.ParseDate(c.Param("from"))
+	if err != nil {
+		c.Error(err)
 	}
+	pTo, err := common.ParseDate(c.Param("to"))
+	if err != nil {
+		c.Error(err)
+	}
+	provider := common.ParseInt(c.Query("provider"))
+	vars := []interface{}{}
 
 	query := "SELECT s.caldateof AS date_of" +
 		", DATE_FORMAT(s.caldateof, '%m/%d/%Y') AS date_of_mdy" +
@@ -107,7 +108,7 @@ func schedulerDailyApptScheduler(c *gin.Context) {
 	calehr := 16      // FIXME: TODO: IMPLEMENT: XXX
 	calinterval := 15 // FIXME: TODO: IMPLEMENT: XXX
 
-	dt, err := dateParse(c.Param("date"))
+	dt, err := common.ParseDate(c.Param("date"))
 	if err != nil {
 		log.Print(err.Error())
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -143,7 +144,7 @@ func schedulerDailyApptScheduler(c *gin.Context) {
 }
 
 func schedulerFindDateAppt(c *gin.Context) {
-	dt, err := dateParse(c.Param("date"))
+	dt, err := common.ParseDate(c.Param("date"))
 	if err != nil {
 		log.Print(err.Error())
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -169,26 +170,50 @@ func schedulerFindDateAppt(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, out)
-
 }
 
-// dateParse accepts a date parameter and attempts to parse it properly
-func dateParse(s string) (t time.Time, e error) {
-	formats := []string{
-		"2006-01-02",
-		"01/02/2006",
-		// TODO: FIXME: IMPLEMENT: More commmon formats
+func schedulerGetEvent(c *gin.Context) {
+	id := common.ParseInt(c.Param("id"))
+	if id == 0 {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("invalid id presented"))
+		return
 	}
-	if s == "" {
-		return time.Now(), fmt.Errorf("Unable to parse null date")
+
+	query := "SELECT s.caldateof AS date_of" +
+		", DATE_FORMAT(s.caldateof, '%m/%d/%Y') AS date_of_mdy" +
+		", s.calhour AS hour" +
+		", s.calminute AS minute" +
+		", CONCAT(LPAD(s.calhour, 2, '0'),':',LPAD(s.calminute, 2, '0')) AS appointment_time" +
+		", s.calduration AS duration" +
+		", CONCAT(ph.phylname, ', ', ph.phyfname) AS provider" +
+		", ph.id AS provider_id" +
+		", s.caltype AS resource_type" +
+		", CASE s.caltype WHEN 'block' THEN '-' WHEN 'temp' THEN CONCAT( '[!] ', ci.cilname, ', ', ci.cifname, ' (', ci.cicomplaint, ')' ) WHEN 'group' THEN CONCAT( cg.groupname, ' (', cg.grouplength, ' members)') ELSE CONCAT(pa.ptlname, ', ', pa.ptfname, IF(LENGTH(pa.ptmname)>0,CONCAT(' ',pa.ptmname),''), IF(LENGTH(pa.ptsuffix)>0,CONCAT(' ',pa.ptsuffix),''),IF(LENGTH(pa.ptid)>0,CONCAT(' (',pa.ptid,')'),'')) END AS patient" +
+		", s.calpatient AS patient_id" +
+		", s.calprenote AS note" +
+		", SUBSTRING_INDEX(GROUP_CONCAT(st.sname), ',', -1) AS status" +
+		", SUBSTRING_INDEX(GROUP_CONCAT(st.scolor), ',', -1) AS status_color" +
+		", s.id AS scheduler_id" +
+		", s.calappttemplate as appointment_template_id" +
+		", aptm.atcolor as template_color" +
+		" FROM scheduler s" +
+		" LEFT OUTER JOIN appttemplate aptm ON s.calappttemplate=aptm.id" +
+		" LEFT OUTER JOIN scheduler_status ss ON s.id=ss.csappt" +
+		" LEFT OUTER JOIN schedulerstatustype st ON st.id=ss.csstatus" +
+		" LEFT OUTER JOIN physician ph ON s.calphysician=ph.id " +
+		" LEFT OUTER JOIN patient pa ON s.calpatient=pa.id " +
+		" LEFT OUTER JOIN callin ci ON s.calpatient=ci.id " +
+		" LEFT OUTER JOIN calgroup cg ON s.calpatient=cg.id " +
+		" WHERE ( s.id = ? ) "
+	var out schedulerItem
+	err := model.DbMap.SelectOne(&out, query, id)
+	if err != nil {
+		log.Print(err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
-	for _, f := range formats {
-		t, e = time.Parse(f, s)
-		if e == nil {
-			return
-		}
-	}
-	return time.Now(), fmt.Errorf("Unable to parse date")
+	log.Printf("%#v", out)
+	c.JSON(http.StatusOK, out)
 }
 
 func mysqlDateFormat(t time.Time) string {
