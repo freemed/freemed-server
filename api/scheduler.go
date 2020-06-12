@@ -20,6 +20,7 @@ func init() {
 			r.GET("/dailyapptscheduler/:date", schedulerDailyApptScheduler)
 			r.GET("/dateappt/:date", schedulerFindDateAppt)
 			r.GET("/event/:id", schedulerGetEvent)
+			r.POST("/reschedule/:id", schedulerReschedule)
 		},
 	}
 }
@@ -214,6 +215,67 @@ func schedulerGetEvent(c *gin.Context) {
 	}
 	log.Printf("%#v", out)
 	c.JSON(http.StatusOK, out)
+}
+
+func schedulerReschedule(c *gin.Context) {
+	id := common.ParseInt(c.Param("id"))
+	if id < 1 {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("bad event id"))
+	}
+
+	// rescheduleInfo carries all of the possible fields to update, with null as default
+	type rescheduleInfo struct {
+		Date     model.NullString `json:"date"`
+		Hour     model.NullInt64  `json:"hour"`
+		Minute   model.NullInt64  `json:"minute"`
+		Duration model.NullInt64  `json:"duration"`
+	}
+	var info rescheduleInfo
+	err := c.ShouldBind(&info)
+	if err != nil {
+		log.Printf("schedulerReschedule(%d): ERROR: %s", id, err.Error())
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var eventObj model.SchedulerModel
+	err = model.DbMap.SelectOne(&eventObj, "SELECT * FROM "+model.TABLE_SCHEDULER+" WHERE id = ?", id)
+	if err != nil {
+		log.Printf("schedulerReschedule(%d): ERROR: %s", id, err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Adjust if we're supposed to adjust...
+	if info.Date.Valid {
+		dt, err := common.ParseDate(info.Date.String)
+		if err != nil {
+			eventObj.Date = dt
+		}
+	}
+	if info.Hour.Valid {
+		eventObj.Hour = int(info.Hour.Int64)
+	}
+	if info.Minute.Valid {
+		eventObj.Minute = int(info.Minute.Int64)
+	}
+	if info.Duration.Valid {
+		eventObj.Duration = int(info.Duration.Int64)
+	}
+
+	// Adjust modification stamp
+	eventObj.Modified.Time = time.Now()
+
+	// ... and we store it
+	log.Printf("schedulerReschedule(%d): %#v", id, eventObj)
+	_, err = model.DbMap.Update(&eventObj)
+	if err != nil {
+		log.Printf("schedulerReschedule(%d): ERROR: %s", id, err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, true)
 }
 
 func mysqlDateFormat(t time.Time) string {

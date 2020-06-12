@@ -210,7 +210,8 @@ window.jQuery.ApiPOST = function(apipath, data, successFunc) {
 		beforeSend: sessionAuth,
 		method: "POST",
 		cache: false,
-		data: data,
+		data: JSON.stringify(data),
+		dataType: "json",
 		contentType: "application/json",
 		error: displayError,
 		success: successFunc
