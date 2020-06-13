@@ -71,7 +71,7 @@ func InitDb() *gorp.DbMap {
 
 	err = dbmap.CreateTablesIfNotExists()
 	if err != nil {
-		log.Fatalln("initDb: Could not build tables", err)
+		log.Printf("initDb: Could not build tables", err)
 	}
 
 	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "db: ", log.Lmicroseconds))
