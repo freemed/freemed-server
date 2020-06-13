@@ -2,8 +2,9 @@ package model
 
 import (
 	"database/sql"
-	"github.com/freemed/freemed-server/common"
 	"log"
+
+	"github.com/freemed/freemed-server/common"
 )
 
 const (
@@ -87,8 +88,8 @@ func (u *UserModel) GetById(id interface{}) error {
 }
 
 func CheckUserPassword(username, userpassword string) (int64, bool) {
-	u := &UserModel{}
-	err := DbMap.SelectOne(u, "SELECT * FROM "+TABLE_USER+" WHERE username = :user AND userpassword = :pass", map[string]interface{}{
+	u := UserModel{}
+	err := DbMap.SelectOne(&u, "SELECT * FROM "+TABLE_USER+" WHERE username = :user AND userpassword = :pass", map[string]interface{}{
 		"user": username,
 		"pass": common.Md5hash(userpassword),
 	})
