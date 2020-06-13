@@ -61,6 +61,15 @@
                         </li>
                         <li class="nav-authed page-messages nav-item"><a href="#" onclick="loadPage('messages');" class="nav-link">Messages</a>
                         </li>
+                        <li class="nav-authed nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Patient
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                              <a class="dropdown-item" onclick="loadPage('patient.search');" href="#patient.search">Search</a>
+                              <a class="dropdown-item" onclick="loadPage('patient.new');" href="#patient.new">New Patient</a>
+                            </div>
+                        </li>
                         <li class="nav-authed page-scheduler nav-item"><a href="#" onclick="loadPage('scheduler');" class="nav-link">Scheduler</a>
                         </li>
                         <li class="nav-authed page-preferences nav-item"><a href="#" onclick="loadPage('preferences');" class="nav-link">Preferences</a>
