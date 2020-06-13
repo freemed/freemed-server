@@ -42,5 +42,5 @@ Code in this repository can be run against a valid FreeMED 0.9.x series database
 
 ## Other CC/Opensource Resources
 
- * Background image : [CC BY-SA 2.0](https://commons.wikimedia.org/wiki/Category:Medical#/media/File:Laptop_and_stethoscope_%286123892769%29.jpg)
+ * Background image : [CC BY-SA 2.0](https://commons.wikimedia.org/wiki/File:Laptop_and_stethoscope_\(6123892769\).jpg)
 
