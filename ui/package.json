@@ -19,7 +19,8 @@
     "@fullcalendar/timegrid": "^4.4.2",
     "@ttskch/select2-bootstrap4-theme": "^1.4.0",
     "bootstrap-icons": "^1.0.0-alpha4",
-    "monorepo": "^1.2.2"
+    "monorepo": "^1.2.2",
+    "tablesorter": "^2.31.3"
   },
   "engines": {
     "yarn": ">= 1.0.0"
