@@ -118,7 +118,18 @@ function logout() {
 	});
 } // end function logout
 
-function displayError( err ) {
+function displayError( xhr, status, err ) {
+	if ( status == "error" ) {
+		if (xhr.status == 0) {
+			toastr.error("Unable to reach server; try again.");
+			return
+		}
+		if (xhr.status == 401) {
+			toastr.error("Logged out -- attempting to log in.");
+			logout();
+			return
+		}
+	}
 	$( '#pageAlert' ).html( err );
 	$( '#pageAlert' ).addClass( 'alert-error' );
 	$( '#pageAlert' ).show( "slow", "fade", function() {
