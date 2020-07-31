@@ -18,3 +18,8 @@ type BillkeyModel struct {
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_BILLKEY, Obj: BillkeyModel{}, Key: "Id"})
 }
+
+// GetBillkeyPayload retrieves a payload from a specified billkey
+func GetBillkeyPayload(billkey int64) (string, error) {
+	return DbMap.SelectStr("SELECT billkey FROM "+TABLE_BILLKEY+" WHERE id = ?", billkey)
+}

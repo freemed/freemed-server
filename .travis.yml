@@ -1,9 +1,8 @@
 language: go
 go:
-  - 1.9
   - tip
 script:
   - go get -d -v
   - go build
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash) -t b18bcce6-20ad-40b4-ab29-3b256cef57ce

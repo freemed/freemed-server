@@ -52,3 +52,10 @@ DIV#signin FORM FIELDSET DIV.control-group DIV.controls INPUT {
 	margin-bottom: 10px;
 }
 
+/*
+ *  SCHEDULER
+ */
+
+ DIV#scheduler {
+	 background-color: #ffffff;
+ }

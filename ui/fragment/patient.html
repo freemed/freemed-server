@@ -1,0 +1,143 @@
+
+<h1 class="title">Patient</h1>
+
+<script>
+
+function Attachment (data) {
+	this.timestamp = ko.observable(moment(data.timestamp).format('MM/DD/YYYY'));
+	this.patient_id = ko.observable(data.patient_id);
+	this.module = ko.observable(data.module);
+	this.module_id = ko.observable(data.module_id);
+	this.module_name = ko.observable(data.module_name);
+	this.module_namespace = ko.observable(data.module_namespace);
+	this.summary = ko.observable(data.summary);
+	this.annotation = ko.observable(data.annotation);
+	this.internal_id = ko.observable(data.internal_id);
+}
+
+/*
+function PatientListModel(data, attachments) {
+	var self = this;
+	self.address_line_1 = ko.observable(data.address_line_1);
+	self.address_line_2 = ko.observable(data.address_line_2);
+	self.age = ko.observable(data.age);
+	self.city = ko.observable(data.city);
+	self.csz = ko.observable(data.csz);
+	self.date_of_birth = ko.observable(data.date_of_birth);
+	self.date_of_birth_mdy = ko.observable(data.date_of_birth_mdy);
+	self.facility = ko.observable(data.facility);
+	self.hasallergy = ko.observable(data.hasallergy);
+	self.language = ko.observable(data.language);
+	self.patient_id = ko.observable(data.patient_id);
+	self.patient_name = ko.observable(data.patient_name);
+	self.pcp = ko.observable(data.pcp);
+	self.pharmacy = ko.observable(data.pharmacy);
+	self.postal = ko.observable(data.postal);
+	self.state = ko.observable(data.state);
+	self.attachments = ko.observableArray(attachments);
+}
+*/
+
+$(document).ready(function() {
+	// Menu selection
+	selectMenu('patients');
+
+	var obj = {};
+	var attachments = new Array();
+	$.ApiGET("/patient/"+encodeURIComponent(pageParams)+"/info", function(d) {
+		obj = d;
+		$.ApiGET("/patient/"+encodeURIComponent(pageParams)+"/attachments", function(d2) {
+			console.log(d2);
+			$.each( d2, function(k, v) {
+				attachments[attachments.length] = new Attachment(v);
+			});
+			var viewModel = ko.mapping.fromJS(obj);
+			viewModel.attachments = ko.observableArray(attachments);
+			console.log(viewModel);
+			ko.applyBindings(viewModel, document.getElementById('mainFrame'));
+		});
+	});
+
+	$('#emrattachments').tablesorter({
+		theme : "bootstrap",
+		widthFixed: false,
+		// widget code contained in the jquery.tablesorter.widgets.js file
+		// use the zebra stripe widget if you plan on hiding any rows (filter widget)
+		// the uitheme widget is NOT REQUIRED!
+		widgets : [ "filter", "columns", "zebra" ]
+	});
+});
+</script>
+
+<div class="container">
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+		<a class="navbar-brand" href="#"><span data-bind="text: patient_name"></span> (<span data-bind="text: patient_id"></span>)</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+		  <span class="navbar-toggler-icon"></span>
+		</button>	  
+		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+		  <ul class="navbar-nav mr-auto">
+			<li class="nav-item nav-active">
+			  <a class="nav-link nav-active" href="#">
+				  <img src="node_modules/bootstrap-icons/icons/house.svg" alt="" width="16" height="16" title="Home" alt="Home" />
+			  </a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="#">
+				  <img src="node_modules/bootstrap-icons/icons/envelope.svg" alt="" width="16" height="16" title="Messages" alt="Messages" />
+			  </a>
+			</li>
+			<li class="nav-item dropdown">
+			  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<img src="node_modules/bootstrap-icons/icons/plus.svg" alt="" width="16" height="16" title="Add" alt="Add" />
+			  </a>
+			  <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+				<a class="dropdown-item" href="#">Action</a>
+				<a class="dropdown-item" href="#">Another action</a>
+				<div class="dropdown-divider"></div>
+				<a class="dropdown-item" href="#">Something else here</a>
+			  </div>
+			</li>
+		  </ul>
+		  <form class="form-inline my-2 my-lg-0">
+			<input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+		  </form>
+		</div>
+	</nav>
+	<div class="row">
+		<div class="col-lg">
+			<table class="table table-bordered table-striped tablesorter" id="emrattachments">
+				<thead>
+					<tr>
+						<th>Date/Time</th>
+						<th>Module</th>
+						<th>Summary</th>
+						<th>Notes</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody data-bind="foreach: attachments">
+					<tr>
+						<td><span data-bind="text: timestamp"></span></td>
+						<td><span data-bind="text: module_name"></span></td>
+						<td><span data-bind="text: summary"></span></td>
+						<td><span data-bind="text: annotation"></span></td>
+						<td>
+							<div class="btn-group" role="group" aria-label="Actions">
+								<button type="button" class="btn btn-light">
+									<img src="node_modules/bootstrap-icons/icons/eye.svg" alt="" width="16" height="16" title="View" alt="View" />
+								</button>
+								<button type="button" class="btn btn-light">
+									<img src="node_modules/bootstrap-icons/icons/pencil.svg" alt="" width="16" height="16" title="Edit" alt="Edit" />
+								</button>
+								<button type="button" class="btn btn-light">
+									<img src="node_modules/bootstrap-icons/icons/trash.svg" alt="" width="16" height="16" title="Delete" alt="Delete" />
+								</button>
+							  </div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div> <!-- /col -->
+	</div> <!-- /row -->
+</div> <!-- /container -->

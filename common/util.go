@@ -5,19 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
+	"strconv"
 	"time"
+
+	jwt "github.com/appleboy/gin-jwt/v2"
+	"github.com/gin-gonic/gin"
 )
 
 var (
 	IsRunning = true
 )
 
+// Md5hash produces an MD5 sum for a string
 func Md5hash(orig string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(orig)))
 }
 
+// SleepFor waits for sec seconds
 func SleepFor(sec int64) {
 	for i := 0; i < int(sec); i++ {
 		if !IsRunning {
@@ -27,6 +32,7 @@ func SleepFor(sec int64) {
 	}
 }
 
+// JsonEncode creates a json-encoded version of an object
 func JsonEncode(o interface{}) []byte {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -38,17 +44,41 @@ func JsonEncode(o interface{}) []byte {
 
 // GetSession returns the SessionModel associated with the current session from JWT_PAYLOAD
 func GetSession(c *gin.Context) (SessionModel, error) {
-	jwtPayload, ok := c.Get("JWT_PAYLOAD")
-	if !ok {
+	claims := jwt.ExtractClaims(c)
+	if len(claims) < 1 {
 		return SessionModel{}, errors.New("JWT_PAYLOAD not found")
 	}
-	switch v := jwtPayload.(type) {
-	default:
-		log.Printf("GetSession(): Unexpected type %T", v)
-		return SessionModel{}, errors.New(fmt.Sprintf("JWT_PAYLOAD has type %T", v))
-	case map[string]interface{}:
-		payloadMap := jwtPayload.(map[string]interface{})
-		log.Printf("session map : %v", payloadMap["session"])
-		return SessionFromMap(payloadMap["session"].(map[string]interface{})), nil
+	userid, ok := claims["id"]
+	if !ok {
+		return SessionModel{}, errors.New("claim not found")
 	}
+	sm := SessionModel{}
+	sm.UserId = int64(userid.(float64))
+	sm.SessionId = jwt.GetToken(c)
+	return sm, nil
+}
+
+// ParseInt forces an integer to be parsed and returns 0 if unparseable
+func ParseInt(s string) int64 {
+	i, _ := strconv.ParseInt(s, 10, 64)
+	return i
+}
+
+// ParseDate parses a string into a date
+func ParseDate(s string) (t time.Time, e error) {
+	formats := []string{
+		"2006-01-02",
+		"01/02/2006",
+		// TODO: FIXME: IMPLEMENT: More commmon formats
+	}
+	if s == "" {
+		return time.Now(), fmt.Errorf("Unable to parse null date")
+	}
+	for _, f := range formats {
+		t, e = time.Parse(f, s)
+		if e == nil {
+			return
+		}
+	}
+	return time.Now(), fmt.Errorf("Unable to parse date")
 }

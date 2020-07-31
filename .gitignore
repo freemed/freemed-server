@@ -3,5 +3,7 @@ freemed-server
 go.sum
 ### Build artifacts
 ui/bower_components
+ui/node_modules
+ui/yarn-error.log
 ### Any logs left behind
 *.log

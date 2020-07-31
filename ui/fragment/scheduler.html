@@ -1,0 +1,171 @@
+<h1 class="title">Scheduler</h1>
+
+<script>
+    function modalEvent(id) {
+        $.ApiGET("/scheduler/event/" + id, function(data,status,xhr) {
+            if (status > 399) {
+                toastr.error('Unable to retrieve event.', 'Scheduler', {timeOut: 3000});
+                return
+            }
+            // Interpolate ...
+            var startDate = new Date(data.date_of.slice(0,10));
+            startDate.setHours(data.hour);
+            startDate.setMinutes(data.minute);
+            console.log(startDate);
+            var s = (data.hour * 60) + data.minute;
+            var endDate = new Date(data.date_of.slice(0,10));
+            endDate.setHours(parseInt((s + data.duration) / 60));
+            endDate.setMinutes((s + data.duration) % 60);
+
+            // Create "title"
+            var title = data.patient;
+            if (data.provider != null) {
+                title += "("+data.provider+")";
+            }
+            title += " [" + data.note + "]";
+
+            $('#event-patient').text(data.patient);
+
+            // Determine if there's any color associated
+            var color = "";
+            if (data.template_color != null) {
+                color = data.template_color;
+            }
+            $('#event-modal').modal('show');
+        });
+
+    } // end function modalEvent
+    $(document).ready(function() {
+        var calendarEl = document.getElementById('scheduler');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            plugins: [ 'dayGrid', 'timeGrid', 'list', 'interaction', 'bootstrap' ],
+            themeSystem: 'bootstrap',
+            defaultView: "timeGridWeek",
+            weekends: false, // don't display weekends
+            businessHours: {
+                daysOfWeek: [ 1, 2, 3, 4, 5 ],
+                startTime: "08:00", // FIXME: TODO: IMPLEMENT: XXX
+                endTime: "18:00" // FIXME: TODO: IMPLEMENT: XXX
+            },
+            eventLimit: 4, // any more than 4 in a day, popover
+            nowIndicator: true,
+            navLinks: true,
+            editable: true,
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            eventClick: function(info) {
+                console.log(info)
+                console.log('Event: ' + info.event.title);
+                console.log('Coordinates: ' + info.jsEvent.pageX + ',' + info.jsEvent.pageY);
+                console.log('View: ' + info.view.type);
+
+                // Create a modal box to get more information / edit
+                modalEvent(info.event.id);
+            },
+            eventDrop: function(info) {
+                console.log(info);
+                var changes = {};
+                if (info.oldEvent.start != info.event.start) {
+                    console.log(info.oldEvent.start.toString() + " != " + info.event.start.toString());
+                    changes["date"] = dateToJSONLocal(info.event.start);
+                    changes["hour"] = info.event.start.getHours();
+                    changes["minute"] = info.event.start.getMinutes();
+                }
+                $.ApiPOST("/scheduler/reschedule/" + info.event.id, changes, function(data, status, xhr){
+                    if (status > 399) {
+                        toastr.error('Unable to reschedule appointment.', 'Scheduler', {timeOut: 3000});
+                        return;
+                    }
+                    toastr.info('Appointment rescheduled.', 'Scheduler', {timeOut: 2000});
+                });
+            },
+            eventResize: function(info) {
+                console.log(info);
+                var changes = {};
+                if (info.prevEvent.start != info.event.start) {
+                    console.log(info.prevEvent.start.toString() + " != " + info.event.start.toString());
+                    changes["duration"] = Math.floor((info.event.end.getTime() - info.event.start.getTime()) / (1000 * 60));
+                }
+                $.ApiPOST("/scheduler/reschedule/" + info.event.id, changes, function(data, status, xhr){
+                    if (status > 399) {
+                        toastr.error('Unable to adjust appointment duration.', 'Scheduler', {timeOut: 3000});
+                        return;
+                    }
+                    toastr.info('Appointment duration changed.', 'Scheduler', {timeOut: 2000});
+                });
+            },
+            events: function(info, successCallback, failureCallback) {
+                $.ApiGET("/scheduler/dailyapptrange/"+dateToJSONLocal(info.start)+"/"+dateToJSONLocal(info.end), function(data,status,xhr){
+                    if (status > 399) {
+                        failureCallback(err);
+                        return;
+                    }
+                    // Interpolate ...
+                    var events = []
+                    $.each(data, function(k, v) {
+                        var startDate = new Date(v.date_of.slice(0,10));
+                        startDate.setHours(v.hour);
+                        startDate.setMinutes(v.minute);
+                        console.log(startDate);
+                        var s = (v.hour * 60) + v.minute;
+                        var endDate = new Date(v.date_of.slice(0,10));
+                        endDate.setHours(parseInt((s + v.duration) / 60));
+                        endDate.setMinutes((s + v.duration) % 60);
+
+                        // Create "title"
+                        var title = v.patient;
+                        if (v.provider != null) {
+                            title += "("+v.provider+")";
+                        }
+                        title += " [" + v.note + "]";
+
+                        // Determine if there's any color associated
+                        var color = "";
+                        if (v.template_color != null) {
+                            color = v.template_color;
+                        }
+
+                        events.push({
+                            id: v.scheduler_id,
+                            patient_id: v.patient_id,
+                            title: title,
+                            start: startDate,
+                            end: endDate,
+                            color: color
+                        });
+                    });
+                    // ... and return
+                    successCallback(events);
+                });                    
+            }
+        });
+        calendar.render();
+    });
+</script>
+
+<div id="scheduler"></div>
+
+<div class="modal" tabindex="-1" role="dialog" id="event-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Appointment : <span id="event-patient"></span></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div> <!-- /modal-header -->
+        <div class="modal-body">
+          <div class="container-fluid">
+            
+          </div> <!-- /container-fluid -->
+        </div> <!-- /modal-body -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary">Save changes</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div> <!-- /modal-footer -->
+      </div> <!-- /modal-content -->
+    </div> <!-- /modal-dialog -->
+</div> <!-- /modal -->

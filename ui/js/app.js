@@ -47,7 +47,7 @@ $(document).ready(function() {
 		if (location.href.indexOf('#') > 1) {
 			var hash = location.href.substr(location.href.indexOf('#') + 1);
 			if (typeof hash !== 'undefined' && hash != '') {
-			// Load hash
+				// Load hash
 				loadPage( hash );
 			}
 		} else {

@@ -11,7 +11,7 @@ var startPage = 'main';
 var pageParams = null;
 var globalTimeout = 5000; // ms
 var sessionExpiry = 600; // seconds
-
+var sessionRenewalProcess = null;
 
 ////////// Authentication Functions //////////
 
@@ -59,6 +59,26 @@ function login() {
 	});
 } // end function login
 
+sessionRenewalProcess = function() {
+	console.log("Refreshing auth token");
+	$.ajax({
+		url: apiBase + "/../auth/refresh_token",
+		beforeSend: sessionAuth,
+		method: "GET",
+		contentType: "application/json",
+		error: function(x) {
+			console.log(JSON.stringify(x));
+			toastr.error('Unable to refresh token -- please try again.', 'Login', {timeOut: 5000});
+			$('#login-password').val(''); // Clear password, for security purposes
+			loginStateChange(false, null);
+		},
+		success: function(data) {
+			sessionId = data.token;
+			storeSessionId(sessionId);
+		}
+	});
+};
+
 function loginStateChange(loggedin, cb) {
 	if (loggedin) {
 		console.log('Login successful');
@@ -67,11 +87,13 @@ function loginStateChange(loggedin, cb) {
 		if (cb != null) {
 			cb();
 		}
+		setInterval(sessionRenewalProcess, 120000);
 	} else {
 		console.log('Login failed');
 		$( 'LI.nav-authed' ).hide();
 		$( '#loginDialog' ).modal('show');
 		$( '#login-username' ).focus();
+		clearInterval(sessionRenewalProcess);
 	}
 } // end function loginStateChange
  
@@ -81,16 +103,33 @@ function logout() {
 		method: "DELETE",
 		contentType: "application/json",
 		beforeSend: sessionAuth,
-		error: displayError,
+		error: function(error) {
+			$.sessionStorage.removeItem('sessionId');
+			loadPage('login-splash');
+			loginStateChange(false, null);
+			clearInterval(sessionRenewalProcess);
+		},
 		success: function(data) {
 			$.sessionStorage.removeItem('sessionId');
 			loadPage('login-splash');
 			loginStateChange(false, null);
+			clearInterval(sessionRenewalProcess);
 		}
 	});
 } // end function logout
 
-function displayError( err ) {
+function displayError( xhr, status, err ) {
+	if ( status == "error" ) {
+		if (xhr.status == 0) {
+			toastr.error("Unable to reach server; try again.");
+			return
+		}
+		if (xhr.status == 401) {
+			toastr.error("Logged out -- attempting to log in.");
+			logout();
+			return
+		}
+	}
 	$( '#pageAlert' ).html( err );
 	$( '#pageAlert' ).addClass( 'alert-error' );
 	$( '#pageAlert' ).show( "slow", "fade", function() {
@@ -153,37 +192,41 @@ function selectMenu( item ) {
 ////////// jQuery Extensions //////////
 
 window.jQuery.ApiDELETE = function(apipath, successFunc) {
-        $.ajax({
-                url: apiBase + apipath,
-                method: "DELETE",
+	$.ajax({
+		url: apiBase + apipath,
+		beforeSend: sessionAuth,
+		method: "DELETE",
 		cache: false,
-                contentType: "application/json",
-                error: displayError,
-                success: successFunc
-        });
+		contentType: "application/json",
+		error: displayError,
+		success: successFunc
+	});
 };
 
 window.jQuery.ApiGET = function(apipath, successFunc) {
-        $.ajax({
-                url: apiBase + apipath,
-                method: "GET",
+	$.ajax({
+		url: apiBase + apipath,
+		beforeSend: sessionAuth,
+		method: "GET",
 		cache: false,
-                contentType: "application/json",
-                error: displayError,
-                success: successFunc
-        });
+		contentType: "application/json",
+		error: displayError,
+		success: successFunc
+	});
 };
 
 window.jQuery.ApiPOST = function(apipath, data, successFunc) {
-        $.ajax({
-                url: apiBase + apipath,
-                method: "POST",
+	$.ajax({
+		url: apiBase + apipath,
+		beforeSend: sessionAuth,
+		method: "POST",
 		cache: false,
-		data: data,
-                contentType: "application/json",
-                error: displayError,
-                success: successFunc
-        });
+		data: JSON.stringify(data),
+		dataType: "json",
+		contentType: "application/json",
+		error: displayError,
+		success: successFunc
+	});
 };
 
 
@@ -398,4 +441,10 @@ function randString(id){
 		text += possible.charAt(Math.floor(Math.random() * possible.length));
 	}
 	return text;
+}
+
+function dateToJSONLocal (date) {
+    var local = new Date(date);
+    local.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return local.toJSON().slice(0, 10);
 }

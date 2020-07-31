@@ -9,6 +9,7 @@ import (
 	"runtime/pprof"
 	"strings"
 
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/braintree/manners"
 	_ "github.com/freemed/freemed-server/api"
 	"github.com/freemed/freemed-server/common"
@@ -105,13 +106,21 @@ func main() {
 		c.Redirect(http.StatusMovedPermanently, "./ui/index.html")
 	})
 
+	mw := getAuthMiddleware()
+
+	m.NoRoute(mw.MiddlewareFunc(), func(c *gin.Context) {
+		claims := jwt.ExtractClaims(c)
+		log.Printf("NoRoute claims: %#v\n", claims)
+		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+	})
+
 	// All authorized pieces live in /api
 	a := m.Group("/api")
 
 	// JWT pieces
 	auth := m.Group("/auth")
-	auth.POST("/login", getAuthMiddleware().LoginHandler)
-	auth.GET("/refresh_token", getAuthMiddleware().RefreshHandler)
+	auth.POST("/login", mw.LoginHandler)
+	auth.GET("/refresh_token", mw.RefreshHandler)
 	auth.DELETE("/logout", authMiddlewareLogout)
 	auth.GET("/logout", authMiddlewareLogout) // for compatibility -- really shouldn't use this
 
