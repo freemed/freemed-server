@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/appleboy/gin-jwt"
+	jwt "github.com/appleboy/gin-jwt"
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/config"
 	"github.com/freemed/freemed-server/model"
