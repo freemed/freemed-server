@@ -3,10 +3,13 @@ package model
 import (
 	"database/sql"
 	"time"
+
+	"github.com/freemed/freemed-server/common"
 )
 
 const (
-	TABLE_IMMUNIZATION = "immunization"
+	TABLE_IMMUNIZATION  = "immunization"
+	MODULE_IMMUNIZATION = "immunization"
 )
 
 type ImmunizationModel struct {
@@ -23,7 +26,7 @@ type ImmunizationModel struct {
 	PreviousDoses         int64         `db:"previous_doses" json:"previous_doses"`
 	Recovered             bool          `db:"recovered" json:"recovered"`
 	Notes                 NullString    `db:"notes" json:"notes"`
-	OrderId               int64         `db:"orderid" json:"order_id"`
+	OrderID               int64         `db:"orderid" json:"order_id"`
 	Locked                int64         `db:"locked" json:"locked"`
 	User                  int64         `db:"user" json:"user"`
 	Active                string        `db:"active" json:"active"`
@@ -31,5 +34,16 @@ type ImmunizationModel struct {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_IMMUNIZATION, Obj: ImmunizationModel{}, Key: "Id"})
+	DbTables = append(DbTables,
+		DbTable{
+			TableName: TABLE_IMMUNIZATION,
+			Obj:       ImmunizationModel{},
+			Key:       "Id",
+		},
+	)
+	common.EmrModuleMap[MODULE_IMMUNIZATION] = common.EmrModuleType{
+		Name:         MODULE_IMMUNIZATION,
+		PatientField: "Patient",
+		Type:         ImmunizationModel{},
+	}
 }

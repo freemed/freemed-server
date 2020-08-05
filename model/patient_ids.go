@@ -1,18 +1,19 @@
 package model
 
 import (
-	"github.com/freemed/freemed-server/common"
 	"time"
+
+	"github.com/freemed/freemed-server/common"
 )
 
 const (
 	TABLE_PATIENT_ID  = "patient_ids"
-	MODULE_PATIENT_ID = ""
+	MODULE_PATIENT_ID = "patient_ids"
 )
 
 type PatientIdModel struct {
 	Patient   int64     `db:"patient" json:"patient_id"`
-	ForeignId string    `db:"foreign_id" json:"foreign_identifier"`
+	ForeignID string    `db:"foreign_id" json:"foreign_identifier"`
 	Facility  int64     `db:"facility" json:"facility_id"`
 	Practice  int64     `db:"practice" json:"practice_id"`
 	User      int64     `db:"user" json:"user_id"`
@@ -28,7 +29,8 @@ func init() {
 		Key:       "Id",
 	})
 	common.EmrModuleMap[MODULE_PATIENT_ID] = common.EmrModuleType{
-		Name: MODULE_PATIENT_ID,
-		Type: PatientIdModel{},
+		Name:         MODULE_PATIENT_ID,
+		PatientField: "Patient",
+		Type:         PatientIdModel{},
 	}
 }

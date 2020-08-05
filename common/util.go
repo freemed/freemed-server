@@ -32,8 +32,8 @@ func SleepFor(sec int64) {
 	}
 }
 
-// JsonEncode creates a json-encoded version of an object
-func JsonEncode(o interface{}) []byte {
+// JSONEncode creates a json-encoded version of an object
+func JSONEncode(o interface{}) []byte {
 	b, err := json.Marshal(o)
 	if err != nil {
 		log.Print(err.Error())
