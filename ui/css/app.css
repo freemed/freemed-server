@@ -41,6 +41,9 @@ BODY {
 	background-size: cover;
 }
 
+DIV#mainFrame {
+	background-color: #ffffffaa;
+}
 
 /* Centered signin button */
 #signinControls {

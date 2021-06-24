@@ -1,0 +1,44 @@
+
+<h1 class="title">Patient New/Edit</h1>
+
+<script>
+
+$(document).ready(function() {
+	// Menu selection
+	selectMenu('patient.edit');
+
+});
+</script>
+
+<div class="container">
+	<div class="row">
+		<ul class="nav nav-pills" id="patientEditTab" role="tablist">
+			<li class="nav-item">
+			  <a class="nav-link active" id="demo-tab" data-toggle="tab" href="#demo" role="tab" aria-controls="demo" aria-selected="true">Demographics</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Contact</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" id="profile-tab" data-toggle="tab" href="#coverage" role="tab" aria-controls="coverage" aria-selected="false">Coverage</a>
+			</li>
+		</ul>
+	</div> <!-- /row -->
+	<div class="row">
+		<div class="tab-content" id="patientEditTabContents">
+			<div class="tab-pane fade show active" id="demo" role="tabpanel" aria-labelledby="demo-tab">
+				<div class="container">
+					<div class="row">
+						PATIENT DEMOGRAPHICS GO HERE
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+				PATIENT CONTACT INFORMATION GOES HERE
+			</div>
+			<div class="tab-pane fade" id="coverage" role="tabpanel" aria-labelledby="coverage-tab">
+				PATIENT COVERAGE GOES HERE
+			</div>
+		</div>
+	</div> <!-- /row -->
+</div> <!-- /container -->

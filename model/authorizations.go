@@ -2,10 +2,13 @@ package model
 
 import (
 	"time"
+
+	"github.com/freemed/freemed-server/common"
 )
 
 const (
-	TABLE_AUTHORIZATIONS = "authorizations"
+	TABLE_AUTHORIZATIONS  = "authorizations"
+	MODULE_AUTHORIZATIONS = "authorizations"
 )
 
 type AuthorizationModel struct {
@@ -28,5 +31,16 @@ type AuthorizationModel struct {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_AUTHORIZATIONS, Obj: AuthorizationModel{}, Key: "Id"})
+	DbTables = append(DbTables,
+		DbTable{
+			TableName: TABLE_AUTHORIZATIONS,
+			Obj:       AuthorizationModel{},
+			Key:       "Id",
+		},
+	)
+	common.EmrModuleMap[MODULE_AUTHORIZATIONS] = common.EmrModuleType{
+		Name:         MODULE_AUTHORIZATIONS,
+		PatientField: "Patient",
+		Type:         AuthorizationModel{},
+	}
 }

@@ -1,7 +1,10 @@
 package model
 
+import "github.com/freemed/freemed-server/common"
+
 const (
-	TABLE_PDS = "pds"
+	TABLE_PDS  = "pds"
+	MODULE_PDS = "pds"
 )
 
 type PatientDataStoreModel struct {
@@ -12,5 +15,16 @@ type PatientDataStoreModel struct {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_PDS, Obj: PatientDataStoreModel{}, Key: "Id"})
+	DbTables = append(DbTables,
+		DbTable{
+			TableName: TABLE_PDS,
+			Obj:       PatientDataStoreModel{},
+			Key:       "Id",
+		},
+	)
+	common.EmrModuleMap[MODULE_PDS] = common.EmrModuleType{
+		Name:         MODULE_PDS,
+		PatientField: "Patient",
+		Type:         PatientDataStoreModel{},
+	}
 }
