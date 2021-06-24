@@ -7,4 +7,4 @@ replace (
 	github.com/freemed/freemed-server/common => ../common
 )
 
-require gopkg.in/yaml.v2 v2.3.0
+require gopkg.in/yaml.v2 v2.4.0

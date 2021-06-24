@@ -24,6 +24,6 @@ require (
 	github.com/freemed/remitt-server/common v0.0.0-00010101000000-000000000000 // indirect
 	github.com/freemed/remitt-server/model v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.2
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )
