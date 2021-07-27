@@ -2,30 +2,30 @@
   "dependencies": {
     "@bower_components/bootstrap": "twbs/bootstrap#^4.5.0",
     "@bower_components/bootstrap-switch": "nostalgiaz/bootstrap-switch#^3.3.4",
-    "@bower_components/jquery": "jquery/jquery-dist#^3.3.1",
     "@bower_components/jquery-html5storage": "FBlade/html5Storage",
-    "@bower_components/knockout": "SteveSanderson/knockout#^3.4.2",
-    "@bower_components/knockout.mapping": "RayKwon/knockout.mapping#^2.0.1",
     "@bower_components/moment": "moment/moment#^2.20.1",
     "@bower_components/popper.js": "FezVrasta/popper.js#^1.14.3",
-    "@bower_components/select2": "ivaynberg/select2#^4.0.5",
-    "@bower_components/toastr": "johnpapa/toastr-bower#^2.1.3",
-    "@fortawesome/fontawesome-free": "^5.13.0",
-    "@fullcalendar/bootstrap": "^4.4.2",
-    "@fullcalendar/core": "^4.4.2",
-    "@fullcalendar/daygrid": "^4.4.2",
-    "@fullcalendar/interaction": "^4.4.2",
-    "@fullcalendar/list": "^4.4.2",
-    "@fullcalendar/timegrid": "^4.4.2",
+    "@fortawesome/fontawesome-free": "^5.15.3",
+    "@fullcalendar/bootstrap": "^5.8.0",
+    "@fullcalendar/core": "^5.8.0",
+    "@fullcalendar/daygrid": "^5.8.0",
+    "@fullcalendar/interaction": "^5.8.0",
+    "@fullcalendar/list": "^5.8.0",
+    "@fullcalendar/timegrid": "^5.8.0",
+    "@popperjs/core": "^2.9.2",
     "@ttskch/select2-bootstrap4-theme": "^1.4.0",
     "bootstrap-icons": "^1.0.0-alpha4",
+    "jquery": "^3.6.0",
+    "knockout": "^3.5.1",
+    "knockout-mapping": "^2.6.0",
     "monorepo": "^1.2.2",
-    "tablesorter": "^2.31.3"
+    "popper.js": "^1.16.1",
+    "select2": "^4.1.0-rc.0",
+    "tablesorter": "^2.31.3",
+    "toastr": "^2.1.4",
+    "which-pm-runs": "^1.0.0"
   },
   "engines": {
     "yarn": ">= 1.0.0"
-  },
-  "scripts": {
-    "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'bower_components', 'junction') } catch (e) { }\""
   }
 }
