@@ -1,7 +1,5 @@
 package model
 
-import ()
-
 const (
 	TABLE_CPTMODIFIER = "cptmod"
 )

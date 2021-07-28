@@ -29,7 +29,7 @@ func (r *RemittClient) init() error {
 		return err
 	}
 	r.Client, err = rc.NewClient(user.Value.String, pass.Value.String, url.Value.String)
-	return nil
+	return err
 }
 
 // SubmitPayload submits a payload to a local REMITT instance

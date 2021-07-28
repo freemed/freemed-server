@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// NullTime represents a nullable Time object
 type NullTime struct {
 	time.Time
 	Valid bool
@@ -26,6 +27,7 @@ func (nt NullTime) Value() (driver.Value, error) {
 
 // JSON encoding support
 
+// MarshalJSON marshals this object into JSON
 func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if nt.Valid {
 		return nt.Time.MarshalJSON()
@@ -33,6 +35,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
 }
 
+// UnmarshalJSON unmarshals this object from JSON
 func (nt *NullTime) UnmarshalJSON(data []byte) (err error) {
 	if data == nil || len(data) < 3 {
 		*nt = NullTime{Valid: false}

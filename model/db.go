@@ -11,9 +11,12 @@ import (
 )
 
 var (
-	DbTables           = make([]DbTable, 0)
+	// DbTables is the internal representation of all database tables
+	DbTables = make([]DbTable, 0)
+	// DbSupportPicklists is the internal representation of all picklists
 	DbSupportPicklists = make([]DbSupportPicklist, 0)
-	DbFlags            = "parseTime=true&multiStatements=true"
+	// DbFlags is the passed connection flags
+	DbFlags = "parseTime=true&multiStatements=true"
 )
 
 // DbTable represents the internal metadata for a managed database table
@@ -43,6 +46,7 @@ type DbSupportPicklist struct {
 	Query      string
 }
 
+// InitDb initializes all database connections
 func InitDb() *gorp.DbMap {
 	dbobj, err := sql.Open("mysql", config.Config.Database.User+":"+config.Config.Database.Pass+"@"+config.Config.Database.Host+"/"+config.Config.Database.Name+"?"+DbFlags)
 	if err != nil {
@@ -71,7 +75,7 @@ func InitDb() *gorp.DbMap {
 
 	err = dbmap.CreateTablesIfNotExists()
 	if err != nil {
-		log.Printf("initDb: Could not build tables", err)
+		log.Printf("initDb: Could not build tables: %s", err.Error())
 	}
 
 	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "db: ", log.Lmicroseconds))

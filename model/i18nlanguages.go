@@ -1,7 +1,5 @@
 package model
 
-import ()
-
 const (
 	TABLE_I18NLANGUAGES = "i18nlanguages"
 )

@@ -11,6 +11,7 @@ const (
 	TABLE_USER = "user"
 )
 
+// UserModel represents a single entry in the user table
 type UserModel struct {
 	Id                  int64         `db:"id"`
 	Username            string        `db:"username"`
@@ -54,22 +55,27 @@ func (u *UserModel) Logout() {
 	u.authenticated = false
 }
 
+// IsAuthenticated returns a boolean representing whether the user
+// is authenticated.
 func (u *UserModel) IsAuthenticated() bool {
 	return u.authenticated
 }
 
+// UniqueId returns the current object's primary key.
 func (u *UserModel) UniqueId() interface{} {
 	return u.Id
 }
 
 // GetUserByName will populate a user object from a database model with
-// a matching id.
+// a matching user name.
 func GetUserByName(username string) (UserModel, error) {
 	var u UserModel
 	err := DbMap.SelectOne(&u, "SELECT * FROM "+TABLE_USER+" WHERE username = ?", username)
 	return u, err
 }
 
+// GetUserById will populate a user object from a database model with
+// a matching id.
 func GetUserById(userId string) (UserModel, error) {
 	var u UserModel
 	err := DbMap.SelectOne(&u, "SELECT * FROM "+TABLE_USER+" WHERE id = ?", userId)
@@ -87,6 +93,8 @@ func (u *UserModel) GetById(id interface{}) error {
 	return nil
 }
 
+// CheckUserPassword attempts to authenticate the provided user name and
+// password and returns the user id and a boolean representing success.
 func CheckUserPassword(username, userpassword string) (int64, bool) {
 	u := UserModel{}
 	err := DbMap.SelectOne(&u, "SELECT * FROM "+TABLE_USER+" WHERE username = :user AND userpassword = :pass", map[string]interface{}{
