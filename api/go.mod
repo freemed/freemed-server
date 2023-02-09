@@ -15,5 +15,5 @@ replace (
 require (
 	github.com/freemed/freemed-server/common v0.0.0-00010101000000-000000000000
 	github.com/freemed/freemed-server/model v0.0.0-00010101000000-000000000000
-	github.com/gin-gonic/gin v1.7.2
+	github.com/gin-gonic/gin v1.7.7
 )
