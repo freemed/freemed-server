@@ -1,6 +1,6 @@
 module github.com/freemed/freemed-server/config
 
-go 1.15
+go 1.19
 
 replace (
 	github.com/freemed/freemed-server => ../
