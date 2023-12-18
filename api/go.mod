@@ -27,13 +27,13 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/freemed/freemed-server/config v0.0.0-00010101000000-000000000000 // indirect
-	github.com/freemed/gokogiri/help v0.0.0-20220627154600-2acb041aa5ac // indirect
-	github.com/freemed/gokogiri/util v0.0.0-20220627154600-2acb041aa5ac // indirect
-	github.com/freemed/gokogiri/xml v0.0.0-20220627154600-2acb041aa5ac // indirect
-	github.com/freemed/gokogiri/xpath v0.0.0-20220627154600-2acb041aa5ac // indirect
-	github.com/freemed/ratago/xslt v0.0.0-20220610164841-0ab820da5118 // indirect
-	github.com/freemed/remitt-server/common v0.0.0-20210809134957-77971a6e1026 // indirect
-	github.com/freemed/remitt-server/config v0.0.0-20220610164855-e7050fc6dac2 // indirect
+	github.com/freemed/gokogiri/help v0.0.0-20230628164547-0f93de0487ac // indirect
+	github.com/freemed/gokogiri/util v0.0.0-20230628164547-0f93de0487ac // indirect
+	github.com/freemed/gokogiri/xml v0.0.0-20230628164547-0f93de0487ac // indirect
+	github.com/freemed/gokogiri/xpath v0.0.0-20230628164547-0f93de0487ac // indirect
+	github.com/freemed/ratago/xslt v0.0.0-20230628164800-7a1df60588d2 // indirect
+	github.com/freemed/remitt-server/common v0.0.0-20230221125127-71aa32d472a1 // indirect
+	github.com/freemed/remitt-server/config v0.0.0-20230221125127-71aa32d472a1 // indirect
 	github.com/freemed/remitt-server/model v0.0.0-00010101000000-000000000000 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
@@ -56,10 +56,10 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.4.0 // indirect
-	golang.org/x/crypto v0.11.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.12.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20170922094635-f56db5e73a5e // indirect
