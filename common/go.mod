@@ -1,6 +1,8 @@
 module github.com/freemed/freemed-server/common
 
-go 1.20
+go 1.21
+
+toolchain go1.21.6
 
 require (
 	github.com/appleboy/gin-jwt/v2 v2.9.1

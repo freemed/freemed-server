@@ -11,6 +11,8 @@ replace (
 	github.com/freemed/gokogiri => ../../gokogiri
 	github.com/freemed/gokogiri/help => ../../gokogiri/help
 	github.com/freemed/gokogiri/util => ../../gokogiri/util
+	github.com/freemed/ratago => ../../ratago
+	github.com/freemed/ratago/xslt => ../../ratago/xslt
 	github.com/freemed/remitt-server => ../../remitt-server
 	github.com/freemed/remitt-server/client => ../../remitt-server/client
 	github.com/freemed/remitt-server/common => ../../remitt-server/common

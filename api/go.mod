@@ -12,6 +12,7 @@ replace (
 	github.com/freemed/gokogiri => ../../gokogiri
 	github.com/freemed/gokogiri/help => ../../gokogiri/help
 	github.com/freemed/gokogiri/xpath => ../../gokogiri/xpath
+	github.com/freemed/ratago/xslt => ../../ratago/xslt
 	github.com/freemed/remitt-server/common => ../../remitt-server/common
 	github.com/freemed/remitt-server/config => ../../remitt-server/config
 	github.com/freemed/remitt-server/model => ../../remitt-server/model
