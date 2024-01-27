@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/config"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
 )
@@ -21,6 +22,11 @@ func init() {
 			r.GET("/dateappt/:date", schedulerFindDateAppt)
 			r.GET("/event/:id", schedulerGetEvent)
 			r.POST("/reschedule/:id", schedulerReschedule)
+			// canBookAppointment
+			// SetAppointment
+			// SetGroupAppointment
+			// set_recurring_appointment
+			//
 		},
 	}
 }
@@ -105,9 +111,9 @@ func schedulerDailyApptRange(c *gin.Context) {
 }
 
 func schedulerDailyApptScheduler(c *gin.Context) {
-	calshr := 9       // FIXME: TODO: IMPLEMENT: XXX
-	calehr := 16      // FIXME: TODO: IMPLEMENT: XXX
-	calinterval := 15 // FIXME: TODO: IMPLEMENT: XXX
+	calshr := config.Config.Scheduler.Start
+	calehr := config.Config.Scheduler.End
+	calinterval := config.Config.Scheduler.Interval
 
 	dt, err := common.ParseDate(c.Param("date"))
 	if err != nil {

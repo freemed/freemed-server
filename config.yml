@@ -21,3 +21,7 @@ paths:
 session:
   expiry: 10
   key: freemed
+scheduler:
+  start: 9
+  end: 16
+  interval: 15

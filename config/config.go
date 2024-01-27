@@ -53,6 +53,11 @@ type AppConfig struct {
 		Expiry  int64    `yaml:"expiry" xml:"expiry"`
 		Key     string   `yaml:"key" xml:"key"`
 	} `yaml:"session"`
+	Scheduler struct {
+		Start    int `yaml:"start" xml:"start"`
+		End      int `yaml:"end" xml:"end"`
+		Interval int `yaml:"interval" xml:"interval"`
+	} `yaml:"scheduler"`
 }
 
 func (c *AppConfig) SetDefaults() {
