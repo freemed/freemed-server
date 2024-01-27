@@ -1,6 +1,8 @@
 module github.com/freemed/freemed-server/model
 
-go 1.20
+go 1.21
+
+toolchain go1.21.6
 
 replace (
 	github.com/freemed/freemed-server => ../
