@@ -74,6 +74,20 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 			TokenLookup:   "header:Authorization,query:token,cookie:jwt",
 			TokenHeadName: "Bearer",
 			TimeFunc:      time.Now,
+			RefreshResponse: func(c *gin.Context, code int, token string, t time.Time) {
+				cookie, err := c.Cookie("jwt")
+				if err != nil {
+					log.Println(err)
+				}
+
+				c.JSON(http.StatusOK, gin.H{
+					"code":    http.StatusOK,
+					"token":   token,
+					"expire":  t.Format(time.RFC3339),
+					"message": "refresh successfully",
+					"cookie":  cookie,
+				})
+			},
 		})
 		if err != nil {
 			panic(err)
