@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/freemed/freemed-server/common"
+	"gorm.io/gorm"
 )
 
 const (
@@ -12,6 +13,7 @@ const (
 )
 
 type AuthorizationModel struct {
+	gorm.Model
 	Added               time.Time `db:"authdtadd" json:"added"`
 	Modified            time.Time `db:"authdtmod" json:"modified"`
 	Patient             int64     `db:"authpatient" json:"patient_id"`

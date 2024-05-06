@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/freemed/freemed-server/common"
+	"gorm.io/gorm"
 )
 
 const (
@@ -13,6 +14,7 @@ const (
 )
 
 type ProcedureModel struct {
+	gorm.Model
 	Patient               int64           `db:"procpatient" json:"patient_id"`
 	EpisodeOfCare         NullString      `db:"proceoc" json:"episode_of_care"`
 	CptCode               int64           `db:"proccpt" json:"cpt"`

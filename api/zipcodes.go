@@ -46,27 +46,32 @@ func cityStateZipPicklist(r *gin.Context) {
 		// ST CITY
 		buf.WriteString("state = UPPER(?) AND city LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = model.DbMap.Select(&o, buf.String(), param[0:2], param[3:])
+		tx := model.Db.Raw(buf.String(), param[0:2], param[3:]).Scan(&o)
+		err = tx.Error
 	} else if len(param) > 4 && param[len(param)-4:len(param)-2] == ", " {
 		// CITY, ST
 		buf.WriteString("state = UPPER(?) AND city LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = model.DbMap.Select(&o, buf.String(), param[len(param)-2:len(param)], param[0:len(param)-4])
+		tx := model.Db.Raw(buf.String(), param[len(param)-2:len(param)], param[0:len(param)-4]).Scan(&o)
+		err = tx.Error
 	} else if len(param) > 4 && param[len(param)-3:len(param)-2] == " " {
 		// CITY ST
 		buf.WriteString("state = UPPER(?) AND city LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = model.DbMap.Select(&o, buf.String(), param[len(param)-2:len(param)], param[0:len(param)-3])
+		tx := model.Db.Raw(buf.String(), param[len(param)-2:len(param)], param[0:len(param)-3]).Scan(&o)
+		err = tx.Error
 	} else if len(param) >= 3 && !strings.ContainsAny(param, "0123456789") {
 		// CITY
 		buf.WriteString("city LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = model.DbMap.Select(&o, buf.String(), param)
+		tx := model.Db.Raw(buf.String(), param).Scan(&o)
+		err = tx.Error
 	} else if intval > 0 {
 		// ZIP
 		buf.WriteString("zip LIKE CONCAT('%', ? ,'%')")
 		buf.WriteString(" LIMIT 20")
-		_, err = model.DbMap.Select(&o, buf.String(), param)
+		tx := model.Db.Raw(buf.String(), param).Scan(&o)
+		err = tx.Error
 	} else {
 		// Absolutely nothing
 	}

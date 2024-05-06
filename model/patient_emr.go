@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type PatientEmrModel struct {
+	gorm.Model
 	Patient    int64      `db:"patient" json:"patient_id"`
 	Module     string     `db:"module" json:"module"`
 	RecordId   int64      `db:"oid" json:"oid"`

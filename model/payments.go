@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_PAYMENTS = "payrec"
 )
 
 type PaymentModel struct {
+	gorm.Model
 	Added       NullTime   `db:"payrecdtadd" json:"added"`
 	Modified    NullTime   `db:"payrecdtmod" json:"modified"`
 	Patient     int64      `db:"payrecpatient" json:"patient_id"`

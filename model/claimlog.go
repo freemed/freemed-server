@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type ClaimLogModel struct {
+	gorm.Model
 	Stamp         time.Time `db:"cltimestamp" json:"stamp"`
 	User          int64     `db:"cluser" json:"user_id"`
 	Procedure     int64     `db:"clprocedure" json:"procedure_id"`

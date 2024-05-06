@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_ICDCODE = "icd9"
 )
 
 type IcdModel struct {
+	gorm.Model
 	Abbreviation       string     `db:"abbrev" json:"abbrev"`
 	Language           string     `db:"language" json:"language"`
 	Icd9Code           string     `db:"icd9code" json:"icd_9_code"`

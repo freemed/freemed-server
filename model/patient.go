@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -10,6 +12,7 @@ const (
 )
 
 type PatientModel struct {
+	gorm.Model
 	DateAdd      time.Time `db:"ptdtadd" json:"date_added"`
 	DateModified NullTime  `db:"ptdtmod" json:"date_modified"`
 	// ptdoc

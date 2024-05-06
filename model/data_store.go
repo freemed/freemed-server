@@ -1,8 +1,7 @@
 package model
 
 import (
-// "github.com/freemed/freemed-server/common"
-// "time"
+	"gorm.io/gorm"
 )
 
 const (
@@ -10,6 +9,7 @@ const (
 )
 
 type DataStoreModel struct {
+	gorm.Model
 	Patient  int64  `db:"patient" json:"patient_id"`
 	Module   string `db:"module" json:"module"`
 	Contents []byte `db:"contents" json:"contents"`

@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_BCCDC = "bccdc"
 )
 
 type BccdcModel struct {
+	gorm.Model
 	Code        string `db:"agent_code" json:"code"`
 	Description string `db:"description" json:"description"`
 	Id          int64  `db:"id" json:"id"`

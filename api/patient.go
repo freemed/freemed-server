@@ -62,7 +62,8 @@ func patientEmrAttachments(r *gin.Context) {
 			" FROM patient_emr p" +
 			" LEFT OUTER JOIN modules m ON m.module_table = p.module" +
 			" WHERE p.patient = ? AND m.module_hidden = 0"
-		_, err = model.DbMap.Select(&o, query, id)
+		tx := model.Db.Raw(query, id).Scan(&o)
+		err = tx.Error
 	} else {
 		query = "SELECT p.patient AS patient" +
 			", p.module AS module" +
@@ -78,7 +79,8 @@ func patientEmrAttachments(r *gin.Context) {
 			" FROM patient_emr p" +
 			" LEFT OUTER JOIN modules m ON m.module_table = p.module" +
 			" WHERE p.patient = ? AND p.module = ? AND m.module_hidden = 0"
-		_, err = model.DbMap.Select(&o, query, id, module)
+		tx := model.Db.Raw(query, id, module).Scan(&o)
+		err = tx.Error
 	}
 
 	if err != nil {
@@ -140,10 +142,10 @@ func patientInformation(r *gin.Context) {
 		Facility model.NullString `db:"facility" json:"facility"`
 		Pharmacy model.NullString `db:"pharmacy" json:"pharmacy"`
 	}
-	err := model.DbMap.SelectOne(&o, query, id, id)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw(query, id, id).Scan(&o)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 	r.JSON(http.StatusOK, o)

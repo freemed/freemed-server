@@ -2,6 +2,8 @@ package model
 
 import (
 	"database/sql"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type ProviderModel struct {
+	gorm.Model
 	LastName             string        `db:"phylname" json:"last_name"`
 	FirstName            string        `db:"phyfname" json:"first_name"`
 	MiddleName           string        `db:"phymname" json:"middle_name"`

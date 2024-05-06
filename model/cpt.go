@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_CPT = "cpt"
 )
 
 type CptCodeModel struct {
+	gorm.Model
 	Code                 string     `db:"abbrev" json:"abbrev"`
 	NameInternal         NullString `db:"cptnameint" json:"name_internal"`
 	NameExternal         NullString `db:"cptnameext" json:"name_external"`

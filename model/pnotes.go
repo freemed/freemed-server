@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/remitt-server/model"
+	"gorm.io/gorm"
 )
 
 const (
@@ -11,6 +12,7 @@ const (
 )
 
 type ProgressNotesModel struct {
+	gorm.Model
 	Date              model.NullTime   `db:"pnotesdt" json:"date"`
 	DateAdded         model.NullTime   `db:"pnotesdtadd" json:"date_added"`
 	DateModified      model.NullTime   `db:"pnotesdtmod" json:"date_modified"`

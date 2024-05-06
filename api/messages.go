@@ -31,10 +31,10 @@ type messagesUserObj struct {
 
 func messagesListUsers(r *gin.Context) {
 	var o []messagesUserObj
-	_, err := model.DbMap.Select(&o, "SELECT username, id FROM "+model.TABLE_USER)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw("SELECT username, id FROM " + model.TABLE_USER).Scan(&o)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 	r.JSON(http.StatusOK, o)
@@ -63,15 +63,19 @@ func messagesView(r *gin.Context) {
 
 	if patient != 0 {
 		if unreadOnly {
-			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgread=0 AND m.msgby = ?", patient, session.UserId)
+			tx := model.Db.Raw("SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgread=0 AND m.msgby = ?", patient, session.UserId).Scan(&o)
+			err = tx.Error
 		} else {
-			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgfor = ?", patient, session.UserId)
+			tx := model.Db.Raw("SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgfor = ?", patient, session.UserId)
+			err = tx.Error
 		}
 	} else {
 		if unreadOnly {
-			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ? AND m.msgread = 0", session.UserId)
+			tx := model.Db.Raw("SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ? AND m.msgread = 0", session.UserId).Scan(&o)
+			err = tx.Error
 		} else {
-			_, err = model.DbMap.Select(&o, "SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ?", session.UserId)
+			tx := model.Db.Raw("SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ?", session.UserId).Scan(&o)
+			err = tx.Error
 		}
 	}
 

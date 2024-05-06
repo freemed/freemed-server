@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/freemed/freemed-server/common"
+	"gorm.io/gorm"
 )
 
 const (
@@ -13,6 +14,7 @@ const (
 
 // UserModel represents a single entry in the user table
 type UserModel struct {
+	gorm.Model
 	Id                  int64         `db:"id"`
 	Username            string        `db:"username"`
 	Password            string        `db:"userpassword"`
@@ -70,26 +72,31 @@ func (u *UserModel) UniqueId() interface{} {
 // a matching user name.
 func GetUserByName(username string) (UserModel, error) {
 	var u UserModel
-	err := DbMap.SelectOne(&u, "SELECT * FROM "+TABLE_USER+" WHERE username = ?", username)
-	return u, err
+	tx := Db.First(&u, "username = ?", username)
+	if tx.Error != nil {
+		return u, tx.Error
+	}
+	return u, nil
 }
 
 // GetUserById will populate a user object from a database model with
 // a matching id.
 func GetUserById(userId string) (UserModel, error) {
 	var u UserModel
-	err := DbMap.SelectOne(&u, "SELECT * FROM "+TABLE_USER+" WHERE id = ?", userId)
-	return u, err
+	tx := Db.First(&u, userId)
+	if tx.Error != nil {
+		return u, tx.Error
+	}
+	return u, nil
 }
 
 // GetById will populate a user object from a database model with
 // a matching id.
 func (u *UserModel) GetById(id interface{}) error {
-	err := DbMap.SelectOne(u, "SELECT * FROM "+TABLE_USER+" WHERE id = ?", id)
-	if err != nil {
-		return err
+	tx := Db.First(&u, id)
+	if tx.Error != nil {
+		return tx.Error
 	}
-
 	return nil
 }
 
@@ -97,14 +104,15 @@ func (u *UserModel) GetById(id interface{}) error {
 // password and returns the user id and a boolean representing success.
 func CheckUserPassword(username, userpassword string) (int64, bool) {
 	u := UserModel{}
-	err := DbMap.SelectOne(&u, "SELECT * FROM "+TABLE_USER+" WHERE username = :user AND userpassword = :pass", map[string]interface{}{
-		"user": username,
-		"pass": common.Md5hash(userpassword),
-	})
-	if err != nil {
-		log.Print(err.Error())
+	tx := Db.First(&u, "username = ? AND userpassword = ?",
+		username,
+		common.Md5hash(userpassword),
+	)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
 		return 0, false
 	}
+
 	if u.Id > 0 {
 		return u.Id, true
 	}

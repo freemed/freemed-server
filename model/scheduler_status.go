@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type SchedulerStatusModel struct {
+	gorm.Model
 	Stamp       time.Time `db:"csstamp" json:"stamp"`
 	Patient     int64     `db:"cspatient" json:"patient_id"`
 	Appointment int64     `db:"csappt" json:"appointment_id"`

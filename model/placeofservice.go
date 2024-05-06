@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_PLACEOFSERVICE = "pos"
 )
 
 type PlaceOfServiceModel struct {
+	gorm.Model
 	Name        string   `db:"posname" json:"name"`
 	Description string   `db:"posdescrip" json:"description"`
 	Added       NullTime `db:"posdtadd" json:"added"`

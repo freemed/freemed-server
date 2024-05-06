@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_INTERNALSERVICETYPE = "intservtype"
 )
 
 type InternalServiceTypeModel struct {
+	gorm.Model
 	Name string `db:"intservtype" json:"name"`
 	Id   int64  `db:"id" json:"id"`
 }

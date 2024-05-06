@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_LOINC = "loinc"
 )
 
 type LoincModel struct {
+	gorm.Model
 	LoincNum          string `db:"loinc_num" json:"loinc_num"`
 	Component         string `db:"component" json:"component"`
 	Property          string `db:"property" json:"property"`

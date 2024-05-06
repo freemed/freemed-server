@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_ENCLOSURETYPE = "enctype"
 )
 
 type EnclosureTypeModel struct {
+	gorm.Model
 	EnclosureType string `db:"enclosure" json:"enclosure"`
 	Id            int64  `db:"id" json:"id"`
 }

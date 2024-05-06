@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type SchedulerModel struct {
+	gorm.Model
 	Date          time.Time  `db:"caldateof" json:"date"`
 	Created       time.Time  `db:"calcreated" json:"created"`
 	Modified      NullTime   `db:"calmodified" json:"modified"`

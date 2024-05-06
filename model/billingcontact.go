@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type BillingContactModel struct {
+	gorm.Model
 	FirstName  string    `db:"bcfname" json:"first_name"`
 	MiddleName string    `db:"bcmname" json:"middle_name"`
 	LastName   string    `db:"bclname" json:"last_name"`

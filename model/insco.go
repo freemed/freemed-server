@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type InscoModel struct {
+	gorm.Model
 	DateAdded                      time.Time `db:"inscodtadd" json:"date_added"`
 	DateModified                   time.Time `db:"inscodtmod" json:"date_modified"`
 	Name                           string    `db:"insconame" json:"name"`

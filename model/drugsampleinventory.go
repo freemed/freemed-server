@@ -1,12 +1,17 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 const (
 	TABLE_DRUGSAMPLEINVENTORY = "drugsampleinv"
 )
 
 type DrugSampleInventoryModel struct {
+	gorm.Model
 	DrugCode             string    `db:"drugcode" json:"drug_code"`
 	NDC                  string    `db:"drugndc" json:"ndc"`
 	DrugClass            string    `db:"drugclass" json:"drug_class"`

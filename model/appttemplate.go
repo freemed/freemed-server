@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_APPTTEMPLATE = "appttemplate"
 )
 
 type AppointmentTemplateModel struct {
+	gorm.Model
 	Name      string `db:"atname" json:"name"`
 	Duration  int    `db:"atduration" json:"duration"`
 	Equipment []byte `db:"atequipment" json:"equipment"`

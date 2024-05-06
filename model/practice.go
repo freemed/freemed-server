@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_PRACTICE = "practice"
 )
 
 type PracticeModel struct {
+	gorm.Model
 	Name        string     `db:"pracname" json:"name"`
 	PracticeEin NullString `db:"pracein" json:"ein"`
 	Addr1A      NullString `db:"addr1a" json:"addr1_1"`

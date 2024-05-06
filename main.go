@@ -76,7 +76,7 @@ func main() {
 	}
 
 	log.Print("Initializing database backend")
-	model.DbMap = model.InitDb()
+	model.Db = model.InitDb()
 
 	log.Print("Initializing session backend")
 	common.ActiveSession = &common.SessionConnector{

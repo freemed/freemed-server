@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/freemed/freemed-server/common"
+	"gorm.io/gorm"
 )
 
 const (
@@ -12,6 +13,7 @@ const (
 )
 
 type PatientTagModel struct {
+	gorm.Model
 	Tag     string    `db:"tag" json:"tag"`
 	Patient int64     `db:"patient" json:"patient_id"`
 	User    int64     `db:"user" json:"user_id"`

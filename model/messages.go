@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type MessagesModel struct {
+	gorm.Model
 	Id         int64      `db:"id" json:"id"`
 	Sender     int64      `db:"msgby" json:"msgby"`
 	SenderName string     `db:"sender" json:"sender"`
@@ -31,16 +34,20 @@ func init() {
 }
 
 func MessageById(id int64) (*MessagesModel, error) {
-	obj, err := DbMap.Get(MessagesModel{}, id)
-	if err != nil {
-		return &MessagesModel{}, err
+	var msg MessagesModel
+	tx := Db.First(&msg, id)
+	if tx.Error != nil {
+		return &msg, tx.Error
 	}
-	msg := obj.(*MessagesModel)
-	return msg, nil
+	return &msg, nil
 }
 
 func (msg MessagesModel) Send() error {
-	return DbMap.Insert(msg)
+	tx := Db.Create(msg)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
 }
 
 func MessageSend(msg MessagesModel) error {

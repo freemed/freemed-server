@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_CALENDARGROUP = "calgroup"
 )
 
 type CalendarGroupModel struct {
+	gorm.Model
 	Name      string `db:"groupname" json:"name"`
 	Facility  int64  `db:"groupfacility" json:"facility_id"`
 	Frequency int    `db:"groupfrequency" json:"frequency"`

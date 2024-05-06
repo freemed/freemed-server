@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/freemed/freemed-server/common"
+	"gorm.io/gorm"
 )
 
 const (
@@ -13,6 +14,7 @@ const (
 )
 
 type ImmunizationModel struct {
+	gorm.Model
 	Stamp                 time.Time     `db:"dateof" json:"stamp"`
 	Patient               int64         `db:"patient" json:"patient_id"`
 	Provider              int64         `db:"provider" json:"provider_id"`

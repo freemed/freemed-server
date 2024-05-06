@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_I18NLANGUAGES = "i18nlanguages"
 )
 
 type I18nLanguageModel struct {
+	gorm.Model
 	Abbreviation string `db:"abbrev" json:"abbrev"`
 	Language     string `db:"language" json:"language"`
 }

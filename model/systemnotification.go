@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type SystemNotificationModel struct {
+	gorm.Model
 	Stamp   time.Time `db:"stamp" json:"stamp"`
 	User    int64     `db:"nuser" json:"user"`
 	Text    string    `db:"ntext" json:"text"`

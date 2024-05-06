@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_ZIPCODES = "zipcodes"
 )
 
 type ZipcodesModel struct {
+	gorm.Model
 	Id        int64   `db:"id" json:"id"`
 	Zip       string  `db:"zip" json:"zip"`
 	City      string  `db:"city" json:"city"`

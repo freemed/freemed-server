@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type CoverageTypeModel struct {
+	gorm.Model
 	Name        string    `db:"covtpname" json:"name"`
 	Description string    `db:"covtpdescrip" json:"description"`
 	Added       time.Time `db:"covtpdtadd" json:"added"`

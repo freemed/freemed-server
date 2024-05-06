@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_DOCUMENTCATEGORY = "documents_tc"
 )
 
 type DocumentCategoryModel struct {
+	gorm.Model
 	Type        string `db:"type" json:"type"`
 	Category    string `db:"category" json:"category"`
 	Description string `db:"description" json:"description"`

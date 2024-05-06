@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_DRUGFORM = "drugforms"
 )
 
 type DrugFormModel struct {
+	gorm.Model
 	Code        string `db:"code" json:"code"`
 	Description string `db:"description" json:"description"`
 	Id          int64  `db:"id" json:"id"`

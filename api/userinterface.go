@@ -43,14 +43,15 @@ func userInterfaceGetCurrentUsername(r *gin.Context) {
 		return
 	}
 
-	u, err := model.DbMap.Get(model.UserModel{}, session.UserId)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	var u model.UserModel
+	tx := model.Db.First(&u, session.UserId)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 
-	r.JSON(http.StatusOK, u.(model.UserModel).Description)
+	r.JSON(http.StatusOK, u.Description)
 	return
 }
 
@@ -62,14 +63,16 @@ func userInterfaceGetCurrentProvider(r *gin.Context) {
 		return
 	}
 
-	providerID, err := model.DbMap.SelectInt("SELECT IFNULL(userrealphy,0) FROM user WHERE id = ?", session.UserId)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	var u model.UserModel
+	tx := model.Db.First(&u, "id = ?", session.UserId)
+	//providerID, err := model.DbMap.SelectInt("SELECT IFNULL(userrealphy,0) FROM user WHERE id = ?", session.UserId)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 
-	r.JSON(http.StatusOK, providerID)
+	r.JSON(http.StatusOK, u.ProviderId)
 	return
 }
 
@@ -87,13 +90,14 @@ func userInterfaceCheckDuplicate(r *gin.Context) {
 		return
 	}
 
-	c, err := model.DbMap.SelectInt("SELECT COUNT(*) FROM user WHERE username = ?", username)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	var us model.UserModel
+	tx := model.Db.Find(&us, "username = ?", username)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 
-	r.JSON(http.StatusOK, c > 0)
+	r.JSON(http.StatusOK, tx.RowsAffected > 0)
 	return
 }

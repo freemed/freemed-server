@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type ClearinghouseModel struct {
+	gorm.Model
 	Name          string    `db:"chname" json:"name"`
 	Address       string    `db:"chaddr" json:"address"`
 	City          string    `db:"chcity" json:"city"`

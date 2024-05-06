@@ -19,9 +19,9 @@ replace (
 )
 
 require (
-	github.com/freemed/freemed-server/common v0.0.0-20240127174730-c59888f28f54
-	github.com/freemed/freemed-server/config v0.0.0-20240127174730-c59888f28f54
-	github.com/freemed/freemed-server/model v0.0.0-20240127174730-c59888f28f54
+	github.com/freemed/freemed-server/common v0.0.0-20240506192723-b3bd1f2ac6f4
+	github.com/freemed/freemed-server/config v0.0.0-20240506192723-b3bd1f2ac6f4
+	github.com/freemed/freemed-server/model v0.0.0-20240506192723-b3bd1f2ac6f4
 	github.com/gin-gonic/gin v1.9.1
 )
 
@@ -37,9 +37,9 @@ require (
 	github.com/freemed/gokogiri/xml v0.0.0-20230628164547-0f93de0487ac // indirect
 	github.com/freemed/gokogiri/xpath v0.0.0-20230628164547-0f93de0487ac // indirect
 	github.com/freemed/ratago/xslt v0.0.0-20230724152402-3a0c7faa982f // indirect
-	github.com/freemed/remitt-server/common v0.0.0-20240315224111-230a584acffa // indirect
-	github.com/freemed/remitt-server/config v0.0.0-20240315224111-230a584acffa // indirect
-	github.com/freemed/remitt-server/model v0.0.0-20240315224111-230a584acffa // indirect
+	github.com/freemed/remitt-server/common v0.0.0-20240506192547-5cc60c4f1d63 // indirect
+	github.com/freemed/remitt-server/config v0.0.0-20240506192547-5cc60c4f1d63 // indirect
+	github.com/freemed/remitt-server/model v0.0.0-20240506192547-5cc60c4f1d63 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -50,9 +50,10 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattes/migrate v3.0.1+incompatible // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -70,9 +71,10 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20170922094635-f56db5e73a5e // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
-	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/redis.v3 v3.6.4 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gorm.io/driver/mysql v1.5.6 // indirect
+	gorm.io/gorm v1.25.10 // indirect
 )

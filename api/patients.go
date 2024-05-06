@@ -102,10 +102,10 @@ func patientPicklist(r *gin.Context) {
 		" AND ( ISNULL(ptarchive) OR ptarchive=0 )" +
 		" LIMIT ?"
 	var o []picklistItem
-	_, err := model.DbMap.Select(&o, query, params...)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw(query, params...).Scan(&o)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 	r.JSON(http.StatusOK, o)
@@ -212,10 +212,10 @@ func patientSearch(r *gin.Context) {
 
 	log.Printf("patientSearch(): query: %s", query)
 	var o []patientSearchResult
-	_, err := model.DbMap.Select(&o, query, v...)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw(query, v...).Scan(&o)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 	r.JSON(http.StatusOK, o)
@@ -224,10 +224,10 @@ func patientSearch(r *gin.Context) {
 
 func patientTotalInSystem(r *gin.Context) {
 	var o int64
-	err := model.DbMap.SelectOne(&o, "SELECT COUNT(*) FROM patient WHERE ptarchive=0")
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw("SELECT COUNT(*) FROM patient WHERE ptarchive=0").Scan(&o)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 
@@ -267,10 +267,10 @@ func patientSearchForDuplicates(r *gin.Context) {
 	}
 	query += " ptarchive = 0"
 
-	err := model.DbMap.SelectOne(&o, query, fill...)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw(query, fill...).Scan(&o)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 

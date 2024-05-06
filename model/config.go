@@ -3,6 +3,8 @@ package model
 import (
 	"fmt"
 	"sync"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -15,6 +17,7 @@ var (
 )
 
 type ConfigModel struct {
+	gorm.Model
 	Key     string     `db:"c_option" json:"key"`
 	Value   NullString `db:"c_value" json:"value"`
 	Title   NullString `db:"c_title" json:"title"`
@@ -37,9 +40,10 @@ func cacheConfigValues(force bool) error {
 	}
 	if len(configCache) < 1 || force {
 		var cm []ConfigModel
-		_, err := DbMap.Select(&cm, "SELECT * FROM "+TABLE_CONFIG)
-		if err != nil {
-			return err
+
+		tx := Db.Find(&cm)
+		if tx.Error != nil {
+			return tx.Error
 		}
 		for _, v := range cm {
 			configCache[v.Id] = v

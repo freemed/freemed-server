@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type WorkflowStatusModel struct {
+	gorm.Model
 	Stamp     time.Time `db:"stamp" json:"stamp"`
 	Patient   int64     `db:"patient" json:"patient_id"`
 	User      int64     `db:"user" json:"user"`

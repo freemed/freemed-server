@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_BODYSITE = "bodysite"
 )
 
 type BodySiteModel struct {
+	gorm.Model
 	Abbreviation string `db:"abbrev" json:"abbrev"`
 	Language     string `db:"display_value" json:"description"`
 	Id           int64  `db:"id" json:"id"`

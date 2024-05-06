@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type BillkeyModel struct {
+	gorm.Model
 	Date       time.Time `db:"billkeydate" json:"date"`
 	Data       []byte    `db:"billkey" json:"key"`
 	Procedures string    `db:"bkprocs" json:"procedures"`
@@ -21,5 +24,10 @@ func init() {
 
 // GetBillkeyPayload retrieves a payload from a specified billkey
 func GetBillkeyPayload(billkey int64) (string, error) {
-	return DbMap.SelectStr("SELECT billkey FROM "+TABLE_BILLKEY+" WHERE id = ?", billkey)
+	var bk BillkeyModel
+	tx := Db.First(&bk, billkey)
+	if tx.Error != nil {
+		return "", tx.Error
+	}
+	return string(bk.Data), nil
 }

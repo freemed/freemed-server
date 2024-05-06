@@ -41,9 +41,15 @@ func dataStoreGet(r *gin.Context) {
 	}
 
 	var content []byte
-	err := model.DbMap.SelectOne(&content, "SELECT contents FROM pds WHERE patient = ? AND module = LOWER(?) AND id = ?", patient, module, id)
-	if err != nil {
-		log.Print(err.Error())
+	var c model.PatientDataStoreModel
+	tx := model.Db.Find(&c,
+		"patient = ? AND module = LOWER(?) AND id = ?",
+		patient,
+		module,
+		id,
+	)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
 		r.JSON(http.StatusInternalServerError, false)
 		return
 	}

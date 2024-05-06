@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type CalendarGroupAttendanceModel struct {
+	gorm.Model
 	Group         int64     `db:"calgroupid" json:"group_id"`
 	SchedulerItem int64     `db:"calid" json:"scheduler_id"`
 	Patient       int64     `db:"patient" json:"patient_id"`

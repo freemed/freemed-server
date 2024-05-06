@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_INSURANCEMODIFIER = "insmod"
 )
 
 type InsuranceModifierModel struct {
+	gorm.Model
 	Modifier    string `db:"insmod" json:"modifier"`
 	Description string `db:"insmoddesc" json:"description"`
 	Id          int64  `db:"id" json:"id"`

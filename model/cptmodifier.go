@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_CPTMODIFIER = "cptmod"
 )
 
 type CptModifierModel struct {
+	gorm.Model
 	Modifier    string `db:"cptmod" json:"modifier"`
 	Description string `db:"cptmoddescrip" json:"description"`
 	Id          int64  `db:"id" json:"id"`

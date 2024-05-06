@@ -101,10 +101,10 @@ func schedulerDailyApptRange(c *gin.Context) {
 	query += " GROUP BY s.id, ss.csappt " +
 		" ORDER BY s.caldateof, s.calhour, s.calminute, s.calphysician DESC"
 	var out []schedulerItem
-	_, err = model.DbMap.Select(&out, query, vars...)
-	if err != nil {
-		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw(query, vars...).Scan(&out)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		c.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 	c.JSON(http.StatusOK, out)
@@ -141,10 +141,10 @@ func schedulerDailyApptScheduler(c *gin.Context) {
 		StatusColor     model.NullString `json:"status_color" db:"status_color"`
 	}
 	var out []schedulerItem
-	_, err = model.DbMap.Select(&out, query, mysqlDateFormat(dt), calshr, calehr, calinterval, provider)
-	if err != nil {
-		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw(query, mysqlDateFormat(dt), calshr, calehr, calinterval, provider).Scan(&out)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		c.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 	c.JSON(http.StatusOK, out)
@@ -170,10 +170,10 @@ func schedulerFindDateAppt(c *gin.Context) {
 	}
 
 	var out []model.SchedulerModel
-	_, err = model.DbMap.Select(&out, query, vars...)
-	if err != nil {
-		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw(query, vars...).Scan(&out)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		c.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 	c.JSON(http.StatusOK, out)
@@ -213,10 +213,10 @@ func schedulerGetEvent(c *gin.Context) {
 		" LEFT OUTER JOIN calgroup cg ON s.calpatient=cg.id " +
 		" WHERE ( s.id = ? ) "
 	var out schedulerItem
-	err := model.DbMap.SelectOne(&out, query, id)
-	if err != nil {
-		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw(query, id).Scan(&out)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		c.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 	log.Printf("%#v", out)
@@ -245,10 +245,10 @@ func schedulerReschedule(c *gin.Context) {
 	}
 
 	var eventObj model.SchedulerModel
-	err = model.DbMap.SelectOne(&eventObj, "SELECT * FROM "+model.TABLE_SCHEDULER+" WHERE id = ?", id)
-	if err != nil {
-		log.Printf("schedulerReschedule(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Raw("SELECT * FROM "+model.TABLE_SCHEDULER+" WHERE id = ?", id).Scan(&eventObj)
+	if tx.Error != nil {
+		log.Printf("schedulerReschedule(%d): ERROR: %s", id, tx.Error.Error())
+		c.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 
@@ -274,10 +274,10 @@ func schedulerReschedule(c *gin.Context) {
 
 	// ... and we store it
 	log.Printf("schedulerReschedule(%d): %#v", id, eventObj)
-	_, err = model.DbMap.Update(&eventObj)
-	if err != nil {
-		log.Printf("schedulerReschedule(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+	tx = model.Db.Save(&eventObj)
+	if tx.Error != nil {
+		log.Printf("schedulerReschedule(%d): ERROR: %s", id, tx.Error.Error())
+		c.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 

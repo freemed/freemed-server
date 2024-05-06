@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type AnnotationModel struct {
+	gorm.Model
 	Stamp    time.Time `db:"atimestamp" json:"stamp"`
 	Patient  int64     `db:"apatient" json:"patient"`
 	Module   string    `db:"amodule" json:"module"`

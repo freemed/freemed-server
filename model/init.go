@@ -1,10 +1,10 @@
 package model
 
 import (
-	"gopkg.in/gorp.v1"
+	"gorm.io/gorm"
 )
 
 var (
-	DbMap         *gorp.DbMap
+	Db            *gorm.DB
 	SessionLength int
 )

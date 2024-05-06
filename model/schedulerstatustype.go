@@ -1,10 +1,13 @@
 package model
 
+import "gorm.io/gorm"
+
 const (
 	TABLE_SCHEDULERSTATUSTYPE = "schedulerstatustype"
 )
 
 type SchedulerStatusTypeModel struct {
+	gorm.Model
 	Name        string `db:"sname" json:"name"`
 	Description string `db:"sdescrip" json:"description"`
 	Color       string `db:"scolor" json:"color"`

@@ -1,6 +1,9 @@
 package model
 
-import "github.com/freemed/freemed-server/common"
+import (
+	"github.com/freemed/freemed-server/common"
+	"gorm.io/gorm"
+)
 
 const (
 	TABLE_PDS  = "pds"
@@ -8,6 +11,7 @@ const (
 )
 
 type PatientDataStoreModel struct {
+	gorm.Model
 	Patient  int64  `db:"patient" json:"patient_id"`
 	Module   string `db:"module" json:"module"`
 	Contents []byte `db:"contents" json:"data"`

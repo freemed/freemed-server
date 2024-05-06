@@ -48,13 +48,13 @@ func moduleSupportPicklist(r *gin.Context) {
 
 	var o []iface
 
-	_, err = model.DbMap.Select(&o, mod.Query, map[string]interface{}{
+	tx := model.Db.Raw(mod.Query, map[string]interface{}{
 		"query": query,
-	})
+	}).Scan(&o)
 
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 

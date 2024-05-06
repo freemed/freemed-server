@@ -21,10 +21,10 @@ func init() {
 
 func configGetAll(r *gin.Context) {
 	var o []model.ConfigModel
-	_, err := model.DbMap.Select(&o, "SELECT * FROM "+model.TABLE_CONFIG)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+	tx := model.Db.Find(&o)
+	if tx.Error != nil {
+		log.Print(tx.Error.Error())
+		r.AbortWithError(http.StatusInternalServerError, tx.Error)
 		return
 	}
 	r.JSON(http.StatusOK, o)
