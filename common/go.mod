@@ -6,7 +6,7 @@ toolchain go1.22.2
 
 require (
 	github.com/appleboy/gin-jwt/v2 v2.9.2
-	github.com/gin-gonic/gin v1.9.1
+	github.com/gin-gonic/gin v1.10.0
 	gopkg.in/redis.v3 v3.6.4
 )
 

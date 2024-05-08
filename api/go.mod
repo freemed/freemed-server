@@ -19,10 +19,10 @@ replace (
 )
 
 require (
-	github.com/freemed/freemed-server/common v0.0.0-20240506192723-b3bd1f2ac6f4
-	github.com/freemed/freemed-server/config v0.0.0-20240506192723-b3bd1f2ac6f4
-	github.com/freemed/freemed-server/model v0.0.0-20240506192723-b3bd1f2ac6f4
-	github.com/gin-gonic/gin v1.9.1
+	github.com/freemed/freemed-server/common v0.0.0-20240506234320-3b301527e988
+	github.com/freemed/freemed-server/config v0.0.0-20240506234320-3b301527e988
+	github.com/freemed/freemed-server/model v0.0.0-20240506234320-3b301527e988
+	github.com/gin-gonic/gin v1.10.0
 )
 
 require (

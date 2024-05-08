@@ -27,27 +27,28 @@ require (
 	github.com/appleboy/gin-jwt/v2 v2.9.2
 	github.com/braintree/manners v0.0.0-20160418043613-82a8879fc5fd
 	github.com/freemed/freemed-server/api v0.0.0-20230213182720-f119baf49957
-	github.com/freemed/freemed-server/common v0.0.0-20240127174730-c59888f28f54
-	github.com/freemed/freemed-server/config v0.0.0-20240127174730-c59888f28f54
-	github.com/freemed/freemed-server/model v0.0.0-20240127174730-c59888f28f54
+	github.com/freemed/freemed-server/common v0.0.0-20240506234320-3b301527e988
+	github.com/freemed/freemed-server/config v0.0.0-20240506234320-3b301527e988
+	github.com/freemed/freemed-server/model v0.0.0-20240506234320-3b301527e988
 	github.com/gin-gonic/contrib v0.0.0-20221130124618-7e01895a63f2
-	github.com/gin-gonic/gin v1.9.1
+	github.com/gin-gonic/gin v1.10.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
-	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
-	github.com/chenzhuoyu/iasm v0.9.1 // indirect
+	github.com/bytedance/sonic/loader v0.1.1 // indirect
+	github.com/cloudwego/base64x v0.1.4 // indirect
+	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/freemed/gokogiri/help v0.0.0-20230628164547-0f93de0487ac // indirect
 	github.com/freemed/gokogiri/util v0.0.0-20230628164547-0f93de0487ac // indirect
 	github.com/freemed/gokogiri/xml v0.0.0-20230628164547-0f93de0487ac // indirect
 	github.com/freemed/gokogiri/xpath v0.0.0-20230628164547-0f93de0487ac // indirect
 	github.com/freemed/ratago v0.0.0-20191105200024-660929a3e119 // indirect
-	github.com/freemed/remitt-server/common v0.0.0-20240315224111-230a584acffa // indirect
-	github.com/freemed/remitt-server/config v0.0.0-20240315224111-230a584acffa // indirect
-	github.com/freemed/remitt-server/model v0.0.0-20240315224111-230a584acffa // indirect
+	github.com/freemed/remitt-server/common v0.0.0-20240506192547-5cc60c4f1d63 // indirect
+	github.com/freemed/remitt-server/config v0.0.0-20240506192547-5cc60c4f1d63 // indirect
+	github.com/freemed/remitt-server/model v0.0.0-20240506192547-5cc60c4f1d63 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
@@ -68,6 +69,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
+	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
@@ -77,7 +79,6 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20170922094635-f56db5e73a5e // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
-	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/redis.v3 v3.6.4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
