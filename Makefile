@@ -6,23 +6,26 @@ all: clean deps binary
 
 binary:
 	@echo "- Building binary version ${VERSION}"
-	go build -ldflags "-X main.Version=${VERSION}" -v
+	( cd cmd/freemed-server ; go build -ldflags "-X main.Version=${VERSION}" -v )
 
 deps:
 	@echo "- Refreshing dependencies"
-	go get -v -d ./...
+	( cd cmd/freemed-server ; go get -v -d ./... )
 
 clean:
 	@echo "- Cleaning old build files"
-	go clean -v
+	( cd cmd/freemed-server ; go clean -v )
 
 crosscompile:
-	GOROOT=${GOROOT} CGO_ENABLED=0 GOOS=linux GOARCH=386 \
+	( cd cmd/freemed-server ; \
+		GOROOT=${GOROOT} CGO_ENABLED=0 GOOS=linux GOARCH=386 \
 		go build -v -ldflags "-X main.Version=${VERSION}" \
-			-o ${BINARY}.linux.x86
-	GOROOT=${GOROOT} CGO_ENABLED=0 GOOS=windows GOARCH=386 \
+			-o ${BINARY}.linux.x86 )
+	( cd cmd/freemed-server ; \
+		GOROOT=${GOROOT} CGO_ENABLED=0 GOOS=windows GOARCH=386 \
 		go build -v -ldflags "-X main.Version=${VERSION}" \
-			-o ${BINARY}.x86.exe
-	GOROOT=${GOROOT} CGO_ENABLED=0 GOOS=darwin GOARCH=386 \
+			-o ${BINARY}.x86.exe )
+	( cd cmd/freemed-server ; \
+		GOROOT=${GOROOT} CGO_ENABLED=0 GOOS=darwin GOARCH=386 \
 		go build -v -ldflags "-X main.Version=${VERSION}" \
-			-o ${BINARY}.mac.bin
+			-o ${BINARY}.mac.bin )

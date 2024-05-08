@@ -1,4 +1,4 @@
-freemed-server
+cmd/freemed-server/freemed-server
 .*.swp
 go.sum
 go.work.sum
