@@ -1,6 +1,5 @@
 # FREEMED SERVER
 
-[![Build Status](https://secure.travis-ci.org/freemed/freemed-server.png)](http://travis-ci.org/freemed/freemed-server)
 [![Go Report Card](https://goreportcard.com/badge/github.com/freemed/freemed-server)](https://goreportcard.com/report/github.com/freemed/freemed-server)
 [![codecov](https://codecov.io/gh/freemed/freemed-server/branch/master/graph/badge.svg)](https://codecov.io/gh/freemed/freemed-server)
 [![GoDoc](https://godoc.org/github.com/freemed/freemed-server?status.png)](https://godoc.org/github.com/freemed/freemed-server)
