@@ -21,7 +21,7 @@ replace (
 )
 
 require (
-	github.com/freemed/freemed-server/model v0.0.0-20240508003353-267a6ce88892
+	github.com/freemed/freemed-server/model v0.0.0-20250204190741-cc4a799de4af
 	github.com/freemed/remitt-server/client v0.0.0-20250203225640-8b7510789299
 	github.com/freemed/remitt-server/model v0.0.0-20250203225640-8b7510789299
 )
@@ -32,8 +32,8 @@ require (
 	github.com/bytedance/sonic v1.12.8 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
-	github.com/freemed/freemed-server/common v0.0.0-20240508003353-267a6ce88892 // indirect
-	github.com/freemed/freemed-server/config v0.0.0-20240508003353-267a6ce88892 // indirect
+	github.com/freemed/freemed-server/common v0.0.0-20250204190741-cc4a799de4af // indirect
+	github.com/freemed/freemed-server/config v0.0.0-20250204190741-cc4a799de4af // indirect
 	github.com/freemed/gokogiri/help v0.0.0-20250203225759-a4d8eb383f22 // indirect
 	github.com/freemed/gokogiri/util v0.0.0-20250203225759-a4d8eb383f22 // indirect
 	github.com/freemed/gokogiri/xml v0.0.0-20250203225759-a4d8eb383f22 // indirect
@@ -65,11 +65,11 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.14.0 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
-	google.golang.org/protobuf v1.36.4 // indirect
+	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20170922094635-f56db5e73a5e // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
