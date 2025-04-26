@@ -15,12 +15,12 @@ replace (
 )
 
 require (
-	github.com/freemed/freemed-server/common v0.0.0-20250327183340-a08af5dead88
-	github.com/freemed/freemed-server/config v0.0.0-20250327183340-a08af5dead88
+	github.com/freemed/freemed-server/common v0.0.0-20250416130701-c7ae75b9c375
+	github.com/freemed/freemed-server/config v0.0.0-20250416130701-c7ae75b9c375
 	github.com/freemed/remitt-server/model v0.0.0-20250408203712-6db141480e4c
 	github.com/go-sql-driver/mysql v1.9.2
 	gorm.io/driver/mysql v1.5.7
-	gorm.io/gorm v1.25.12
+	gorm.io/gorm v1.26.0
 )
 
 require (
@@ -36,7 +36,7 @@ require (
 	github.com/freemed/ratago/xslt v0.0.0-20250203231425-016f1ea48158 // indirect
 	github.com/freemed/remitt-server/common v0.0.0-20250408203712-6db141480e4c // indirect
 	github.com/freemed/remitt-server/config v0.0.0-20250408203712-6db141480e4c // indirect
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/gin-gonic/gin v1.10.0 // indirect
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect

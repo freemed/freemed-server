@@ -19,8 +19,8 @@ replace (
 )
 
 require (
-	github.com/freemed/freemed-server/model v0.0.0-20250327183340-a08af5dead88
-	github.com/freemed/remitt-server/client v0.0.0-20250408203712-6db141480e4c
+	github.com/freemed/freemed-server/model v0.0.0-20250416130701-c7ae75b9c375
+	github.com/freemed/remitt-server/client v0.0.0-20250426185610-9806fa8d280d
 	github.com/freemed/remitt-server/model v0.0.0-20250408203712-6db141480e4c
 )
 
@@ -30,8 +30,8 @@ require (
 	github.com/bytedance/sonic v1.13.2 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
-	github.com/freemed/freemed-server/common v0.0.0-20250327183340-a08af5dead88 // indirect
-	github.com/freemed/freemed-server/config v0.0.0-20250327183340-a08af5dead88 // indirect
+	github.com/freemed/freemed-server/common v0.0.0-20250416130701-c7ae75b9c375 // indirect
+	github.com/freemed/freemed-server/config v0.0.0-20250416130701-c7ae75b9c375 // indirect
 	github.com/freemed/gokogiri/help v0.0.0-20250402180648-1e651eb8ffcd // indirect
 	github.com/freemed/gokogiri/util v0.0.0-20250402180648-1e651eb8ffcd // indirect
 	github.com/freemed/gokogiri/xml v0.0.0-20250402180648-1e651eb8ffcd // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/freemed/ratago/xslt v0.0.0-20250203231425-016f1ea48158 // indirect
 	github.com/freemed/remitt-server/common v0.0.0-20250408203712-6db141480e4c // indirect
 	github.com/freemed/remitt-server/config v0.0.0-20250408203712-6db141480e4c // indirect
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/gin-gonic/gin v1.10.0 // indirect
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
@@ -76,5 +76,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.5.7 // indirect
-	gorm.io/gorm v1.25.12 // indirect
+	gorm.io/gorm v1.26.0 // indirect
 )
