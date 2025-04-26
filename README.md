@@ -1,5 +1,6 @@
 # FREEMED SERVER
 
+[![Build Status](https://github.com/freemed/freemed-server/actions/workflows/go.yml/badge.svg)](https://github.com/freemed/freemed-server/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/freemed/freemed-server)](https://goreportcard.com/report/github.com/freemed/freemed-server)
 [![codecov](https://codecov.io/gh/freemed/freemed-server/branch/master/graph/badge.svg)](https://codecov.io/gh/freemed/freemed-server)
 [![GoDoc](https://godoc.org/github.com/freemed/freemed-server?status.png)](https://godoc.org/github.com/freemed/freemed-server)
