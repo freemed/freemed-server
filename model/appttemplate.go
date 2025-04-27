@@ -15,6 +15,10 @@ type AppointmentTemplateModel struct {
 	Id        int64  `db:"id" json:"id"`
 }
 
+func (AppointmentTemplateModel) TableName() string {
+	return TABLE_APPTTEMPLATE
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_APPTTEMPLATE, Obj: AppointmentTemplateModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "appttemplate", Query: "SELECT CONCAT(atname, ' (', atduration, 'm)') AS v, id AS k FROM " + TABLE_APPTTEMPLATE + " WHERE atname LIKE CONCAT('%', :query, '%') ORDER BY atname, atduration"})

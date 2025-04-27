@@ -27,6 +27,10 @@ type ConfigModel struct {
 	Id      int64      `db:"id" json:"id"`
 }
 
+func (ConfigModel) TableName() string {
+	return TABLE_CONFIG
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_CONFIG, Obj: ConfigModel{}, Key: "Id"})
 }

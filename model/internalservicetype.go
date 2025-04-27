@@ -12,6 +12,10 @@ type InternalServiceTypeModel struct {
 	Id   int64  `db:"id" json:"id"`
 }
 
+func (InternalServiceTypeModel) TableName() string {
+	return TABLE_INTERNALSERVICETYPE
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_INTERNALSERVICETYPE, Obj: InternalServiceTypeModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "internalservicetype", Query: "SELECT intservtype AS v, id AS k FROM " + TABLE_INTERNALSERVICETYPE + " WHERE intservtype LIKE CONCAT('%', :query, '%') ORDER BY intservtype"})

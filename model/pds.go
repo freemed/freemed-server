@@ -18,6 +18,10 @@ type PatientDataStoreModel struct {
 	Id       int64  `db:"id" json:"id"`
 }
 
+func (PatientDataStoreModel) TableName() string {
+	return TABLE_PDS
+}
+
 func init() {
 	DbTables = append(DbTables,
 		DbTable{

@@ -18,6 +18,10 @@ type BillkeyModel struct {
 	Id         int64     `db:"id" json:"id"`
 }
 
+func (BillkeyModel) TableName() string {
+	return TABLE_BILLKEY
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_BILLKEY, Obj: BillkeyModel{}, Key: "Id"})
 }

@@ -25,6 +25,10 @@ type BillingContactModel struct {
 	Id         int64     `db:"id" json:"id"`
 }
 
+func (BillingContactModel) TableName() string {
+	return TABLE_BILLINGCONTACT
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_BILLINGCONTACT, Obj: BillingContactModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{

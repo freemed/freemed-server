@@ -29,6 +29,10 @@ type MessagesModel struct {
 	Active     string     `db:"active" json:"active"`
 }
 
+func (MessagesModel) TableName() string {
+	return TABLE_MESSAGES
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_MESSAGES, Obj: MessagesModel{}, Key: "Id"})
 }

@@ -15,6 +15,10 @@ type WorkflowStatusTypeModel struct {
 	Id     int64  `db:"id" json:"id"`
 }
 
+func (WorkflowStatusTypeModel) TableName() string {
+	return TABLE_WORKFLOW_STATUS
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_WORKFLOW_STATUS_TYPE, Obj: WorkflowStatusTypeModel{}, Key: "Id"})
 }

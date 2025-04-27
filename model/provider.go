@@ -55,6 +55,10 @@ type ProviderModel struct {
 	Id                   int64         `db:"id" json:"id"`
 }
 
+func (ProviderModel) TableName() string {
+	return TABLE_PROVIDER
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_PROVIDER, Obj: ProviderModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "provider", Query: "SELECT CONCAT(phylname, ', ', phyfname) AS v, id AS k FROM " + TABLE_PROVIDER + " WHERE phyfname LIKE :query OR phylname LIKE CONCAT('%', :query, '%') ORDER BY phylname, phyfname"})

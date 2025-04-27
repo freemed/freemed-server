@@ -21,6 +21,10 @@ type SchedulerStatusModel struct {
 	Id          int64     `db:"id" json:"id"`
 }
 
+func (SchedulerStatusModel) TableName() string {
+	return TABLE_SCHEDULER_STATUS
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_SCHEDULER_STATUS, Obj: SchedulerStatusModel{}, Key: "Id"})
 }

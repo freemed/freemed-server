@@ -15,6 +15,10 @@ type PlaceOfServiceModel struct {
 	Id          int64    `db:"id" json:"id"`
 }
 
+func (PlaceOfServiceModel) TableName() string {
+	return TABLE_PLACEOFSERVICE
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_PLACEOFSERVICE, Obj: PlaceOfServiceModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "placeofservice", Query: "SELECT CONCAT(posname, ' - ', posdescrip) AS v, id AS k FROM " + TABLE_PLACEOFSERVICE + " WHERE posname LIKE CONCAT('%', :query, '%') OR posdescrip LIKE CONCAT('%', :query, '%') ORDER BY posname, posdescrip"})

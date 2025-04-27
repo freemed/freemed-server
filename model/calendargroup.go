@@ -16,6 +16,10 @@ type CalendarGroupModel struct {
 	Id        int64  `db:"id" json:"id"`
 }
 
+func (CalendarGroupModel) TableName() string {
+	return TABLE_CALENDARGROUP
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_CALENDARGROUP, Obj: CalendarGroupModel{}, Key: "Id"})
 }

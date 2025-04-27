@@ -25,6 +25,10 @@ type PaymentModel struct {
 	Id          int64      `db:"id" json:"id"`
 }
 
+func (PaymentModel) TableName() string {
+	return TABLE_PAYMENTS
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_PAYMENTS, Obj: PaymentModel{}, Key: "Id"})
 }

@@ -22,6 +22,10 @@ type AnnotationModel struct {
 	Id       int64     `db:"id" json:"id"`
 }
 
+func (AnnotationModel) TableName() string {
+	return TABLE_ANNOTATIONS
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_ANNOTATIONS, Obj: AnnotationModel{}, Key: "Id"})
 }

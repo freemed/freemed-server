@@ -32,6 +32,10 @@ type AuthorizationModel struct {
 	Id                  int64     `db:"id" json:"id"`
 }
 
+func (AuthorizationModel) TableName() string {
+	return TABLE_AUTHORIZATIONS
+}
+
 func init() {
 	DbTables = append(DbTables,
 		DbTable{

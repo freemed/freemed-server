@@ -62,6 +62,10 @@ type ProcedureModel struct {
 	Id                    int64           `db:"id" json:"id"`
 }
 
+func (ProcedureModel) TableName() string {
+	return TABLE_PROCEDURE
+}
+
 func init() {
 	DbTables = append(DbTables,
 		DbTable{

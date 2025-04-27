@@ -14,6 +14,10 @@ type DocumentCategoryModel struct {
 	Id          int64  `db:"id" json:"id"`
 }
 
+func (DocumentCategoryModel) TableName() string {
+	return TABLE_DOCUMENTCATEGORY
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_DOCUMENTCATEGORY, Obj: DocumentCategoryModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "documentcategory", Query: "SELECT CONCAT(type, '/', category, ' - ', description) AS v, id AS k FROM " + TABLE_DOCUMENTCATEGORY + " WHERE CONCAT(type, '/', category, ' - ', description) LIKE CONCAT('%', :query, '%') ORDER BY type, category, description"})

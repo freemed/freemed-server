@@ -22,6 +22,10 @@ type LoincModel struct {
 	Id                int64  `db:"id" json:"id"`
 }
 
+func (LoincModel) TableName() string {
+	return TABLE_LOINC
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_LOINC, Obj: LoincModel{}})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "loinc", Query: "SELECT CONCAT(loinc_num, ' ', shortname) AS v, abbrev AS k FROM " + TABLE_LOINC + " WHERE CONCAT(loinc_num, ' ', shortname) LIKE CONCAT('%', :query, '%') ORDER BY shortname, loinc_num"})

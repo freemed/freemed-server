@@ -35,6 +35,10 @@ type ImmunizationModel struct {
 	Id                    int64         `db:"id" json:"id"`
 }
 
+func (ImmunizationModel) TableName() string {
+	return TABLE_IMMUNIZATION
+}
+
 func init() {
 	DbTables = append(DbTables,
 		DbTable{

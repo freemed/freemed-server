@@ -13,6 +13,10 @@ type CptModifierModel struct {
 	Id          int64  `db:"id" json:"id"`
 }
 
+func (CptModifierModel) TableName() string {
+	return TABLE_CPTMODIFIER
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_CPTMODIFIER, Obj: CptModifierModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "cptmodifier", Query: "SELECT CONCAT(cptmod, ' ', cptmoddescrip') AS v, id AS k FROM " + TABLE_CPTMODIFIER + " WHERE CONCAT(cptmod, ' ', cptmoddescrip) LIKE CONCAT('%', :query, '%') ORDER BY cptmod, cptmoddescrip"})

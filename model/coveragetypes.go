@@ -19,6 +19,10 @@ type CoverageTypeModel struct {
 	Id          int64     `db:"id" json:"id"`
 }
 
+func (CoverageTypeModel) TableName() string {
+	return TABLE_COVERAGETYPES
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_COVERAGETYPES, Obj: CoverageTypeModel{}, Key: "Id"})
 }

@@ -23,6 +23,10 @@ type IcdModel struct {
 	Id                 int64      `db:"id" json:"id"`
 }
 
+func (IcdModel) TableName() string {
+	return TABLE_ICDCODE
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_ICDCODE, Obj: IcdModel{}})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "icd", Query: "SELECT CONCAT(icd10code, ' ', icd10descrip) AS v, abbrev AS k FROM " + TABLE_ICDCODE + " WHERE CONCAT(icd10code, ' ', icd10descrip) LIKE CONCAT('%', :query, '%') ORDER BY icd10code, icd10descrip"})

@@ -16,6 +16,10 @@ type DataStoreModel struct {
 	Id       int64  `db:"id" json:"id"`
 }
 
+func (DataStoreModel) TableName() string {
+	return TABLE_DATA_STORE
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{
 		TableName: TABLE_DATA_STORE,

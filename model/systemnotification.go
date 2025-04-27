@@ -21,6 +21,10 @@ type SystemNotificationModel struct {
 	Id      int64     `db:"id" json:"id"`
 }
 
+func (SystemNotificationModel) TableName() string {
+	return TABLE_SYSTEMNOTIFICATION
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_SYSTEMNOTIFICATION, Obj: SystemNotificationModel{}, Key: "Id"})
 }

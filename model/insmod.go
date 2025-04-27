@@ -13,6 +13,10 @@ type InsuranceModifierModel struct {
 	Id          int64  `db:"id" json:"id"`
 }
 
+func (InsuranceModifierModel) TableName() string {
+	return TABLE_INSURANCEMODIFIER
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_INSURANCEMODIFIER, Obj: InsuranceModifierModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "insurancemodifier", Query: "SELECT CONCAT(insmod, ' - ', insmoddesc) AS v, id AS k FROM " + TABLE_INSURANCEMODIFIER + " WHERE CONCAT(insmod, ' - ', insmoddesc) LIKE CONCAT('%', :query, '%') ORDER BY insmod,insmoddesc"})

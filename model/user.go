@@ -17,7 +17,7 @@ type UserModel struct {
 	gorm.Model
 	Id                  int64         `db:"id"`
 	Username            string        `db:"username"`
-	Password            string        `db:"userpassword"`
+	Password            string        `db:"userpassword" gorm:"column:userpassword"`
 	Type                NullString    `db:"usertype"`
 	ProviderId          int64         `db:"userrealphy"`
 	FirstName           NullString    `db:"userfname"`
@@ -34,6 +34,11 @@ type UserModel struct {
 	SmsProvider         sql.NullInt64 `db:"usersmsprovider"`
 	Title               NullString    `db:"usertitle"`
 	authenticated       bool          `db:"-"`
+}
+
+// TableName overrides the table name used by User to `profiles`
+func (UserModel) TableName() string {
+	return TABLE_USER
 }
 
 func init() {

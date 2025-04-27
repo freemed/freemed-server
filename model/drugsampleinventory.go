@@ -36,6 +36,10 @@ type DrugSampleInventoryModel struct {
 	Id                   int64     `db:"id" json:"id"`
 }
 
+func (DrugSampleInventoryModel) TableName() string {
+	return TABLE_DRUGSAMPLEINVENTORY
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_DRUGSAMPLEINVENTORY, Obj: DrugSampleInventoryModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "drugsampleinventory", Query: "SELECT CONCAT(logdate, ' - ', drugformal, ' ', samplecountremain, '/', samplecount, ' (', lot, ')') AS v, id AS k FROM " + TABLE_DRUGSAMPLEINVENTORY + " WHERE CONCAT(logdate, ' - ', drugformal, ' ', samplecountremain, '/', samplecount, ' (', lot, ')') LIKE CONCAT('%', :query, '%') ORDER BY logdate DESC"})

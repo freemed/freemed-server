@@ -26,6 +26,10 @@ type ClearinghouseModel struct {
 	Id            int64     `db:"id" json:"id"`
 }
 
+func (ClearinghouseModel) TableName() string {
+	return TABLE_CLEARINGHOUSE
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_CLEARINGHOUSE, Obj: ClearinghouseModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "clearinghouse", Query: "SELECT CONCAT(chname, ' (', chcity, ', ', chstate, ')') AS v, id AS k FROM " + TABLE_CLEARINGHOUSE + " WHERE chname LIKE CONCAT('%', :query, '%') ORDER BY chname, chstate, chzip"})

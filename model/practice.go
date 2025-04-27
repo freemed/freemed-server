@@ -30,6 +30,10 @@ type PracticeModel struct {
 	Id          int64      `db:"id" json:"id"`
 }
 
+func (PracticeModel) TableName() string {
+	return TABLE_PRACTICE
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_PRACTICE, Obj: PracticeModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "practice", Query: "SELECT CONCAT(pracname, ', ', citya, ', ', statea) AS v, id AS k FROM " + TABLE_PRACTICE + " WHERE pracname LIKE CONCAT('%', :query, '%') ORDER BY pracname, citya, statea"})

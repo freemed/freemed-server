@@ -19,6 +19,10 @@ type ZipcodesModel struct {
 	Country   string  `db:"country" json:"country"`
 }
 
+func (ZipcodesModel) TableName() string {
+	return TABLE_ZIPCODES
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_ZIPCODES, Obj: ZipcodesModel{}, Key: "Id"})
 }

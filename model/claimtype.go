@@ -19,6 +19,9 @@ type ClaimTypeModel struct {
 	Id          int64     `db:"id" json:"id"`
 }
 
+func (ClaimTypeModel) TableName() string {
+	return TABLE_CLAIMTYPE
+}
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_CLAIMTYPE, Obj: ClaimTypeModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "claimtype", Query: "SELECT CONCAT(clmtpname, ' - ', clmtpdescrip) AS v, id AS k FROM " + TABLE_CLAIMTYPE + " WHERE CONCAT(clmtpname, ' - ', clmtpdescrip) LIKE CONCAT('%', :query, '%') ORDER BY clmtpname, clmtpdescrip"})

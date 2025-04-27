@@ -42,6 +42,10 @@ type ProgressNotesModel struct {
 	Id                int64            `db:"id" json:"id"`
 }
 
+func (ProgressNotesModel) TableName() string {
+	return TABLE_PNOTES
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{
 		TableName: TABLE_PNOTES,

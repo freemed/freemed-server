@@ -79,6 +79,10 @@ type PatientModel struct {
 	Id              int64      `db:"id" json:"id"`
 }
 
+func (PatientModel) TableName() string {
+	return TABLE_PATIENT
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_PATIENT, Obj: PatientModel{}, Key: "Id"})
 }

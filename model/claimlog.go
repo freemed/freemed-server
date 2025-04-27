@@ -25,6 +25,10 @@ type ClaimLogModel struct {
 	Id            int64     `db:"id" json:"id"`
 }
 
+func (ClaimLogModel) TableName() string {
+	return TABLE_CLAIMLOG
+}
+
 func init() {
 	DbTables = append(DbTables, DbTable{TableName: TABLE_CLAIMLOG, Obj: ClaimLogModel{}, Key: "Id"})
 }
