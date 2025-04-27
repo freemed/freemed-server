@@ -12,7 +12,7 @@ The backend uses:
  * [Go](https://golang.org/): Efficient programming language
  * [Gin](https://github.com/gin-gonic/gin/): Web framework for Go
  * [Gin-JWT](https://github.com/appleboy/gin-jwt): JWT middleware for Gin
- * [GORP](http://github.com/go-gorp/gorp): Db access layer
+ * [GORM](https://gorm.io): DB access layer
  * [Go-MySQL-Driver](http://github.com/go-sql-driver/mysql): MySQL driver
  * [go-redis](https://github.com/go-redis/redis): Redis driver
  * [lumberjack](https://github.com/natefinch/lumberjack): Rolling logger
