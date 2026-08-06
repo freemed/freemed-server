@@ -1,14 +1,20 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_ZIPCODES = "zipcodes"
 )
 
 type ZipcodesModel struct {
-	gorm.Model
-	Id        int64   `db:"id" json:"id"`
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Zip       string  `db:"zip" json:"zip"`
 	City      string  `db:"city" json:"city"`
 	State     string  `db:"state" json:"state"`
@@ -24,5 +30,4 @@ func (ZipcodesModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_ZIPCODES, Obj: ZipcodesModel{}, Key: "Id"})
 }

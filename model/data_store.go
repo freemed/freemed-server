@@ -1,7 +1,8 @@
 package model
 
 import (
-	"gorm.io/gorm"
+	"database/sql"
+	"time"
 )
 
 const (
@@ -9,21 +10,16 @@ const (
 )
 
 type DataStoreModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Patient  int64  `db:"patient" json:"patient_id"`
 	Module   string `db:"module" json:"module"`
 	Contents []byte `db:"contents" json:"contents"`
-	Id       int64  `db:"id" json:"id"`
 }
 
 func (DataStoreModel) TableName() string {
 	return TABLE_DATA_STORE
 }
 
-func init() {
-	DbTables = append(DbTables, DbTable{
-		TableName: TABLE_DATA_STORE,
-		Obj:       DataStoreModel{},
-		Key:       "Id",
-	})
-}

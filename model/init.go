@@ -1,10 +1,13 @@
 package model
 
 import (
-	"gorm.io/gorm"
+	"database/sql"
+
+	"github.com/freemed/freemed-server/dbgen"
 )
 
 var (
-	Db            *gorm.DB
+	SqlDb         *sql.DB // database/sql connection pool for sqlc and direct queries
+	Queries       *dbgen.Queries
 	SessionLength int
 )

@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/freemed/freemed-server/common"
-	"gorm.io/gorm"
 )
 
 const (
@@ -13,7 +12,6 @@ const (
 )
 
 type PatientIdModel struct {
-	gorm.Model
 	Patient   int64     `db:"patient" json:"patient_id"`
 	ForeignID string    `db:"foreign_id" json:"foreign_identifier"`
 	Facility  int64     `db:"facility" json:"facility_id"`
@@ -29,11 +27,6 @@ func (PatientIdModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{
-		TableName: TABLE_PATIENT_ID,
-		Obj:       PatientIdModel{},
-		Key:       "Id",
-	})
 	common.EmrModuleMap[MODULE_PATIENT_ID] = common.EmrModuleType{
 		Name:         MODULE_PATIENT_ID,
 		PatientField: "Patient",

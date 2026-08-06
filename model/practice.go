@@ -1,13 +1,20 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_PRACTICE = "practice"
 )
 
 type PracticeModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Name        string     `db:"pracname" json:"name"`
 	PracticeEin NullString `db:"pracein" json:"ein"`
 	Addr1A      NullString `db:"addr1a" json:"addr1_1"`
@@ -27,7 +34,6 @@ type PracticeModel struct {
 	Email       NullString `db:"email" json:"email"`
 	Cellular    NullString `db:"cellular" json:"cellular"`
 	NpiId       string     `db:"pracnpi" json:"npi_identifier"`
-	Id          int64      `db:"id" json:"id"`
 }
 
 func (PracticeModel) TableName() string {
@@ -35,6 +41,5 @@ func (PracticeModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_PRACTICE, Obj: PracticeModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "practice", Query: "SELECT CONCAT(pracname, ', ', citya, ', ', statea) AS v, id AS k FROM " + TABLE_PRACTICE + " WHERE pracname LIKE CONCAT('%', :query, '%') ORDER BY pracname, citya, statea"})
 }

@@ -2,14 +2,15 @@ package model
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/freemed/freemed-server/common"
-	"github.com/freemed/remitt-server/model"
+	//"github.com/freemed/remitt-server/model"
 )
 
 // EmrModuleGetRecord retrieves a single patient EMR module record
 func EmrModuleGetRecord(patient int64, module string, id int64) (common.EmrModule, error) {
+	return nil, fmt.Errorf("EmrModuleGetRecord: not yet migrated from remitt-server")
+	/*
 	// Resolve
 	mod, ok := common.EmrModuleMap[module]
 	if !ok {
@@ -39,4 +40,5 @@ func EmrModuleGetRecord(patient int64, module string, id int64) (common.EmrModul
 	}
 
 	return nil, fmt.Errorf("could not identify EMR segment with specific patient")
+	*/
 }

@@ -1,13 +1,20 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_ICDCODE = "icd9"
 )
 
 type IcdModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Abbreviation       string     `db:"abbrev" json:"abbrev"`
 	Language           string     `db:"language" json:"language"`
 	Icd9Code           string     `db:"icd9code" json:"icd_9_code"`
@@ -20,7 +27,6 @@ type IcdModel struct {
 	IcdNum             int64      `db:"icdnum" json:"number"`
 	IcdAmount          float32    `db:"icdamt" json:"amount"`
 	IcdColl            float64    `db:"icdcoll" json:"coll"`
-	Id                 int64      `db:"id" json:"id"`
 }
 
 func (IcdModel) TableName() string {
@@ -28,6 +34,5 @@ func (IcdModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_ICDCODE, Obj: IcdModel{}})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "icd", Query: "SELECT CONCAT(icd10code, ' ', icd10descrip) AS v, abbrev AS k FROM " + TABLE_ICDCODE + " WHERE CONCAT(icd10code, ' ', icd10descrip) LIKE CONCAT('%', :query, '%') ORDER BY icd10code, icd10descrip"})
 }

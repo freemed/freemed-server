@@ -1,16 +1,22 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_CPTMODIFIER = "cptmod"
 )
 
 type CptModifierModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Modifier    string `db:"cptmod" json:"modifier"`
 	Description string `db:"cptmoddescrip" json:"description"`
-	Id          int64  `db:"id" json:"id"`
 }
 
 func (CptModifierModel) TableName() string {
@@ -18,6 +24,5 @@ func (CptModifierModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_CPTMODIFIER, Obj: CptModifierModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "cptmodifier", Query: "SELECT CONCAT(cptmod, ' ', cptmoddescrip') AS v, id AS k FROM " + TABLE_CPTMODIFIER + " WHERE CONCAT(cptmod, ' ', cptmoddescrip) LIKE CONCAT('%', :query, '%') ORDER BY cptmod, cptmoddescrip"})
 }

@@ -1,9 +1,10 @@
 package model
 
 import (
+	"database/sql"
+	"context"
 	"time"
 
-	"gorm.io/gorm"
 )
 
 const (
@@ -11,11 +12,13 @@ const (
 )
 
 type BillkeyModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Date       time.Time `db:"billkeydate" json:"date"`
 	Data       []byte    `db:"billkey" json:"key"`
 	Procedures string    `db:"bkprocs" json:"procedures"`
-	Id         int64     `db:"id" json:"id"`
 }
 
 func (BillkeyModel) TableName() string {
@@ -23,15 +26,13 @@ func (BillkeyModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_BILLKEY, Obj: BillkeyModel{}, Key: "Id"})
 }
 
 // GetBillkeyPayload retrieves a payload from a specified billkey
 func GetBillkeyPayload(billkey int64) (string, error) {
-	var bk BillkeyModel
-	tx := Db.First(&bk, billkey)
-	if tx.Error != nil {
-		return "", tx.Error
+	bk, err := Queries.GetBillkeyById(context.Background(), billkey)
+	if err != nil {
+		return "", err
 	}
-	return string(bk.Data), nil
+	return bk.Billkey.String, nil
 }

@@ -14,7 +14,9 @@ import (
 	_ "github.com/freemed/freemed-server/api"
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/config"
+	dbpkg "github.com/freemed/freemed-server/internal/db"
 	"github.com/freemed/freemed-server/model"
+	"github.com/freemed/freemed-server/dbgen"
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -75,8 +77,16 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	log.Print("Initializing database backend")
-	model.Db = model.InitDb()
+	// Initialize database/sql pool for sqlc
+	log.Print("Initializing sqlc-compatible database/sql pool")
+	sqlDB, err := dbpkg.Open()
+	if err != nil {
+		panic(err)
+	}
+	model.SqlDb = sqlDB
+
+	// Initialize sqlc Queries wrapper
+	model.Queries = dbgen.New(sqlDB)
 
 	log.Print("Initializing session backend")
 	common.ActiveSession = &common.SessionConnector{

@@ -1,9 +1,9 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
-	"gorm.io/gorm"
 )
 
 const (
@@ -11,14 +11,16 @@ const (
 )
 
 type SchedulerStatusModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Stamp       time.Time `db:"csstamp" json:"stamp"`
 	Patient     int64     `db:"cspatient" json:"patient_id"`
 	Appointment int64     `db:"csappt" json:"appointment_id"`
 	Status      string    `db:"csstatus" json:"status"`
 	Note        string    `db:"csenote" json:"note"`
 	User        int64     `db:"user" json:"user"`
-	Id          int64     `db:"id" json:"id"`
 }
 
 func (SchedulerStatusModel) TableName() string {
@@ -26,5 +28,4 @@ func (SchedulerStatusModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_SCHEDULER_STATUS, Obj: SchedulerStatusModel{}, Key: "Id"})
 }

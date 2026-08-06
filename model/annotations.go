@@ -1,9 +1,9 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
-	"gorm.io/gorm"
 )
 
 const (
@@ -11,7 +11,10 @@ const (
 )
 
 type AnnotationModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Stamp    time.Time `db:"atimestamp" json:"stamp"`
 	Patient  int64     `db:"apatient" json:"patient"`
 	Module   string    `db:"amodule" json:"module"`
@@ -19,7 +22,6 @@ type AnnotationModel struct {
 	TargetId int64     `db:"aid" json:"target_id"`
 	User     int64     `db:"auser" json:"user"`
 	Text     string    `db:"annotation" json:"text"`
-	Id       int64     `db:"id" json:"id"`
 }
 
 func (AnnotationModel) TableName() string {
@@ -27,5 +29,4 @@ func (AnnotationModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_ANNOTATIONS, Obj: AnnotationModel{}, Key: "Id"})
 }

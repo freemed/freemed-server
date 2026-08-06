@@ -1,9 +1,9 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
-	"gorm.io/gorm"
 )
 
 const (
@@ -11,7 +11,10 @@ const (
 )
 
 type InscoModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	DateAdded                      time.Time `db:"inscodtadd" json:"date_added"`
 	DateModified                   time.Time `db:"inscodtmod" json:"date_modified"`
 	Name                           string    `db:"insconame" json:"name"`
@@ -36,7 +39,6 @@ type InscoModel struct {
 	DefaultElectronicTarget        string    `db:"inscodeftargete" json:"default_electronic_target"`
 	DefaultElectronicTargetOptions string    `db:"inscodeftargetopte" json:"default_electronic_target_options"`
 	Archived                       int64     `db:"inscoarchive" json:"archived"`
-	Id                             int64     `db:"id" json:"id"`
 }
 
 func (InscoModel) TableName() string {
@@ -44,6 +46,5 @@ func (InscoModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_INSCO, Obj: InscoModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "insco", Query: "SELECT name AS v, id AS k FROM " + TABLE_INSCO + " WHERE name LIKE CONCAT('%', :query, '%') ORDER BY name"})
 }

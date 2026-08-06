@@ -12,9 +12,31 @@ deps:
 	@echo "- Refreshing dependencies"
 	( cd cmd/freemed-server ; go get -v -d ./... )
 
+sqlc:
+	sqlc generate -f internal/db/sqlc.yaml
+.PHONY: sqlc
+
+generate: sqlc
+.PHONY: generate
+
 clean:
 	@echo "- Cleaning old build files"
 	( cd cmd/freemed-server ; go clean -v )
+
+# Database migrations (requires golang-migrate CLI or go tool)
+migrate-install:
+	go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+.PHONY: migrate-install
+
+migrate-up:
+	migrate -path internal/db/migrations \
+	  -database "mysql://${DB_USER}:${DB_PASS}@tcp(${DB_HOST}:3306)/${DB_NAME}" up
+.PHONY: migrate-up
+
+migrate-down:
+	migrate -path internal/db/migrations \
+	  -database "mysql://${DB_USER}:${DB_PASS}@tcp(${DB_HOST}:3306)/${DB_NAME}" down 1
+.PHONY: migrate-down
 
 crosscompile:
 	( cd cmd/freemed-server ; \

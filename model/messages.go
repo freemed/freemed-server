@@ -1,9 +1,11 @@
 package model
 
 import (
+	"context"
+	"database/sql"
 	"time"
 
-	"gorm.io/gorm"
+	"github.com/freemed/freemed-server/dbgen"
 )
 
 const (
@@ -11,8 +13,10 @@ const (
 )
 
 type MessagesModel struct {
-	gorm.Model
-	Id         int64      `db:"id" json:"id"`
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Sender     int64      `db:"msgby" json:"msgby"`
 	SenderName string     `db:"sender" json:"sender"`
 	Sent       time.Time  `db:"msgtime" json:"msgtime"`
@@ -34,26 +38,39 @@ func (MessagesModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_MESSAGES, Obj: MessagesModel{}, Key: "Id"})
 }
 
-func MessageById(id int64) (*MessagesModel, error) {
-	var msg MessagesModel
-	tx := Db.First(&msg, id)
-	if tx.Error != nil {
-		return &msg, tx.Error
+func MessageById(id int64) (*dbgen.Message, error) {
+	msg, err := Queries.GetMessageById(context.Background(), id)
+	if err != nil {
+		return nil, err
 	}
 	return &msg, nil
 }
 
 func (msg MessagesModel) Send() error {
-	tx := Db.Create(msg)
-	if tx.Error != nil {
-		return tx.Error
-	}
-	return nil
+	_, err := Queries.CreateMessage(context.Background(), dbgen.CreateMessageParams{
+		Msgby:      msg.Sender,
+		Msgtime:    msg.Sent,
+		Msgfor:     msg.For,
+		Msgrecip:   msg.Recipients,
+		Msgpatient: msg.Patient,
+		Msgperson:  msg.Person,
+		Msgurgency: int64(msg.Urgency),
+		Msgsubject: msg.Subject,
+		Msgtext:    msg.Text,
+		Msgread:    int64(msg.Read),
+		Msgunique:  toNullString(msg.Unique),
+		Msgtag:     toNullString(msg.Tag),
+		Active:     msg.Active,
+	})
+	return err
 }
 
 func MessageSend(msg MessagesModel) error {
 	return msg.Send()
+}
+
+func toNullString(ns NullString) sql.NullString {
+	return sql.NullString{String: ns.String, Valid: ns.Valid}
 }

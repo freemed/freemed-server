@@ -1,9 +1,9 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
-	"gorm.io/gorm"
 )
 
 const (
@@ -11,7 +11,10 @@ const (
 )
 
 type BillingContactModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	FirstName  string    `db:"bcfname" json:"first_name"`
 	MiddleName string    `db:"bcmname" json:"middle_name"`
 	LastName   string    `db:"bclname" json:"last_name"`
@@ -22,7 +25,6 @@ type BillingContactModel struct {
 	Phone      string    `db:"bcphone" json:"phone"`
 	Stamp      time.Time `db:"stamp" json:"stamp"`
 	User       int64     `db:"user" json:"user"`
-	Id         int64     `db:"id" json:"id"`
 }
 
 func (BillingContactModel) TableName() string {
@@ -30,7 +32,6 @@ func (BillingContactModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_BILLINGCONTACT, Obj: BillingContactModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{
 		ModuleName: "billingcontact",
 		Query: "SELECT CONCAT(bclname, ',  ', bcfname, ' ', bcmname) AS v" +

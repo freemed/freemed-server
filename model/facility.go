@@ -1,13 +1,20 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_FACILITY = "facility"
 )
 
 type FacilityModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Name           string     `db:"psrname" json:"name"`
 	Addr1          NullString `db:"psraddr1" json:"addr1"`
 	Addr2          NullString `db:"psraddr2" json:"addr2"`
@@ -26,7 +33,6 @@ type FacilityModel struct {
 	PlaceOfService int64      `db:"psrpos" json:"pos_id"`
 	X12Id          NullString `db:"psrx12id" json:"x12_identifier"`
 	X12IdType      NullString `db:"psrx12idtype" json:"x12_identifier_tupe"`
-	Id             int64      `db:"id" json:"id"`
 }
 
 func (FacilityModel) TableName() string {
@@ -34,6 +40,5 @@ func (FacilityModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_FACILITY, Obj: FacilityModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "facility", Query: "SELECT CONCAT(psrname, ', ', psrcity, ', ', psrstate) AS v, id AS k FROM " + TABLE_FACILITY + " WHERE CONCAT(psrname, ', ', psrcity, ', ', psrstate) LIKE CONCAT('%', :query, '%') ORDER BY psrname, psrcity, psrstate"})
 }

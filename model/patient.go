@@ -1,9 +1,9 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
-	"gorm.io/gorm"
 )
 
 const (
@@ -12,7 +12,10 @@ const (
 )
 
 type PatientModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	DateAdd      time.Time `db:"ptdtadd" json:"date_added"`
 	DateModified NullTime  `db:"ptdtmod" json:"date_modified"`
 	// ptdoc
@@ -76,7 +79,6 @@ type PatientModel struct {
 	User            int64      `db:"user" json:"user_id"`
 	Provider        int64      `db:"provider" json:"provider_id"`
 	Status          string     `db:"status" json:"status"`
-	Id              int64      `db:"id" json:"id"`
 }
 
 func (PatientModel) TableName() string {
@@ -84,5 +86,4 @@ func (PatientModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_PATIENT, Obj: PatientModel{}, Key: "Id"})
 }

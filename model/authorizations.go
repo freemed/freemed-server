@@ -1,10 +1,10 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/freemed/freemed-server/common"
-	"gorm.io/gorm"
 )
 
 const (
@@ -13,7 +13,10 @@ const (
 )
 
 type AuthorizationModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Added               time.Time `db:"authdtadd" json:"added"`
 	Modified            time.Time `db:"authdtmod" json:"modified"`
 	Patient             int64     `db:"authpatient" json:"patient_id"`
@@ -29,7 +32,6 @@ type AuthorizationModel struct {
 	VisitsRemaining     int64     `db:"authvisitsremain" json:"visits_remaining"`
 	User                int64     `db:"user" json:"user"`
 	Active              string    `db:"active" json:"active"`
-	Id                  int64     `db:"id" json:"id"`
 }
 
 func (AuthorizationModel) TableName() string {
@@ -37,13 +39,6 @@ func (AuthorizationModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables,
-		DbTable{
-			TableName: TABLE_AUTHORIZATIONS,
-			Obj:       AuthorizationModel{},
-			Key:       "Id",
-		},
-	)
 	common.EmrModuleMap[MODULE_AUTHORIZATIONS] = common.EmrModuleType{
 		Name:         MODULE_AUTHORIZATIONS,
 		PatientField: "Patient",

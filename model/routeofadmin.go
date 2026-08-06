@@ -1,16 +1,22 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_ROUTEOFADMIN = "bodysite"
 )
 
 type RouteOfAdministrationModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Abbreviation string `db:"abbrev" json:"abbrev"`
 	DisplayValue string `db:"display_value" json:"description"`
-	Id           int64  `db:"id" json:"id"`
 }
 
 func (RouteOfAdministrationModel) TableName() string {
@@ -18,6 +24,5 @@ func (RouteOfAdministrationModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_ROUTEOFADMIN, Obj: RouteOfAdministrationModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "inscogroup", Query: "SELECT CONCAT(abbrev, ' ', description) AS v, id AS k FROM " + TABLE_ROUTEOFADMIN + " WHERE abbrev LIKE CONCAT('%', :query, '%') OR description LIKE CONCAT('%', :query, '%') ORDER BY abbrev, description"})
 }

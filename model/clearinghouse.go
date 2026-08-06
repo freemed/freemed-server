@@ -1,9 +1,9 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
-	"gorm.io/gorm"
 )
 
 const (
@@ -11,7 +11,10 @@ const (
 )
 
 type ClearinghouseModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Name          string    `db:"chname" json:"name"`
 	Address       string    `db:"chaddr" json:"address"`
 	City          string    `db:"chcity" json:"city"`
@@ -23,7 +26,6 @@ type ClearinghouseModel struct {
 	X12GsReceiver string    `db:"chx12gsreceiver" json:"x12gsreceiver"`
 	Stamp         time.Time `db:"stamp" json:"stamp"`
 	User          int64     `db:"user" json:"user"`
-	Id            int64     `db:"id" json:"id"`
 }
 
 func (ClearinghouseModel) TableName() string {
@@ -31,6 +33,5 @@ func (ClearinghouseModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_CLEARINGHOUSE, Obj: ClearinghouseModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "clearinghouse", Query: "SELECT CONCAT(chname, ' (', chcity, ', ', chstate, ')') AS v, id AS k FROM " + TABLE_CLEARINGHOUSE + " WHERE chname LIKE CONCAT('%', :query, '%') ORDER BY chname, chstate, chzip"})
 }

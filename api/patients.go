@@ -1,13 +1,14 @@
 package api
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/dbgen"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
 )
@@ -24,16 +25,6 @@ func init() {
 	}
 }
 
-type patientSearchResult struct {
-	LastName    string `db:"last_name" json:"last_name"`
-	FirstName   string `db:"first_name" json:"first_name"`
-	MiddleName  string `db:"middle_name" json:"middle_name"`
-	PatientID   string `db:"patient_id" json:"patient_id"`
-	Age         int64  `db:"age" json:"age"`
-	DateOfBirth string `db:"date_of_birth" json:"date_of_birth"`
-	ID          int64  `db:"id" json:"id"`
-}
-
 type picklistItem struct {
 	Value string `db:"value" json:"value"`
 	ID    int64  `db:"id" json:"id"`
@@ -46,70 +37,77 @@ func patientPicklist(r *gin.Context) {
 		return
 	}
 
-	clauses := make([]string, 0)
-	params := make([]interface{}, 0)
-
-	limit := 20 // only return 20 results
-
 	var first, last, either string
 	if strings.Index(param, ",") > -1 {
-		// If there's a comma ...
 		parts := strings.SplitN(param, ",", 2)
 		last = strings.TrimSpace(parts[0])
 		first = strings.TrimSpace(parts[1])
+	} else if strings.Index(param, " ") > -1 {
+		parts := strings.SplitN(param, " ", 2)
+		first = strings.TrimSpace(parts[0])
+		last = strings.TrimSpace(parts[1])
 	} else {
-		if strings.Index(param, " ") > -1 {
-			// Space but no comma
-			parts := strings.SplitN(param, " ", 2)
-			first = strings.TrimSpace(parts[0])
-			last = strings.TrimSpace(parts[1])
-		} else {
-			either = strings.TrimSpace(param)
-		}
+		either = strings.TrimSpace(param)
 	}
 
-	if either != "" {
-		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%')")
-		params = append(params, either)
-		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%')")
-		params = append(params, either)
-	}
+	var rows interface{}
+	var err error
 
 	if first != "" && last != "" {
-		clauses = append(clauses, "( ptlname LIKE CONCAT(?, '%') AND ptfname LIKE CONCAT(?, '%') )")
-		params = append(params, last)
-		params = append(params, first)
+		rows, err = model.Queries.PatientPicklistByName(r.Request.Context(), dbgen.PatientPicklistByNameParams{
+			LastName:  last,
+			FirstName: first,
+		})
 	} else if first != "" {
-		clauses = append(clauses, "ptfname LIKE CONCAT(?, '%%')")
-		params = append(params, first)
-		clauses = append(clauses, "ptid LIKE CONCAT(?, '%%')")
-		params = append(params, first)
+		rows, err = model.Queries.PatientPicklistByFirstNameOrId(r.Request.Context(), dbgen.PatientPicklistByFirstNameOrIdParams{
+			Query: first,
+		})
 	} else if last != "" {
-		clauses = append(clauses, "ptlname LIKE CONCAT(?, '%')")
-		params = append(params, last)
-		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
-		params = append(params, last)
+		rows, err = model.Queries.PatientPicklistByLastNameOrId(r.Request.Context(), dbgen.PatientPicklistByLastNameOrIdParams{
+			Query: last,
+		})
+	} else if either != "" {
+		rows, err = model.Queries.PatientPicklistByEither(r.Request.Context(), dbgen.PatientPicklistByEitherParams{
+			Query: either,
+		})
 	} else {
-		clauses = append(clauses, "ptid LIKE CONCAT(?, '%')")
-		params = append(params, either)
-	}
-
-	params = append(params, limit)
-
-	query := "SELECT CONCAT(ptlname, ', ', ptfname, ' (', ptid, ')') AS value" +
-		", id FROM patient" +
-		" WHERE ( " + strings.Join(clauses, " OR ") + " )" +
-		" AND ( ISNULL(ptarchive) OR ptarchive=0 )" +
-		" LIMIT ?"
-	var o []picklistItem
-	tx := model.Db.Raw(query, params...).Scan(&o)
-	if tx.Error != nil {
-		log.Print(tx.Error.Error())
-		r.AbortWithError(http.StatusInternalServerError, tx.Error)
+		r.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	r.JSON(http.StatusOK, o)
-	return
+
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Convert dbgen row types to picklistItem
+	switch v := rows.(type) {
+	case []dbgen.PatientPicklistByNameRow:
+		o := make([]picklistItem, len(v))
+		for i, row := range v {
+			o[i] = picklistItem{Value: row.Value, ID: row.ID}
+		}
+		r.JSON(http.StatusOK, o)
+	case []dbgen.PatientPicklistByFirstNameOrIdRow:
+		o := make([]picklistItem, len(v))
+		for i, row := range v {
+			o[i] = picklistItem{Value: row.Value, ID: row.ID}
+		}
+		r.JSON(http.StatusOK, o)
+	case []dbgen.PatientPicklistByLastNameOrIdRow:
+		o := make([]picklistItem, len(v))
+		for i, row := range v {
+			o[i] = picklistItem{Value: row.Value, ID: row.ID}
+		}
+		r.JSON(http.StatusOK, o)
+	case []dbgen.PatientPicklistByEitherRow:
+		o := make([]picklistItem, len(v))
+		for i, row := range v {
+			o[i] = picklistItem{Value: row.Value, ID: row.ID}
+		}
+		r.JSON(http.StatusOK, o)
+	}
 }
 
 func patientSearch(r *gin.Context) {
@@ -119,74 +117,91 @@ func patientSearch(r *gin.Context) {
 		r.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	log.Printf("PatientSearch(): raw params = %v", params)
-
 	if len(params) < 1 {
-		log.Print("PatientSearch(): no usable search parameters found")
 		r.AbortWithError(http.StatusBadRequest, fmt.Errorf("no usable search parameters found"))
+		return
 	}
 
-	limit := 20
+	// Try sqlc PatientSearch for simple params
+	hasSimple := false
+	searchParams := dbgen.PatientSearchParams{}
+	for paramName, paramValue := range params {
+		switch paramName {
+		case "first_name":
+			if sv, ok := paramValue.(string); ok && sv != "" {
+				searchParams.FirstName = sv
+				hasSimple = true
+			}
+		case "last_name":
+			if sv, ok := paramValue.(string); ok && sv != "" {
+				searchParams.LastName = sv
+				hasSimple = true
+			}
+		case "patient_id":
+			if sv, ok := paramValue.(string); ok && sv != "" {
+				searchParams.PatientID = sv
+				hasSimple = true
+			}
+		}
+	}
 
-	// Break passed parameters into something usable
+	if hasSimple {
+		rows, err := model.Queries.PatientSearch(r.Request.Context(), searchParams)
+		if err != nil {
+			log.Print(err.Error())
+			r.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		o := make([]picklistItem, len(rows))
+		for i, row := range rows {
+			o[i] = picklistItem{
+				Value: fmt.Sprintf("%s, %s (%s)", row.LastName, row.FirstName, row.PatientID),
+				ID:    row.ID,
+			}
+		}
+		r.JSON(http.StatusOK, o)
+		return
+	}
+
+	// Complex dynamic search with additional fields
 	k := make([]string, 0)
 	v := make([]interface{}, 0)
 	archive := " AND p.ptarchive = 0 "
 	for paramName, paramValue := range params {
-		log.Printf("PatientSearch(): paramName = %s, paramValue = %v [%s]", paramName, paramValue, reflect.TypeOf(paramValue))
 		switch paramName {
 		case "age":
 			if iv, found := paramValue.(float64); found && iv != 0 {
-				k = append(k, fmt.Sprintf("FLOOR( ( TO_DAYS(NOW()) - TO_DAYS(p.ptdob) ) / 365 ) = %d", int64(paramValue.(float64))))
-				// no value appended
+				k = append(k, fmt.Sprintf("FLOOR( ( TO_DAYS(NOW()) - TO_DAYS(p.ptdob) ) / 365 ) = %d", int64(iv)))
 			}
 		case "archive":
 			if bv, found := paramValue.(bool); found && bv {
-				// If archived patients are included...
 				archive = ""
 			}
 		case "city":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "pa.city LIKE CONCAT('%%', ?, '%%')")
-				v = append(v, paramValue)
+				k = append(k, "pa.city LIKE CONCAT('%', ?, '%')")
+				v = append(v, sv)
 			}
 		case "dmv":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.dmv LIKE CONCAT('%%', ?, '%%')")
-				v = append(v, paramValue)
+				k = append(k, "p.dmv LIKE CONCAT('%', ?, '%')")
+				v = append(v, sv)
 			}
 		case "email":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.pemail LIKE CONCAT('%%', ?, '%%')")
-				v = append(v, paramValue)
-			}
-		case "first_name":
-			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.ptfname LIKE CONCAT('%%', ?, '%%')")
-				v = append(v, paramValue)
-			}
-		case "last_name":
-			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.ptlname LIKE CONCAT('%%', ?, '%%')")
-				v = append(v, paramValue)
-			}
-		case "patient_id":
-			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.ptid LIKE CONCAT('%%', ?, '%%')")
-				v = append(v, paramValue)
+				k = append(k, "p.pemail LIKE CONCAT('%', ?, '%')")
+				v = append(v, sv)
 			}
 		case "ssn":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "p.ssn LIKE CONCAT('%%', ?, '%%')")
-				v = append(v, paramValue)
+				k = append(k, "p.ssn LIKE CONCAT('%', ?, '%')")
+				v = append(v, sv)
 			}
 		case "zip":
 			if sv, found := paramValue.(string); found && sv != "" {
-				k = append(k, "pa.zip LIKE CONCAT('%%', ?, '%%')")
-				v = append(v, paramValue)
+				k = append(k, "pa.zip LIKE CONCAT('%', ?, '%')")
+				v = append(v, sv)
 			}
-		default:
-			break
 		}
 	}
 
@@ -195,7 +210,6 @@ func patientSearch(r *gin.Context) {
 		return
 	}
 
-	// Build query
 	query := fmt.Sprintf(
 		"SELECT p.ptlname AS last_name"+
 			", p.ptfname AS first_name"+
@@ -207,32 +221,40 @@ func patientSearch(r *gin.Context) {
 			" FROM "+model.TABLE_PATIENT+" p"+
 			" LEFT OUTER JOIN "+model.TABLE_PATIENT_ADDRESS+" pa ON p.id = pa.patient"+
 			" WHERE "+strings.Join(k, " AND ")+" AND pa.active = 1 "+archive+
-			" ORDER BY p.ptlname, p.ptfname, p.ptmname LIMIT %d",
-		limit)
+			" ORDER BY p.ptlname, p.ptfname, p.ptmname LIMIT 20")
 
-	log.Printf("patientSearch(): query: %s", query)
-	var o []patientSearchResult
-	tx := model.Db.Raw(query, v...).Scan(&o)
-	if tx.Error != nil {
-		log.Print(tx.Error.Error())
-		r.AbortWithError(http.StatusInternalServerError, tx.Error)
+	rows, err := model.SqlDb.QueryContext(r.Request.Context(), query, v...)
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	r.JSON(http.StatusOK, o)
-	return
+	defer rows.Close()
+
+	var out []picklistItem
+	for rows.Next() {
+		var item picklistItem
+		var lastName, firstName, middleName, patientID, dateOfBirth string
+		var age, id int64
+		if err := rows.Scan(&lastName, &firstName, &middleName, &patientID, &age, &dateOfBirth, &id); err != nil {
+			log.Print(err.Error())
+			continue
+		}
+		item.Value = fmt.Sprintf("%s, %s (%s)", lastName, firstName, patientID)
+		item.ID = id
+		out = append(out, item)
+	}
+	r.JSON(http.StatusOK, out)
 }
 
 func patientTotalInSystem(r *gin.Context) {
-	var o int64
-	tx := model.Db.Raw("SELECT COUNT(*) FROM patient WHERE ptarchive=0").Scan(&o)
-	if tx.Error != nil {
-		log.Print(tx.Error.Error())
-		r.AbortWithError(http.StatusInternalServerError, tx.Error)
+	count, err := model.Queries.PatientTotalInSystem(r.Request.Context())
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-
-	r.JSON(http.StatusOK, o)
-	return
+	r.JSON(http.StatusOK, count)
 }
 
 func patientSearchForDuplicates(r *gin.Context) {
@@ -242,38 +264,30 @@ func patientSearchForDuplicates(r *gin.Context) {
 		r.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	log.Printf("PatientSearchForDuplicates(): raw params = %v", params)
 
-	var o model.NullString
-	fill := make([]interface{}, 0)
-
-	query := "SELECT ptid FROM patient p WHERE " +
-		"ptlname = ? AND " +
-		"ptfname = ? AND "
-	fill = append(fill, params["ptlname"])
-	fill = append(fill, params["ptfname"])
-
-	if _, ok := params["ptmname"]; ok {
-		query += " ptmname = ? AND "
-		fill = append(fill, params["ptmname"])
+	dupParams := dbgen.PatientSearchDuplicatesParams{}
+	if v, ok := params["ptlname"]; ok {
+		dupParams.Ptlname = v.(string)
 	}
-	if _, ok := params["ptsuffix"]; ok {
-		query += " ptsuffix = ? AND "
-		fill = append(fill, params["ptsuffix"])
+	if v, ok := params["ptfname"]; ok {
+		dupParams.Ptfname = v.(string)
+	}
+	if v, ok := params["ptmname"]; ok {
+		dupParams.Ptmname = sql.NullString{String: v.(string), Valid: true}
+	}
+	if v, ok := params["ptsuffix"]; ok {
+		dupParams.Ptsuffix = sql.NullString{String: v.(string), Valid: true}
 	}
 	if _, ok := params["ptdob"]; ok {
-		query += " ptdob = ? AND "
-		fill = append(fill, params["ptdob"])
+		dupParams.Ptdob = sql.NullTime{Valid: true}
 	}
-	query += " ptarchive = 0"
 
-	tx := model.Db.Raw(query, fill...).Scan(&o)
-	if tx.Error != nil {
-		log.Print(tx.Error.Error())
-		r.AbortWithError(http.StatusInternalServerError, tx.Error)
+	results, err := model.Queries.PatientSearchDuplicates(r.Request.Context(), dupParams)
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	r.JSON(http.StatusOK, o)
-	return
+	r.JSON(http.StatusOK, results)
 }

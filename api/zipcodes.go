@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/dbgen"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
 )
@@ -28,8 +28,7 @@ type cszPicklistObj struct {
 }
 
 func cityStateZipPicklist(r *gin.Context) {
-	var o []model.ZipcodesModel
-	var buf bytes.Buffer
+	var o []dbgen.Zipcode
 	var err error
 
 	param := r.Param("param")
@@ -39,39 +38,31 @@ func cityStateZipPicklist(r *gin.Context) {
 	}
 	log.Print("CityStateZipPicklist(): param = '" + param + "'")
 
-	buf.WriteString("SELECT * FROM " + model.TABLE_ZIPCODES + " WHERE ")
-
 	intval, _ := strconv.Atoi(param)
 	if len(param) >= 4 && param[2:3] == " " {
 		// ST CITY
-		buf.WriteString("state = UPPER(?) AND city LIKE CONCAT('%', ? ,'%')")
-		buf.WriteString(" LIMIT 20")
-		tx := model.Db.Raw(buf.String(), param[0:2], param[3:]).Scan(&o)
-		err = tx.Error
+		o, err = model.Queries.CityStateZipByStateCity(r.Request.Context(), dbgen.CityStateZipByStateCityParams{
+			State: param[0:2],
+			City:  param[3:],
+		})
 	} else if len(param) > 4 && param[len(param)-4:len(param)-2] == ", " {
 		// CITY, ST
-		buf.WriteString("state = UPPER(?) AND city LIKE CONCAT('%', ? ,'%')")
-		buf.WriteString(" LIMIT 20")
-		tx := model.Db.Raw(buf.String(), param[len(param)-2:len(param)], param[0:len(param)-4]).Scan(&o)
-		err = tx.Error
+		o, err = model.Queries.CityStateZipByStateCity(r.Request.Context(), dbgen.CityStateZipByStateCityParams{
+			State: param[len(param)-2 : len(param)],
+			City:  param[0 : len(param)-4],
+		})
 	} else if len(param) > 4 && param[len(param)-3:len(param)-2] == " " {
 		// CITY ST
-		buf.WriteString("state = UPPER(?) AND city LIKE CONCAT('%', ? ,'%')")
-		buf.WriteString(" LIMIT 20")
-		tx := model.Db.Raw(buf.String(), param[len(param)-2:len(param)], param[0:len(param)-3]).Scan(&o)
-		err = tx.Error
+		o, err = model.Queries.CityStateZipByStateCity(r.Request.Context(), dbgen.CityStateZipByStateCityParams{
+			State: param[len(param)-2 : len(param)],
+			City:  param[0 : len(param)-3],
+		})
 	} else if len(param) >= 3 && !strings.ContainsAny(param, "0123456789") {
 		// CITY
-		buf.WriteString("city LIKE CONCAT('%', ? ,'%')")
-		buf.WriteString(" LIMIT 20")
-		tx := model.Db.Raw(buf.String(), param).Scan(&o)
-		err = tx.Error
+		o, err = model.Queries.CityStateZipByCity(r.Request.Context(), param)
 	} else if intval > 0 {
 		// ZIP
-		buf.WriteString("zip LIKE CONCAT('%', ? ,'%')")
-		buf.WriteString(" LIMIT 20")
-		tx := model.Db.Raw(buf.String(), param).Scan(&o)
-		err = tx.Error
+		o, err = model.Queries.CityStateZipByZip(r.Request.Context(), param)
 	} else {
 		// Absolutely nothing
 	}
@@ -84,9 +75,8 @@ func cityStateZipPicklist(r *gin.Context) {
 
 	out := make(map[string]string, len(o))
 	for _, v := range o {
-		out[fmt.Sprintf("%d", v.Id)] = strings.TrimSpace(v.City + ", " + v.State + " " + v.Zip + " " + v.Country)
+		out[fmt.Sprintf("%d", v.ID)] = strings.TrimSpace(v.City + ", " + v.State + " " + v.Zip + " " + v.Country)
 	}
 
 	r.JSON(http.StatusOK, out)
-	return
 }

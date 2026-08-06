@@ -1,13 +1,20 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_LOINC = "loinc"
 )
 
 type LoincModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	LoincNum          string `db:"loinc_num" json:"loinc_num"`
 	Component         string `db:"component" json:"component"`
 	Property          string `db:"property" json:"property"`
@@ -19,7 +26,6 @@ type LoincModel struct {
 	Status            string `db:"status" json:"status"`
 	ShortName         string `db:"shortname" json:"short_name"`
 	ExternalCopyright string `db:"external_copyright_notice" json:"external_copyright_notice"`
-	Id                int64  `db:"id" json:"id"`
 }
 
 func (LoincModel) TableName() string {
@@ -27,6 +33,5 @@ func (LoincModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_LOINC, Obj: LoincModel{}})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "loinc", Query: "SELECT CONCAT(loinc_num, ' ', shortname) AS v, abbrev AS k FROM " + TABLE_LOINC + " WHERE CONCAT(loinc_num, ' ', shortname) LIKE CONCAT('%', :query, '%') ORDER BY shortname, loinc_num"})
 }

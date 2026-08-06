@@ -1,18 +1,24 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_SCHEDULERSTATUSTYPE = "schedulerstatustype"
 )
 
 type SchedulerStatusTypeModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Name        string `db:"sname" json:"name"`
 	Description string `db:"sdescrip" json:"description"`
 	Color       string `db:"scolor" json:"color"`
 	Age         int    `db:"sage" json:"age"`
-	Id          int64  `db:"id" json:"id"`
 }
 
 func (SchedulerStatusTypeModel) TableName() string {
@@ -20,6 +26,5 @@ func (SchedulerStatusTypeModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_SCHEDULERSTATUSTYPE, Obj: SchedulerStatusTypeModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "inscogroup", Query: "SELECT CONCAT(name, ' ', description) AS v, id AS k FROM " + TABLE_SCHEDULERSTATUSTYPE + " WHERE name LIKE :query OR description LIKE CONCAT('%', :query, '%') ORDER BY name, description"})
 }

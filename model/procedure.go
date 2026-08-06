@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/freemed/freemed-server/common"
-	"gorm.io/gorm"
 )
 
 const (
@@ -14,7 +13,10 @@ const (
 )
 
 type ProcedureModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Patient               int64           `db:"procpatient" json:"patient_id"`
 	EpisodeOfCare         NullString      `db:"proceoc" json:"episode_of_care"`
 	CptCode               int64           `db:"proccpt" json:"cpt"`
@@ -59,7 +61,6 @@ type ProcedureModel struct {
 	Order                 int64           `db:"orderid" json:"order_id"`
 	User                  int64           `db:"user" json:"user_id"`
 	Active                string          `db:"active" json:"active"`
-	Id                    int64           `db:"id" json:"id"`
 }
 
 func (ProcedureModel) TableName() string {
@@ -67,13 +68,6 @@ func (ProcedureModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables,
-		DbTable{
-			TableName: TABLE_PROCEDURE,
-			Obj:       ProcedureModel{},
-			Key:       "Id",
-		},
-	)
 	common.EmrModuleMap[MODULE_PROCEDURE] = common.EmrModuleType{
 		Name:         MODULE_PROCEDURE,
 		PatientField: "Patient",

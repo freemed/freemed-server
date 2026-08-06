@@ -1,9 +1,9 @@
 package model
 
 import (
+	"time"
 	"database/sql"
 
-	"gorm.io/gorm"
 )
 
 const (
@@ -11,7 +11,10 @@ const (
 )
 
 type ProviderModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	LastName             string        `db:"phylname" json:"last_name"`
 	FirstName            string        `db:"phyfname" json:"first_name"`
 	MiddleName           string        `db:"phymname" json:"middle_name"`
@@ -52,7 +55,6 @@ type ProviderModel struct {
 	DeaId                string        `db:"phydea" json:"dea_identifier"`
 	CliaId               string        `db:"phyclia" json:"clia_identifier"`
 	NpiId                string        `db:"phynpi" json:"npi_identifier"`
-	Id                   int64         `db:"id" json:"id"`
 }
 
 func (ProviderModel) TableName() string {
@@ -60,6 +62,5 @@ func (ProviderModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_PROVIDER, Obj: ProviderModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "provider", Query: "SELECT CONCAT(phylname, ', ', phyfname) AS v, id AS k FROM " + TABLE_PROVIDER + " WHERE phyfname LIKE :query OR phylname LIKE CONCAT('%', :query, '%') ORDER BY phylname, phyfname"})
 }

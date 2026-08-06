@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/dbgen"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
 )
@@ -40,21 +41,18 @@ func dataStoreGet(r *gin.Context) {
 		return
 	}
 
-	var content []byte
-	var c model.PatientDataStoreModel
-	tx := model.Db.Find(&c,
-		"patient = ? AND module = LOWER(?) AND id = ?",
-		patient,
-		module,
-		id,
-	)
-	if tx.Error != nil {
-		log.Print(tx.Error.Error())
+	c, err := model.Queries.GetDataStoreByPatientModule(r.Request.Context(), dbgen.GetDataStoreByPatientModuleParams{
+		PatientID: common.ParseInt(patient),
+		Module:    module,
+		ID:        common.ParseInt(id),
+	})
+	if err != nil {
+		log.Print(err.Error())
 		r.JSON(http.StatusInternalServerError, false)
 		return
 	}
 
 	// TODO: FIXME: Need to properly determine mimetype
-	r.Data(http.StatusOK, "application/x-binary", content)
+	r.Data(http.StatusOK, "application/x-binary", []byte(c.Contents.String))
 	return
 }

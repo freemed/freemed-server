@@ -1,13 +1,20 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_PAYMENTS = "payrec"
 )
 
 type PaymentModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Added       NullTime   `db:"payrecdtadd" json:"added"`
 	Modified    NullTime   `db:"payrecdtmod" json:"modified"`
 	Patient     int64      `db:"payrecpatient" json:"patient_id"`
@@ -22,7 +29,6 @@ type PaymentModel struct {
 	Locked      string     `db:"payrecdescrip" json:"description"`
 	User        int64      `db:"user" json:"user_id"`
 	Active      string     `db:"active" json:"active"`
-	Id          int64      `db:"id" json:"id"`
 }
 
 func (PaymentModel) TableName() string {
@@ -30,5 +36,4 @@ func (PaymentModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_PAYMENTS, Obj: PaymentModel{}, Key: "Id"})
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/dbgen"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
 )
@@ -26,19 +27,22 @@ func init() {
 
 type messagesUserObj struct {
 	Username string `json:"username" binding:"required"`
-	ID       string `json:"id" binding:"required"`
+	ID       int64  `json:"id" binding:"required"`
 }
 
 func messagesListUsers(r *gin.Context) {
-	var o []messagesUserObj
-	tx := model.Db.Raw("SELECT username, id FROM " + model.TABLE_USER).Scan(&o)
-	if tx.Error != nil {
-		log.Print(tx.Error.Error())
-		r.AbortWithError(http.StatusInternalServerError, tx.Error)
+	rows, err := model.Queries.MessagesListUsers(r.Request.Context())
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+	// Convert dbgen rows to messagesUserObj for API response
+	o := make([]messagesUserObj, len(rows))
+	for i, row := range rows {
+		o[i] = messagesUserObj{Username: row.Username, ID: row.ID}
+	}
 	r.JSON(http.StatusOK, o)
-	return
 }
 
 func messagesView(r *gin.Context) {
@@ -48,8 +52,6 @@ func messagesView(r *gin.Context) {
 		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-
-	var o []model.MessagesModel
 
 	unreadOnly, err := strconv.ParseBool(r.Query("unread_only"))
 	if err != nil {
@@ -63,29 +65,48 @@ func messagesView(r *gin.Context) {
 
 	if patient != 0 {
 		if unreadOnly {
-			tx := model.Db.Raw("SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgread=0 AND m.msgby = ?", patient, session.UserId).Scan(&o)
-			err = tx.Error
-		} else {
-			tx := model.Db.Raw("SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgpatient = ? AND m.msgfor = ?", patient, session.UserId)
-			err = tx.Error
+			o, err := model.Queries.MessagesViewUnreadForPatient(r.Request.Context(), dbgen.MessagesViewUnreadForPatientParams{
+				PatientID: patient,
+				UserID:    session.UserId,
+			})
+			if err != nil {
+				log.Print(err.Error())
+				r.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+			r.JSON(http.StatusOK, o)
+			return
 		}
-	} else {
-		if unreadOnly {
-			tx := model.Db.Raw("SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ? AND m.msgread = 0", session.UserId).Scan(&o)
-			err = tx.Error
-		} else {
-			tx := model.Db.Raw("SELECT m.*, u.userdescrip AS 'sender' FROM "+model.TABLE_MESSAGES+" m LEFT OUTER JOIN "+model.TABLE_USER+" u ON u.id = m.msgby WHERE (ISNULL(m.msgtag) OR LENGTH(m.msgtag) < 1) AND m.msgfor = ?", session.UserId).Scan(&o)
-			err = tx.Error
+		o, err := model.Queries.MessagesViewForPatient(r.Request.Context(), dbgen.MessagesViewForPatientParams{
+			PatientID: patient,
+			UserID:    session.UserId,
+		})
+		if err != nil {
+			log.Print(err.Error())
+			r.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
+		r.JSON(http.StatusOK, o)
+		return
 	}
 
+	if unreadOnly {
+		o, err := model.Queries.MessagesViewUnreadForUser(r.Request.Context(), session.UserId)
+		if err != nil {
+			log.Print(err.Error())
+			r.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		r.JSON(http.StatusOK, o)
+		return
+	}
+	o, err := model.Queries.MessagesViewForUser(r.Request.Context(), session.UserId)
 	if err != nil {
 		log.Print(err.Error())
 		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, o)
-	return
 }
 
 func messageGet(r *gin.Context) {
@@ -118,14 +139,13 @@ func messageGet(r *gin.Context) {
 	}
 
 	// Access control: do not allow access from other user
-	if msg.For != session.UserId {
+	if msg.Msgfor != session.UserId {
 		log.Print("MessageGet(): not allowed")
 		r.AbortWithError(http.StatusBadRequest, fmt.Errorf("not allowed"))
 		return
 	}
 
 	r.JSON(http.StatusOK, msg)
-	return
 }
 
 func messageSend(r *gin.Context) {
@@ -160,5 +180,4 @@ func messageSend(r *gin.Context) {
 	}
 
 	r.JSON(http.StatusOK, true)
-	return
 }

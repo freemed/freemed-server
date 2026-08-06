@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/freemed/freemed-server/common"
-	"gorm.io/gorm"
 )
 
 const (
@@ -14,7 +13,10 @@ const (
 )
 
 type ImmunizationModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Stamp                 time.Time     `db:"dateof" json:"stamp"`
 	Patient               int64         `db:"patient" json:"patient_id"`
 	Provider              int64         `db:"provider" json:"provider_id"`
@@ -32,7 +34,6 @@ type ImmunizationModel struct {
 	Locked                int64         `db:"locked" json:"locked"`
 	User                  int64         `db:"user" json:"user"`
 	Active                string        `db:"active" json:"active"`
-	Id                    int64         `db:"id" json:"id"`
 }
 
 func (ImmunizationModel) TableName() string {
@@ -40,13 +41,6 @@ func (ImmunizationModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables,
-		DbTable{
-			TableName: TABLE_IMMUNIZATION,
-			Obj:       ImmunizationModel{},
-			Key:       "Id",
-		},
-	)
 	common.EmrModuleMap[MODULE_IMMUNIZATION] = common.EmrModuleType{
 		Name:         MODULE_IMMUNIZATION,
 		PatientField: "Patient",

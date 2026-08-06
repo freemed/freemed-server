@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
@@ -38,7 +39,6 @@ func moduleSupportPicklist(r *gin.Context) {
 		return
 	}
 
-	// Check for module
 	mod, err := resolveSupportModule(module)
 	if err != nil {
 		log.Printf("moduleSupportPicklist(): %s", err.Error())
@@ -46,18 +46,41 @@ func moduleSupportPicklist(r *gin.Context) {
 		return
 	}
 
-	var o []iface
+	// Convert GORM-style :query named params to standard ?
+	sqlQuery := strings.ReplaceAll(mod.Query, ":query", "?")
 
-	tx := model.Db.Raw(mod.Query, map[string]interface{}{
-		"query": query,
-	}).Scan(&o)
+	rows, err := model.SqlDb.QueryContext(r.Request.Context(), sqlQuery, query)
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	defer rows.Close()
 
-	if tx.Error != nil {
-		log.Print(tx.Error.Error())
-		r.AbortWithError(http.StatusInternalServerError, tx.Error)
+	cols, err := rows.Columns()
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	r.JSON(http.StatusOK, o)
-	return
+	var out []iface
+	for rows.Next() {
+		vals := make([]interface{}, len(cols))
+		valPtrs := make([]interface{}, len(cols))
+		for i := range vals {
+			valPtrs[i] = &vals[i]
+		}
+		if err := rows.Scan(valPtrs...); err != nil {
+			log.Print(err.Error())
+			continue
+		}
+		row := make(iface, len(cols))
+		for i, col := range cols {
+			row[col] = vals[i]
+		}
+		out = append(out, row)
+	}
+
+	r.JSON(http.StatusOK, out)
 }

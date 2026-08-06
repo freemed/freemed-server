@@ -20,11 +20,10 @@ func init() {
 }
 
 func configGetAll(r *gin.Context) {
-	var o []model.ConfigModel
-	tx := model.Db.Find(&o)
-	if tx.Error != nil {
-		log.Print(tx.Error.Error())
-		r.AbortWithError(http.StatusInternalServerError, tx.Error)
+	o, err := model.Queries.ListAllConfig(r.Request.Context())
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, o)

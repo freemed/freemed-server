@@ -9,6 +9,7 @@ import (
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/config"
+	"github.com/freemed/freemed-server/dbgen"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
 )
@@ -51,16 +52,16 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 					}
 					return &mod, nil
 				}
-				return &model.UserModel{}, jwt.ErrFailedAuthentication
+				return &dbgen.User{}, jwt.ErrFailedAuthentication
 			},
 			Authorizator: func(data interface{}, c *gin.Context) bool {
 				// TODO: FIXME: XXX
 				return true
 			},
 			PayloadFunc: func(data interface{}) jwt.MapClaims {
-				if v, ok := data.(*model.UserModel); ok {
+				if v, ok := data.(*dbgen.User); ok {
 					return jwt.MapClaims{
-						identityKey: v.Id,
+						identityKey: v.ID,
 					}
 				}
 				return jwt.MapClaims{}

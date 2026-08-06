@@ -2,8 +2,6 @@ package model
 
 import (
 	"github.com/freemed/freemed-server/common"
-	"github.com/freemed/remitt-server/model"
-	"gorm.io/gorm"
 )
 
 const (
@@ -12,14 +10,13 @@ const (
 )
 
 type ProgressNotesModel struct {
-	gorm.Model
-	Date              model.NullTime   `db:"pnotesdt" json:"date"`
-	DateAdded         model.NullTime   `db:"pnotesdtadd" json:"date_added"`
-	DateModified      model.NullTime   `db:"pnotesdtmod" json:"date_modified"`
+	Date              NullTime   `db:"pnotesdt" json:"date"`
+	DateAdded         NullTime   `db:"pnotesdtadd" json:"date_added"`
+	DateModified      NullTime   `db:"pnotesdtmod" json:"date_modified"`
 	Patient           int64            `db:"pnotespat" json:"patient_id"`
 	Description       string           `db:"pnotesdescrip" json:"description"`
 	Provider          int64            `db:"pnotesdoc" json:"provider_id"`
-	EpisodeOfCare     model.NullInt64  `db:"pnoteseoc" json:"eoc_id"`
+	EpisodeOfCare     NullInt64  `db:"pnoteseoc" json:"eoc_id"`
 	NotesSubjective   string           `db:"pnotes_S" json:"notes_subjective"`
 	NotesObjective    string           `db:"pnotes_O" json:"notes_objective"`
 	NotesAssessment   string           `db:"pnotes_A" json:"notes_assessment"`
@@ -35,7 +32,7 @@ type ProgressNotesModel struct {
 	Weight            uint             `db:"weight" json:"weight"`
 	Height            uint             `db:"height" json:"height"`
 	BMI               uint             `db:"bmi" json:"bmi"`
-	ISO               model.NullString `db:"iso" json:"iso"`
+	ISO               NullString `db:"iso" json:"iso"`
 	Locked            int64            `db:"locked" json:"locked"`
 	User              int64            `db:"user" json:"user_id"`
 	Active            string           `db:"active" json:"active"`
@@ -47,11 +44,6 @@ func (ProgressNotesModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{
-		TableName: TABLE_PNOTES,
-		Obj:       ProgressNotesModel{},
-		Key:       "Id",
-	})
 	common.EmrModuleMap[MODULE_PNOTES] = common.EmrModuleType{
 		Name:         MODULE_PNOTES,
 		PatientField: "Patient",

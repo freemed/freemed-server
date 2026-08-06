@@ -1,8 +1,6 @@
 module github.com/freemed/freemed-server
 
-go 1.24.0
-
-toolchain go1.24.0
+go 1.25
 
 replace (
 	github.com/freemed/freemed-server => ./
@@ -10,15 +8,17 @@ replace (
 	github.com/freemed/freemed-server/common => ./common
 	github.com/freemed/freemed-server/config => ./config
 	github.com/freemed/freemed-server/model => ./model
-	github.com/freemed/gokogiri => ../gokogiri
-	github.com/freemed/gokogiri/help => ../gokogiri/help
-	github.com/freemed/gokogiri/xpath => ../gokogiri/xpath
-	github.com/freemed/ratago/xslt => ../ratago/xslt
-	github.com/freemed/remitt-server => ../remitt-server
-	github.com/freemed/remitt-server/client => ../remitt-server/client
-	github.com/freemed/remitt-server/common => ../remitt-server/common
-	github.com/freemed/remitt-server/config => ../remitt-server/config
-	github.com/freemed/remitt-server/model => ../remitt-server/model
+)
 
-	github.com/ugorji/go => github.com/ugorji/go/codec v1.1.7
+require (
+	github.com/freemed/freemed-server/config v0.0.0-00010101000000-000000000000
+	github.com/go-sql-driver/mysql v1.10.0
+	github.com/golang-migrate/migrate/v4 v4.19.1
+)
+
+require (
+	filippo.io/edwards25519 v1.2.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
+	github.com/rogpeppe/go-internal v1.16.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

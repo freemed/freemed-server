@@ -1,13 +1,20 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+)
 
 const (
 	TABLE_CPT = "cpt"
 )
 
 type CptCodeModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	Code                 string     `db:"abbrev" json:"abbrev"`
 	NameInternal         NullString `db:"cptnameint" json:"name_internal"`
 	NameExternal         NullString `db:"cptnameext" json:"name_external"`
@@ -24,7 +31,6 @@ type CptCodeModel struct {
 	StandardFees         string     `db:"cptstdfee" json:"standard_fee"`
 	TypesOfService       string     `db:"cpttos" json:"types_of_service"`
 	TypesOfServicePrefix string     `db:"cpttosprfx" json:"types_of_service_prefix"`
-	Id                   int64      `db:"id" json:"id"`
 }
 
 func (CptCodeModel) TableName() string {
@@ -32,6 +38,5 @@ func (CptCodeModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_CPT, Obj: CptCodeModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "cpt", Query: "SELECT cptnameext AS v, id AS k FROM " + TABLE_CPT + " WHERE cptnameext LIKE CONCAT('%', :query, '%') ORDER BY cptnameext"})
 }

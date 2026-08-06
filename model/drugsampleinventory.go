@@ -1,9 +1,9 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
-	"gorm.io/gorm"
 )
 
 const (
@@ -11,7 +11,10 @@ const (
 )
 
 type DrugSampleInventoryModel struct {
-	gorm.Model
+	ID        int64          `db:"id" json:"id"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	DrugCode             string    `db:"drugcode" json:"drug_code"`
 	NDC                  string    `db:"drugndc" json:"ndc"`
 	DrugClass            string    `db:"drugclass" json:"drug_class"`
@@ -33,7 +36,6 @@ type DrugSampleInventoryModel struct {
 	DisposalMethod       string    `db:"disposemethod" json:"disposal_method"`
 	DisposalReason       string    `db:"disposereason" json:"disposal_reason"`
 	Witness              string    `db:"witness" json:"witness"`
-	Id                   int64     `db:"id" json:"id"`
 }
 
 func (DrugSampleInventoryModel) TableName() string {
@@ -41,6 +43,5 @@ func (DrugSampleInventoryModel) TableName() string {
 }
 
 func init() {
-	DbTables = append(DbTables, DbTable{TableName: TABLE_DRUGSAMPLEINVENTORY, Obj: DrugSampleInventoryModel{}, Key: "Id"})
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "drugsampleinventory", Query: "SELECT CONCAT(logdate, ' - ', drugformal, ' ', samplecountremain, '/', samplecount, ' (', lot, ')') AS v, id AS k FROM " + TABLE_DRUGSAMPLEINVENTORY + " WHERE CONCAT(logdate, ' - ', drugformal, ' ', samplecountremain, '/', samplecount, ' (', lot, ')') LIKE CONCAT('%', :query, '%') ORDER BY logdate DESC"})
 }
