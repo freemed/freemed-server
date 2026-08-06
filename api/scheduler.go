@@ -24,6 +24,7 @@ func init() {
 			r.GET("/dateappt/:date", schedulerFindDateAppt)
 			r.GET("/event/:id", schedulerGetEvent)
 			r.POST("/reschedule/:id", schedulerReschedule)
+			r.DELETE("/:id", schedulerCancelAppointment)
 		},
 	}
 }
@@ -211,4 +212,23 @@ func schedulerReschedule(c *gin.Context) {
 
 func mysqlDateFormat(t time.Time) string {
 	return t.Format("2006-01-02")
+}
+
+func schedulerCancelAppointment(c *gin.Context) {
+	id := common.ParseInt(c.Param("id"))
+	if id < 1 {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("bad event id"))
+		return
+	}
+
+	_, err := model.SqlDb.ExecContext(c.Request.Context(),
+		"UPDATE scheduler SET calstatus = 'cancelled', calmodified = ? WHERE id = ?",
+		time.Now(), id)
+	if err != nil {
+		log.Printf("schedulerCancelAppointment(%d): ERROR: %s", id, err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, true)
 }

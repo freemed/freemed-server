@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
 	import Calendar from '$lib/components/Calendar.svelte';
 
@@ -153,6 +154,25 @@
 			});
 	}
 
+	async function cancelAppointment() {
+		if (!selectedEvent) return;
+		if (!confirm('Cancel this appointment?')) return;
+		try {
+			await api.del('/scheduler/' + selectedEvent.scheduler_id);
+			(window as any).toast?.success('Appointment cancelled.');
+			closeModal();
+		} catch (e: any) {
+			(window as any).toast?.error(e.message || 'Failed to cancel appointment.');
+		}
+	}
+
+	function viewPatient() {
+		if (selectedEvent?.patient_id) {
+			closeModal();
+			goto(`/patients/${selectedEvent.patient_id}`);
+		}
+	}
+
 	function closeModal() {
 		showModal = false;
 		selectedEvent = null;
@@ -271,7 +291,23 @@
 			</div>
 
 			<!-- Footer -->
-			<div class="flex justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-200">
+			<div class="flex justify-between gap-3 px-6 py-4 bg-gray-50 border-t border-gray-200">
+				<div class="flex gap-2">
+					{#if selectedEvent?.patient_id}
+						<button
+							onclick={viewPatient}
+							class="px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+						>
+							View Patient
+						</button>
+					{/if}
+					<button
+						onclick={cancelAppointment}
+						class="px-3 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+					>
+						Cancel Appointment
+					</button>
+				</div>
 				<button
 					onclick={closeModal}
 					class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

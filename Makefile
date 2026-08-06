@@ -82,6 +82,13 @@ frontend-clean:
 # === Docker ===
 
 docker-build:
-	docker build -t freemed-server .
-	docker build -t freemed-frontend frontend/
+	docker compose build
 .PHONY: docker-build
+
+docker-up:
+	docker compose up -d
+.PHONY: docker-up
+
+docker-down:
+	docker compose down
+.PHONY: docker-down
