@@ -4,10 +4,14 @@
 
 	interface ProgressNote {
 		id: number;
-		note_date: string;
-		note_text: string;
-		author?: string;
-		note_type?: string;
+		date: string;
+		description: string;
+		soap_subjective: string;
+		soap_objective: string;
+		soap_assessment: string;
+		soap_plan: string;
+		author_name: string;
+		active: string;
 	}
 
 	let notes = $state<ProgressNote[]>([]);
@@ -27,7 +31,7 @@
 		loading = true;
 		error = '';
 		try {
-			const data = await api.get<ProgressNote[]>(`/patients/${id}/progress-notes`);
+			const data = await api.get<ProgressNote[]>(`/patient/${id}/progress-notes`);
 			notes = data || [];
 		} catch (e: any) {
 			error = e.message || 'Failed to load progress notes';
@@ -105,42 +109,37 @@
 						<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
 							<div class="flex items-center justify-between mb-2">
 								<div class="flex items-center gap-2">
-									{#if note.note_type}
-										<span class="inline-block px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded">
-											{note.note_type}
-										</span>
+									{#if note.active === 'active'}
+										<span class="inline-block px-2 py-0.5 text-xs font-medium bg-green-50 text-green-700 rounded">Active</span>
+									{:else}
+										<span class="inline-block px-2 py-0.5 text-xs font-medium bg-gray-50 text-gray-500 rounded">Inactive</span>
 									{/if}
 									<span class="text-sm text-gray-500">
-										{formatDate(note.note_date)}
+										{formatDate(note.date)}
 									</span>
 								</div>
-								{#if note.author}
-									<span class="text-xs text-gray-400">by {note.author}</span>
+								{#if note.author_name}
+									<span class="text-xs text-gray-400">by {note.author_name}</span>
 								{/if}
 							</div>
-							<p class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-								{truncateText(note.note_text)}
+							<p class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed mb-2">
+								{note.description}
 							</p>
-							{#if note.note_text.length > 200}
-								<button
-									onclick={(e) => {
-										const target = e.currentTarget;
-										const paragraph = target.previousElementSibling as HTMLElement;
-										if (paragraph) {
-											const fullText = note.note_text;
-											if (paragraph.textContent?.endsWith('...')) {
-												paragraph.textContent = fullText;
-												target.textContent = 'Show less';
-											} else {
-												paragraph.textContent = truncateText(fullText);
-												target.textContent = 'Read more';
-											}
-										}
-									}}
-									class="mt-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
-								>
-									Read more
-								</button>
+							{#if note.soap_subjective || note.soap_objective || note.soap_assessment || note.soap_plan}
+								<div class="mt-3 pt-3 border-t border-gray-100 space-y-2 text-sm">
+									{#if note.soap_subjective}
+										<div><span class="font-medium text-gray-600">S:</span> <span class="text-gray-700">{note.soap_subjective}</span></div>
+									{/if}
+									{#if note.soap_objective}
+										<div><span class="font-medium text-gray-600">O:</span> <span class="text-gray-700">{note.soap_objective}</span></div>
+									{/if}
+									{#if note.soap_assessment}
+										<div><span class="font-medium text-gray-600">A:</span> <span class="text-gray-700">{note.soap_assessment}</span></div>
+									{/if}
+									{#if note.soap_plan}
+										<div><span class="font-medium text-gray-600">P:</span> <span class="text-gray-700">{note.soap_plan}</span></div>
+									{/if}
+								</div>
 							{/if}
 						</div>
 					</div>
