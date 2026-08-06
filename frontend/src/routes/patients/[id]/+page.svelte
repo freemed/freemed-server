@@ -28,7 +28,7 @@ import DiagnosisList from '$lib/components/DiagnosisList.svelte';
 		created_at: string;
 	}
 
-	let patientId = $derived($page.params.id);
+	let patientId = $derived($page.params.id || '');
 	let patient = $state<PatientInfo | null>(null);
 	let attachments = $state<Attachment[]>([]);
 	let loading = $state(true);
@@ -244,6 +244,12 @@ import DiagnosisList from '$lib/components/DiagnosisList.svelte';
 					class="px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
 				>
 					Documents
+				</button>
+				<button
+					onclick={() => goto('/patients/' + patientId + '/allergies')}
+					class="px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+				>
+					Allergies
 				</button>
 			</div>
 		</div>
