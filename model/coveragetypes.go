@@ -26,4 +26,5 @@ func (CoverageTypeModel) TableName() string {
 }
 
 func init() {
+	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "coveragetypes", Query: "SELECT covtpname AS v, id AS k FROM " + TABLE_COVERAGETYPES + " WHERE covtpname LIKE CONCAT('%', :query, '%') ORDER BY covtpname"})
 }
