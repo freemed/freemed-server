@@ -1,4 +1,3 @@
-import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
 
 const STORAGE_KEY = 'freemed_token';
@@ -17,13 +16,18 @@ function saveToken(token: string | null) {
 	}
 }
 
-export const authToken = writable<string | null>(loadToken());
-export const isAuthenticated = writable<boolean>(!!loadToken());
+// Module-level reactive state using Svelte 5 runes
+let _token = $state<string | null>(loadToken());
 
-authToken.subscribe((token) => {
-	saveToken(token);
-	isAuthenticated.set(!!token);
-});
+export const authToken = {
+	get current() { return _token; },
+	set current(val: string | null) {
+		_token = val;
+		saveToken(val);
+	}
+};
+
+export const isAuthenticated = $derived(!!_token);
 
 export async function login(username: string, password: string): Promise<boolean> {
 	const res = await fetch('/auth/login', {
@@ -33,25 +37,24 @@ export async function login(username: string, password: string): Promise<boolean
 	});
 	if (!res.ok) return false;
 	const data = await res.json();
-	authToken.set(data.token);
+	authToken.current = data.token;
 	return true;
 }
 
 export async function refreshToken(): Promise<boolean> {
-	const token = get(authToken);
-	if (!token) return false;
+	if (!_token) return false;
 	const res = await fetch('/auth/refresh_token', {
-		headers: { Authorization: `Bearer ${token}` },
+		headers: { Authorization: `Bearer ${_token}` },
 	});
 	if (!res.ok) return false;
 	const data = await res.json();
-	authToken.set(data.token);
+	authToken.current = data.token;
 	return true;
 }
 
 export function logout() {
-	const token = get(authToken);
-	authToken.set(null);
+	const token = _token;
+	authToken.current = null;
 	if (token && browser) {
 		fetch('/auth/logout', {
 			method: 'DELETE',
