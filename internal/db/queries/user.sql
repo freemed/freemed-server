@@ -14,3 +14,8 @@ WHERE username = sqlc.arg(username)
 
 -- name: CheckDuplicateUsername :many
 SELECT id FROM user WHERE username = sqlc.arg(username);
+
+-- name: ListUsers :many
+SELECT id, username, userfname, userlname, userdescrip, usertype
+FROM user
+ORDER BY userlname, userfname;

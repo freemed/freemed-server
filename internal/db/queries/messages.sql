@@ -45,3 +45,15 @@ WHERE (m.msgtag IS NULL OR LENGTH(m.msgtag) < 1)
   AND m.msgpatient = sqlc.arg(patient_id)
   AND m.msgread = 0
   AND m.msgby = sqlc.arg(user_id);
+
+-- List all distinct message tags
+-- name: ListMessageTags :many
+SELECT DISTINCT msgtag FROM messages WHERE msgtag IS NOT NULL AND msgtag != '' ORDER BY msgtag;
+
+-- Get messages by tag
+-- name: MessagesByTag :many
+SELECT * FROM messages WHERE msgtag = sqlc.arg(tag) ORDER BY msgtime DESC;
+
+-- Delete messages by IDs
+-- name: DeleteMessages :exec
+DELETE FROM messages WHERE id IN (sqlc.slice(ids));

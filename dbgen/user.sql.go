@@ -7,6 +7,7 @@ package dbgen
 
 import (
 	"context"
+	"database/sql"
 )
 
 const checkDuplicateUsername = `-- name: CheckDuplicateUsername :many
@@ -151,4 +152,49 @@ func (q *Queries) GetUserCount(ctx context.Context) (int64, error) {
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const listUsers = `-- name: ListUsers :many
+SELECT id, username, userfname, userlname, userdescrip, usertype
+FROM user
+ORDER BY userlname, userfname
+`
+
+type ListUsersRow struct {
+	ID          int64          `json:"id"`
+	Username    string         `json:"username"`
+	Userfname   sql.NullString `json:"userfname"`
+	Userlname   sql.NullString `json:"userlname"`
+	Userdescrip sql.NullString `json:"userdescrip"`
+	Usertype    sql.NullString `json:"usertype"`
+}
+
+func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, listUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListUsersRow
+	for rows.Next() {
+		var i ListUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Userfname,
+			&i.Userlname,
+			&i.Userdescrip,
+			&i.Usertype,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

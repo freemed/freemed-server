@@ -2,8 +2,19 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api';
 
+	interface DashboardData {
+		username: string;
+		patientCount: number;
+		todayAppointments: number;
+		unreadMessages: number;
+		activeAuthorizations: number;
+	}
+
 	let username = $state('');
 	let patientCount = $state<number | null>(null);
+	let todayAppointments = $state<number | null>(null);
+	let unreadMessages = $state<number | null>(null);
+	let activeAuthorizations = $state<number | null>(null);
 	let loading = $state(true);
 	let error = $state('');
 
@@ -13,6 +24,15 @@
 	let patientCountDisplay = $derived(
 		patientCount !== null ? patientCount.toLocaleString() : '—'
 	);
+	let todayAppointmentsDisplay = $derived(
+		todayAppointments !== null ? todayAppointments.toLocaleString() : '—'
+	);
+	let unreadMessagesDisplay = $derived(
+		unreadMessages !== null ? unreadMessages.toLocaleString() : '—'
+	);
+	let activeAuthorizationsDisplay = $derived(
+		activeAuthorizations !== null ? activeAuthorizations.toLocaleString() : '—'
+	);
 
 	onMount(() => {
 		loadDashboard();
@@ -20,12 +40,12 @@
 
 	async function loadDashboard() {
 		try {
-			const [name, count] = await Promise.all([
-				api.get<string>('/userinterface/CurrentUsername'),
-				api.get<number>('/patients/total')
-			]);
-			username = name || '';
-			patientCount = typeof count === 'number' ? count : null;
+			const data = await api.get<DashboardData>('/dashboard/');
+			username = data.username || '';
+			patientCount = data.patientCount ?? null;
+			todayAppointments = data.todayAppointments ?? null;
+			unreadMessages = data.unreadMessages ?? null;
+			activeAuthorizations = data.activeAuthorizations ?? null;
 		} catch (e: unknown) {
 			const msg = e instanceof Error ? e.message : 'Failed to load dashboard';
 			error = msg;
@@ -56,6 +76,21 @@
 			<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
 				<p class="text-sm text-gray-500 uppercase tracking-wide">Total Patients</p>
 				<p class="text-3xl font-bold text-gray-900 mt-1">{patientCountDisplay}</p>
+			</div>
+
+			<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+				<p class="text-sm text-gray-500 uppercase tracking-wide">Today's Appointments</p>
+				<p class="text-3xl font-bold text-gray-900 mt-1">{todayAppointmentsDisplay}</p>
+			</div>
+
+			<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+				<p class="text-sm text-gray-500 uppercase tracking-wide">Unread Messages</p>
+				<p class="text-3xl font-bold text-gray-900 mt-1">{unreadMessagesDisplay}</p>
+			</div>
+
+			<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+				<p class="text-sm text-gray-500 uppercase tracking-wide">Active Authorizations</p>
+				<p class="text-3xl font-bold text-gray-900 mt-1">{activeAuthorizationsDisplay}</p>
 			</div>
 		</div>
 

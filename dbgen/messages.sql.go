@@ -8,8 +8,104 @@ package dbgen
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 )
+
+const deleteMessages = `-- name: DeleteMessages :exec
+DELETE FROM messages WHERE id IN (/*SLICE:ids*/?)
+`
+
+// Delete messages by IDs
+func (q *Queries) DeleteMessages(ctx context.Context, ids []int64) error {
+	query := deleteMessages
+	var queryParams []interface{}
+	if len(ids) > 0 {
+		for _, v := range ids {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(ids))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
+	}
+	_, err := q.db.ExecContext(ctx, query, queryParams...)
+	return err
+}
+
+const listMessageTags = `-- name: ListMessageTags :many
+SELECT DISTINCT msgtag FROM messages WHERE msgtag IS NOT NULL AND msgtag != '' ORDER BY msgtag
+`
+
+// List all distinct message tags
+func (q *Queries) ListMessageTags(ctx context.Context) ([]sql.NullString, error) {
+	rows, err := q.db.QueryContext(ctx, listMessageTags)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []sql.NullString
+	for rows.Next() {
+		var msgtag sql.NullString
+		if err := rows.Scan(&msgtag); err != nil {
+			return nil, err
+		}
+		items = append(items, msgtag)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const messagesByTag = `-- name: MessagesByTag :many
+SELECT id, created_at, updated_at, deleted_at, msgby, sender, msgtime, msgfor, msgrecip, msgpatient, msgperson, msgurgency, msgsubject, msgtext, msgread, msgunique, msgtag, active FROM messages WHERE msgtag = ? ORDER BY msgtime DESC
+`
+
+// Get messages by tag
+func (q *Queries) MessagesByTag(ctx context.Context, tag sql.NullString) ([]Message, error) {
+	rows, err := q.db.QueryContext(ctx, messagesByTag, tag)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Message
+	for rows.Next() {
+		var i Message
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Msgby,
+			&i.Sender,
+			&i.Msgtime,
+			&i.Msgfor,
+			&i.Msgrecip,
+			&i.Msgpatient,
+			&i.Msgperson,
+			&i.Msgurgency,
+			&i.Msgsubject,
+			&i.Msgtext,
+			&i.Msgread,
+			&i.Msgunique,
+			&i.Msgtag,
+			&i.Active,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const messagesListUsers = `-- name: MessagesListUsers :many
 SELECT username, id FROM user

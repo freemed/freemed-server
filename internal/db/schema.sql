@@ -972,6 +972,26 @@ CREATE TABLE `medications` (
   `active` VARCHAR(255) NOT NULL DEFAULT ''
 );
 
+CREATE TABLE `prescriptions` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `drug_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `dosage` VARCHAR(255) NOT NULL DEFAULT '',
+  `frequency` VARCHAR(255) NOT NULL DEFAULT '',
+  `quantity` VARCHAR(255) NOT NULL DEFAULT '',
+  `refills` BIGINT NOT NULL DEFAULT 0,
+  `date_written` DATETIME NOT NULL,
+  `prescribing_provider` BIGINT NOT NULL DEFAULT 0,
+  `pharmacy` VARCHAR(255) NOT NULL DEFAULT '',
+  `status` VARCHAR(255) NOT NULL DEFAULT 'active',
+  `notes` TEXT,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  FOREIGN KEY (`patient`) REFERENCES `patient`(`id`)
+);
+
 -- Legacy tables referenced in queries (no Go model files; column definitions
 -- inferred from SQL queries in api/*.go and existing FreeMED 0.9.x schema)
 
@@ -983,5 +1003,21 @@ CREATE TABLE `callin` (
   `created_at` DATETIME NOT NULL,
   `updated_at` DATETIME NOT NULL,
   `deleted_at` DATETIME
+);
+
+CREATE TABLE `patient_coverage` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `insurance_company` BIGINT NOT NULL DEFAULT 0,
+  `coverage_type` BIGINT NOT NULL DEFAULT 0,
+  `policy_number` VARCHAR(255) NOT NULL DEFAULT '',
+  `group_number` VARCHAR(255) NOT NULL DEFAULT '',
+  `effective_date` DATETIME,
+  `termination_date` DATETIME,
+  `primary_coverage` TINYINT(1) NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
 );
 

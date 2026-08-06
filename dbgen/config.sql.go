@@ -7,6 +7,7 @@ package dbgen
 
 import (
 	"context"
+	"database/sql"
 )
 
 const getConfigById = `-- name: GetConfigById :one
@@ -29,6 +30,33 @@ func (q *Queries) GetConfigById(ctx context.Context, id int64) (Config, error) {
 		&i.COptions,
 	)
 	return i, err
+}
+
+const getConfigSections = `-- name: GetConfigSections :many
+SELECT DISTINCT c_section FROM config ORDER BY c_section
+`
+
+func (q *Queries) GetConfigSections(ctx context.Context) ([]sql.NullString, error) {
+	rows, err := q.db.QueryContext(ctx, getConfigSections)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []sql.NullString
+	for rows.Next() {
+		var c_section sql.NullString
+		if err := rows.Scan(&c_section); err != nil {
+			return nil, err
+		}
+		items = append(items, c_section)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAllConfig = `-- name: ListAllConfig :many
@@ -67,4 +95,18 @@ func (q *Queries) ListAllConfig(ctx context.Context) ([]Config, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateConfig = `-- name: UpdateConfig :exec
+UPDATE config SET c_value = ? WHERE id = ?
+`
+
+type UpdateConfigParams struct {
+	CValue sql.NullString `json:"c_value"`
+	ID     int64          `json:"id"`
+}
+
+func (q *Queries) UpdateConfig(ctx context.Context, arg UpdateConfigParams) error {
+	_, err := q.db.ExecContext(ctx, updateConfig, arg.CValue, arg.ID)
+	return err
 }

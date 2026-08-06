@@ -27,8 +27,16 @@ func init() {
 			r.GET("/:id/payments", patientPayments)
 			r.GET("/:id/ledger", patientLedger)
 			r.GET("/:id/procedures", patientProcedures)
+			r.GET("/:id/authorizations", patientAuthorizations)
+			r.GET("/:id/claims", patientClaims)
 		r.GET("/:id/allergies", patientAllergiesList)
 		r.POST("/:id/allergies", patientAllergiesCreate)
+		r.GET("/:id/addresses", patientAddressesList)
+		r.PUT("/:id/addresses/:addressId", patientAddressUpdate)
+		r.DELETE("/:id/addresses/:addressId", patientAddressDelete)
+		r.GET("/:id/tags", patientTagsList)
+		r.POST("/:id/tags", patientTagsCreate)
+		r.DELETE("/:id/tags/:tagId", patientTagsExpire)
 		},
 	}
 }

@@ -587,6 +587,22 @@ type PatientAddress struct {
 	Active    bool           `json:"active"`
 }
 
+type PatientCoverage struct {
+	ID               int64        `json:"id"`
+	CreatedAt        time.Time    `json:"created_at"`
+	UpdatedAt        time.Time    `json:"updated_at"`
+	DeletedAt        sql.NullTime `json:"deleted_at"`
+	Patient          int64        `json:"patient"`
+	InsuranceCompany int64        `json:"insurance_company"`
+	CoverageType     int64        `json:"coverage_type"`
+	PolicyNumber     string       `json:"policy_number"`
+	GroupNumber      string       `json:"group_number"`
+	EffectiveDate    sql.NullTime `json:"effective_date"`
+	TerminationDate  sql.NullTime `json:"termination_date"`
+	PrimaryCoverage  bool         `json:"primary_coverage"`
+	Active           string       `json:"active"`
+}
+
 type PatientEmr struct {
 	ID         int64          `json:"id"`
 	CreatedAt  time.Time      `json:"created_at"`
@@ -787,6 +803,25 @@ type Practice struct {
 	Email     sql.NullString `json:"email"`
 	Cellular  sql.NullString `json:"cellular"`
 	Pracnpi   string         `json:"pracnpi"`
+}
+
+type Prescription struct {
+	ID                  int64          `json:"id"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
+	DeletedAt           sql.NullTime   `json:"deleted_at"`
+	Patient             int64          `json:"patient"`
+	DrugName            string         `json:"drug_name"`
+	Dosage              string         `json:"dosage"`
+	Frequency           string         `json:"frequency"`
+	Quantity            string         `json:"quantity"`
+	Refills             int64          `json:"refills"`
+	DateWritten         time.Time      `json:"date_written"`
+	PrescribingProvider int64          `json:"prescribing_provider"`
+	Pharmacy            string         `json:"pharmacy"`
+	Status              string         `json:"status"`
+	Notes               sql.NullString `json:"notes"`
+	User                int64          `json:"user"`
 }
 
 type Procrec struct {

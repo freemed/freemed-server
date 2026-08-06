@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,7 +21,10 @@ func init() {
 			r.GET("/list_users", messagesListUsers)
 			r.GET("/view", messagesView)
 			r.GET("/view/:id", messageGet)
+			r.GET("/tags", messagesListTags)
+			r.GET("/tag/:tag", messagesByTag)
 			r.POST("/send", messageSend)
+			r.POST("/delete", messagesDelete)
 		},
 	}
 }
@@ -179,5 +183,62 @@ func messageSend(r *gin.Context) {
 		return
 	}
 
+	r.JSON(http.StatusOK, true)
+}
+
+// messagesListTags returns all distinct message tags
+func messagesListTags(r *gin.Context) {
+	tags, err := model.Queries.ListMessageTags(r.Request.Context())
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	// Convert []sql.NullString to []string, skipping empty/nil
+	out := make([]string, 0, len(tags))
+	for _, t := range tags {
+		if t.Valid && t.String != "" {
+			out = append(out, t.String)
+		}
+	}
+	r.JSON(http.StatusOK, out)
+}
+
+// messagesByTag returns messages matching a specific tag
+func messagesByTag(r *gin.Context) {
+	tag := r.Param("tag")
+	if tag == "" {
+		r.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	messages, err := model.Queries.MessagesByTag(r.Request.Context(), sql.NullString{String: tag, Valid: true})
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	r.JSON(http.StatusOK, messages)
+}
+
+type messagesDeleteRequest struct {
+	IDs []int64 `json:"ids" binding:"required"`
+}
+
+// messagesDelete performs a bulk delete of messages by IDs
+func messagesDelete(r *gin.Context) {
+	var req messagesDeleteRequest
+	if err := r.BindJSON(&req); err != nil {
+		r.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	if len(req.IDs) == 0 {
+		r.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	if err := model.Queries.DeleteMessages(r.Request.Context(), req.IDs); err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 	r.JSON(http.StatusOK, true)
 }
