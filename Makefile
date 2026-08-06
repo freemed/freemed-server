@@ -51,3 +51,37 @@ crosscompile:
 		GOROOT=${GOROOT} CGO_ENABLED=0 GOOS=darwin GOARCH=386 \
 		go build -v -ldflags "-X main.Version=${VERSION}" \
 			-o ${BINARY}.mac.bin )
+
+# === Frontend (SvelteKit) ===
+
+frontend-deps:
+	@echo "- Installing frontend dependencies"
+	( cd frontend ; npm ci )
+.PHONY: frontend-deps
+
+frontend-dev:
+	@echo "- Starting SvelteKit dev server (proxies /api and /auth to :3000)"
+	( cd frontend ; npm run dev )
+.PHONY: frontend-dev
+
+frontend-build:
+	@echo "- Building SvelteKit frontend for production"
+	( cd frontend ; npm run build )
+.PHONY: frontend-build
+
+frontend-check:
+	@echo "- Running svelte-check"
+	( cd frontend ; npx svelte-check )
+.PHONY: frontend-check
+
+frontend-clean:
+	@echo "- Cleaning frontend build output"
+	rm -rf frontend/build frontend/.svelte-kit
+.PHONY: frontend-clean
+
+# === Docker ===
+
+docker-build:
+	docker build -t freemed-server .
+	docker build -t freemed-frontend frontend/
+.PHONY: docker-build

@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import { browser } from '$app/environment';
-import { authToken, logout } from './stores/auth.svelte';
+import { authToken, logout } from './stores/auth';
 
 const API_BASE = '/api';
 

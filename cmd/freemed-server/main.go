@@ -9,7 +9,6 @@ import (
 	"runtime/pprof"
 	"strings"
 
-	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/braintree/manners"
 	_ "github.com/freemed/freemed-server/api"
 	"github.com/freemed/freemed-server/common"
@@ -107,22 +106,26 @@ func main() {
 	// Enable gzip compression
 	m.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	// Serve up the static UI...
-	m.Static("/ui", "./ui")
-	m.StaticFile("/favicon.ico", "./ui/favicon.ico")
-
-	// ... with a redirection for the root page
-	m.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "./ui/index.html")
-	})
+	// Serve frontend: prefer SvelteKit build, fall back to legacy ui/
+	if _, err := os.Stat("./frontend/build/index.html"); err == nil {
+		log.Print("Serving SvelteKit frontend from frontend/build/")
+		m.Static("/_app", "./frontend/build/_app")
+		m.StaticFile("/favicon.ico", "./frontend/build/favicon.ico")
+		m.StaticFile("/logo.png", "./frontend/build/logo.png")
+		// SPA fallback: serve index.html for all non-API routes
+		m.NoRoute(func(c *gin.Context) {
+			c.File("./frontend/build/index.html")
+		})
+	} else {
+		log.Print("Serving legacy frontend from ui/")
+		m.Static("/ui", "./ui")
+		m.StaticFile("/favicon.ico", "./ui/favicon.ico")
+		m.GET("/", func(c *gin.Context) {
+			c.Redirect(http.StatusMovedPermanently, "./ui/index.html")
+		})
+	}
 
 	mw := getAuthMiddleware()
-
-	m.NoRoute(mw.MiddlewareFunc(), func(c *gin.Context) {
-		claims := jwt.ExtractClaims(c)
-		log.Printf("NoRoute claims: %#v\n", claims)
-		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
-	})
 
 	// All authorized pieces live in /api
 	a := m.Group("/api")

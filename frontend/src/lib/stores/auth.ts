@@ -41,7 +41,7 @@ export async function refreshToken(): Promise<boolean> {
 	const token = get(authToken);
 	if (!token) return false;
 	const res = await fetch('/auth/refresh_token', {
-		headers: { 'Authorization': `Bearer ${token}` },
+		headers: { Authorization: `Bearer ${token}` },
 	});
 	if (!res.ok) return false;
 	const data = await res.json();
@@ -55,7 +55,7 @@ export function logout() {
 	if (token && browser) {
 		fetch('/auth/logout', {
 			method: 'DELETE',
-			headers: { 'Authorization': `Bearer ${token}` },
+			headers: { Authorization: `Bearer ${token}` },
 		}).catch(() => {});
 	}
 }

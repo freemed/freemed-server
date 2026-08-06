@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { logout } from '$lib/stores/auth.svelte';
+	import { logout } from '$lib/stores/auth';
 
 	const navItems = [
 		{ href: '/', label: 'Home', icon: '🏠' },

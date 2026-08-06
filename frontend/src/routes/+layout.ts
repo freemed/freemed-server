@@ -1,6 +1,6 @@
 import { redirect, type LoadEvent } from '@sveltejs/kit';
 import { get } from 'svelte/store';
-import { isAuthenticated } from '$lib/stores/auth.svelte';
+import { isAuthenticated } from '$lib/stores/auth';
 
 export const load = ({ url }: LoadEvent) => {
 	const publicPaths = ['/login'];

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { login } from '$lib/stores/auth.svelte';
+  import { login } from '$lib/stores/auth';
 
   let username = $state('');
   let password = $state('');

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { isAuthenticated, logout } from '$lib/stores/auth.svelte';
+	import { isAuthenticated, logout } from '$lib/stores/auth';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Toast from '$lib/components/Toast.svelte';
 
