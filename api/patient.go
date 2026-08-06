@@ -29,14 +29,15 @@ func init() {
 			r.GET("/:id/procedures", patientProcedures)
 			r.GET("/:id/authorizations", patientAuthorizations)
 			r.GET("/:id/claims", patientClaims)
-		r.GET("/:id/allergies", patientAllergiesList)
-		r.POST("/:id/allergies", patientAllergiesCreate)
-		r.GET("/:id/addresses", patientAddressesList)
-		r.PUT("/:id/addresses/:addressId", patientAddressUpdate)
-		r.DELETE("/:id/addresses/:addressId", patientAddressDelete)
-		r.GET("/:id/tags", patientTagsList)
-		r.POST("/:id/tags", patientTagsCreate)
-		r.DELETE("/:id/tags/:tagId", patientTagsExpire)
+			r.GET("/:id/allergies", patientAllergiesList)
+			r.POST("/:id/allergies", patientAllergiesCreate)
+			r.GET("/:id/addresses", patientAddressesList)
+			r.PUT("/:id/addresses/:addressId", patientAddressUpdate)
+			r.DELETE("/:id/addresses/:addressId", patientAddressDelete)
+			r.GET("/:id/tags", patientTagsList)
+			r.POST("/:id/tags", patientTagsCreate)
+			r.DELETE("/:id/tags/:tagId", patientTagsExpire)
+			r.GET("/:id/history", patientHistory)
 		},
 	}
 }
@@ -111,4 +112,23 @@ func patientInformation(r *gin.Context) {
 		return
 	}
 	r.JSON(http.StatusOK, o)
+}
+
+func patientHistory(r *gin.Context) {
+	id := r.Param("id")
+	if id == "" {
+		r.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	patientID := common.ParseInt(id)
+	rows, err := model.Queries.PatientHistory(r.Request.Context(), dbgen.PatientHistoryParams{
+		PatientID: patientID,
+	})
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	r.JSON(http.StatusOK, rows)
 }
