@@ -236,3 +236,135 @@ These 22 tables need simple `GET /api/{name}` list endpoints (~15 min each). The
 ## Modules with # Public Methods = 0
 
 69 of 133 PHP modules have zero public methods — they're abstract base classes, table definitions, or empty stubs. These can be ignored for feature parity.
+
+---
+
+## API Classes (org/freemedsoftware/api/) — 24 Endpoint Classes
+
+The PHP version has a separate API layer with 24 classes that handle HTTP request dispatch.
+These are the actual "endpoints" — the ModuleInterface dispatches generic CRUD to the 133
+module classes, while API classes handle specialized operations.
+
+| API Class | Methods | Size | Purpose | Go Status |
+|-----------|---------|------|---------|-----------|
+| **Scheduler** | 42 | 41KB | Calendar UI, booking, move/copy, import | `api/scheduler.go` — basic CRUD only |
+| **UserInterface** | 28 | 29KB | Nav menus, dashboard, permissions, multicall | `api/userinterface.go` — 3 handlers |
+| **PatientInterface** | 23 | 23KB | Search, EMR view, track history, Dx, picklist | `api/patient.go` + `api/patients.go` |
+| **Remitt** | 17 | 44KB | Billing export, claim processing, eligibility | MISSING entirely |
+| **ModuleInterface** | 13 | 9KB | Generic CRUD dispatch, printing, fax | Partially via picklist system |
+| **SystemConfig** | 12 | 5KB | Config CRUD, global options, server time | `api/config.go` — read-only |
+| **TableMaintenance** | 11 | 5KB | Export/import stock data, module registry | MISSING |
+| **Ledger** | 9 | 41KB | Aging reports, writeoffs, claims, copay/deductible | MISSING |
+| **Signatures** | 8 | 8KB | Signature pad capture, request, retrieve | MISSING |
+| **ClaimLog** | 8 | 34KB | Rebill, aging, mark-as-billed, payer operations | MISSING |
+| **Agata7** | 7 | 8KB | Agata7 graph/report engine | MISSING |
+| **Messages** | 5 | 10KB | Tag management, message view | `api/messages.go` — basic CRUD |
+| **Procedure** | 4 | 4KB | Procedure check/get | `model/procedure.go` — table only |
+| **ModuleSearch** | 4 | 2KB | Global patient/record search | MISSING |
+| **Printing** | 3 | 2KB | PDF generation, browser/fax/printer output | MISSING |
+| **ActionItems** | 3 | 4KB | Action item dashboard | MISSING |
+| **Transport** | 2 | 2KB | Remittance transport layer | MISSING |
+| **GraphInterface** | 2 | 2KB | Graphing/charting interface | MISSING |
+| **FormTemplate** | 2 | 13KB | Form template rendering | MISSING |
+| **Tickler** | 1 | 2KB | Tickler/reminder system | MISSING |
+| **FormTemplateList** | 1 | 3KB | Form template listing | MISSING |
+| **Authorizations** | 1 | 6KB | Authorization management | MISSING |
+| **RxList** | 0 | 5KB | (empty — stub) | MISSING |
+| **Fax** | 0 | 2KB | (empty — stub) | MISSING |
+
+### API Method Details — Key Classes
+
+#### Scheduler (42 methods)
+```
+canBookAppointment, copy, CopyAppointment, CopyGroupAppointment, date,
+display, event, find, FindDateAppointments, FindGroupAppointments,
+FindGroupAppointmentsDates, get, GetAppointment, GetDailyAppointments,
+GetDailyAppointmentScheduler, GetDailyAppointmentsRange,
+GetDailyAppointmentsRangeByProviderGroup, ImportDate, map, move,
+MoveAppointment, MoveGroupAppointment, multimap, next, scroll, set,
+SetAppointment, SetGroupAppointment
+```
+**Go gap:** Only basic range/find/event/reschedule. Missing: copy, move, group appointments, import, map view.
+
+#### UserInterface (28 methods)
+```
+add, checkBillingMenu, checkDocumentsMenu, CheckDupilcate, CheckDuplicate,
+checkPatientMenu, checkReportingMenu, checkSystemMenu, checkUtilitiesMenu,
+del, GetCurrentProvider, GetCurrentUsername, getDashBoardDetails,
+GetEMRConfiguration, GetNewMessages, getPermissionsBits, GetRecord,
+GetRecords, getRel, getShowBit, GetUserLeftNavigationMenu, GetUsers,
+GetUserTheme, GetUserType, mod, Multicall, SetConfigValue
+```
+**Go gap:** Menu system, dashboard aggregation, multicall (batch API), theme, EMR configuration, permission bits.
+
+#### PatientInterface (23 methods)
+```
+CheckForDuplicatePatient, DxForPatient, EmrAttachmentsByPatient,
+EmrAttachmentsByPatientTable, EmrModules, GetDuplicatePatients,
+GetTrackHistory, MoveEmrAttachments, NumericSearch, PatientEMRView,
+PatientEMRViewWithIntake, PatientInformation, picklist,
+ProceduresToBill, Search, TotalInSystem, ToText, TrackView
+```
+**Go gap:** Dx listing, EMR modules, track history, move attachments, numeric search, procedures to bill.
+
+#### Remitt (17 methods — all missing)
+```
+GetBulkStatus, GetEligibility, GetFile, GetFileList, GetProtocolVersion,
+GetServerStatus, GetStatus, ListOptions, ListOutputMonths, ListOutputYears,
+ListPlugins, ProcessBill, ProcessStatement, RenderPayerXML,
+RenderStatementXML, StoreBillKey
+```
+
+#### Ledger (9 methods — all missing)
+```
+AgingReportQualified, GetClaims, getCoveragesCopayInfo,
+getCoveragesDeductableInfo, getLedgerInfo, mistake, PostWriteoff,
+WriteoffItems
+```
+
+---
+
+## Revised Summary (with API classes)
+
+| Category | PHP Modules | API Classes | Go Implemented | Total Gap |
+|----------|------------|-------------|----------------|-----------|
+| Core/Admin | 12 | 3 | 4 | 11 |
+| Patient | 14 | 1 | 4 | 11 |
+| Clinical/EMR | 20 | 0 | 2 | 18 |
+| Billing/Claims | 18 | 5 | 0 | 23 |
+| Scheduling | 10 | 1 | 3 | 8 |
+| Pharmacy/Rx | 8 | 1 | 0 | 9 |
+| Reporting | 5 | 1 | 0 | 6 |
+| DICOM/Imaging | 2 | 0 | 0 | 2 |
+| Messaging/Notifications | 6 | 1 | 1 | 6 |
+| Infrastructure/Utils | 12 | 5 | 3 | 14 |
+| Reference Data | 26 | 0 | 22 | 4 |
+| Signing/Printing | 0 | 4 | 0 | 4 |
+| **TOTAL** | **133** | **24** | **39** | **116** |
+
+### Updated Priority Tiers
+
+**Tier 0 — Billing (entirely missing, revenue-critical)**
+- Remitt: `ProcessBill`, `ProcessStatement`, `GetEligibility`, `StoreBillKey`
+- Ledger: `GetClaims`, `AgingReportQualified`, `PostWriteoff`
+- ClaimLog: `RebillClaims`, `MarkClaimsAsBilled`, `aging`
+- Procedure: attach to billing workflow
+
+**Tier 1 — Clinical (patient safety)**
+- Allergies, Medications, Vitals, EncounterNotes (from module analysis)
+- PatientInterface: `DxForPatient`, `PatientEMRView`, `GetTrackHistory`
+
+**Tier 2 — Scheduler Completeness**
+- `SetAppointment`, `CopyAppointment`, `MoveAppointment`, `FindGroupAppointments`
+- Group appointments, import, map view
+
+**Tier 3 — UX / Infrastructure**
+- UserInterface: `getDashBoardDetails`, `GetEMRConfiguration`, `Multicall`
+- SystemConfig: `SetValues`, `GetConfigSections`
+- Printing: PDF generation, fax integration
+- Signatures: signature pad capture
+- ModuleSearch: global search
+- Tickler: reminders
+
+**Tier 4 — Everything Else**
+- TableMaintenance, Agata7, FormTemplate, GraphInterface, Transport
