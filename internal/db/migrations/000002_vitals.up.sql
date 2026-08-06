@@ -1,0 +1,20 @@
+CREATE TABLE `vitals` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `patient` BIGINT NOT NULL,
+  `date_taken` DATETIME NOT NULL,
+  `systolic` INTEGER,
+  `diastolic` INTEGER,
+  `heart_rate` INTEGER,
+  `respiratory_rate` INTEGER,
+  `temperature` DECIMAL(4,1),
+  `oxygen_saturation` INTEGER,
+  `height_cm` DECIMAL(5,1),
+  `weight_kg` DECIMAL(5,1),
+  `bmi` DECIMAL(4,1),
+  `notes` TEXT,
+  `user` BIGINT NOT NULL,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  FOREIGN KEY (`patient`) REFERENCES `patient`(`id`)
+);

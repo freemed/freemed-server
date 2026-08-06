@@ -478,6 +478,21 @@ type Loinc struct {
 	ExternalCopyrightNotice string       `json:"external_copyright_notice"`
 }
 
+type Medication struct {
+	ID                  int64        `json:"id"`
+	CreatedAt           time.Time    `json:"created_at"`
+	UpdatedAt           time.Time    `json:"updated_at"`
+	DeletedAt           sql.NullTime `json:"deleted_at"`
+	Patient             int64        `json:"patient"`
+	DrugName            string       `json:"drug_name"`
+	Dosage              string       `json:"dosage"`
+	Frequency           string       `json:"frequency"`
+	StartDate           sql.NullTime `json:"start_date"`
+	EndDate             sql.NullTime `json:"end_date"`
+	PrescribingProvider int64        `json:"prescribing_provider"`
+	Active              string       `json:"active"`
+}
+
 type Message struct {
 	ID         int64          `json:"id"`
 	CreatedAt  time.Time      `json:"created_at"`
@@ -914,6 +929,26 @@ type User struct {
 	Usersms         sql.NullInt64  `json:"usersms"`
 	Usersmsprovider sql.NullInt64  `json:"usersmsprovider"`
 	Usertitle       sql.NullString `json:"usertitle"`
+}
+
+type Vital struct {
+	ID               int64          `json:"id"`
+	Patient          int64          `json:"patient"`
+	DateTaken        time.Time      `json:"date_taken"`
+	Systolic         sql.NullInt32  `json:"systolic"`
+	Diastolic        sql.NullInt32  `json:"diastolic"`
+	HeartRate        sql.NullInt32  `json:"heart_rate"`
+	RespiratoryRate  sql.NullInt32  `json:"respiratory_rate"`
+	Temperature      sql.NullString `json:"temperature"`
+	OxygenSaturation sql.NullInt32  `json:"oxygen_saturation"`
+	HeightCm         sql.NullString `json:"height_cm"`
+	WeightKg         sql.NullString `json:"weight_kg"`
+	Bmi              sql.NullString `json:"bmi"`
+	Notes            sql.NullString `json:"notes"`
+	User             int64          `json:"user"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+	DeletedAt        sql.NullTime   `json:"deleted_at"`
 }
 
 type WorkflowStatus struct {

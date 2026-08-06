@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
-	import { api } from '$lib/api';
+import { page } from '$app/stores';
+import { goto } from '$app/navigation';
+import { api } from '$lib/api';
+import DiagnosisList from '$lib/components/DiagnosisList.svelte';
 
 	interface PatientInfo {
 		patient_name: string;
@@ -186,6 +187,9 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Diagnoses -->
+		<DiagnosisList patientId={patientId} />
 
 		<!-- EMR Attachments Section -->
 		<div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">

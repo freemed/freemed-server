@@ -16,8 +16,19 @@ func init() {
 		RouterFunction: func(r *gin.RouterGroup) {
 			r.GET("/:id/info", patientInformation)
 			r.GET("/:id/progress-notes", patientProgressNotes)
+			r.GET("/:id/diagnoses", patientDiagnoses)
 			r.GET("/:id/attachments", patientEmrAttachments)
 			r.GET("/:id/attachments/:module", patientEmrAttachments)
+			r.GET("/:id/vitals", patientVitalsList)
+			r.GET("/:id/vitals/latest", patientVitalsLatest)
+			r.POST("/:id/vitals", patientVitalsCreate)
+			r.GET("/:id/encounters", patientEncounters)
+			r.GET("/:id/encounters/:encounterId", patientEncounterDetail)
+			r.GET("/:id/payments", patientPayments)
+			r.GET("/:id/ledger", patientLedger)
+			r.GET("/:id/procedures", patientProcedures)
+		r.GET("/:id/allergies", patientAllergiesList)
+		r.POST("/:id/allergies", patientAllergiesCreate)
 		},
 	}
 }
@@ -53,6 +64,26 @@ func patientEmrAttachments(r *gin.Context) {
 		return
 	}
 	r.JSON(http.StatusOK, o)
+}
+
+func patientDiagnoses(r *gin.Context) {
+	id := r.Param("id")
+	if id == "" {
+		r.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	patientID := common.ParseInt(id)
+	diagnoses, err := model.Queries.PatientDiagnoses(r.Request.Context(), dbgen.PatientDiagnosesParams{
+		PatientID: patientID,
+	})
+	if err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	r.JSON(http.StatusOK, diagnoses)
 }
 
 func patientInformation(r *gin.Context) {

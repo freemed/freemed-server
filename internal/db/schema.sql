@@ -936,6 +936,42 @@ CREATE TABLE `zipcodes` (
   `country` VARCHAR(255) NOT NULL DEFAULT ''
 );
 
+CREATE TABLE `vitals` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `patient` BIGINT NOT NULL,
+  `date_taken` DATETIME NOT NULL,
+  `systolic` INTEGER,
+  `diastolic` INTEGER,
+  `heart_rate` INTEGER,
+  `respiratory_rate` INTEGER,
+  `temperature` DECIMAL(4,1),
+  `oxygen_saturation` INTEGER,
+  `height_cm` DECIMAL(5,1),
+  `weight_kg` DECIMAL(5,1),
+  `bmi` DECIMAL(4,1),
+  `notes` TEXT,
+  `user` BIGINT NOT NULL,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  FOREIGN KEY (`patient`) REFERENCES `patient`(`id`)
+);
+
+CREATE TABLE `medications` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `drug_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `dosage` VARCHAR(255) NOT NULL DEFAULT '',
+  `frequency` VARCHAR(255) NOT NULL DEFAULT '',
+  `start_date` DATETIME,
+  `end_date` DATETIME,
+  `prescribing_provider` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+
 -- Legacy tables referenced in queries (no Go model files; column definitions
 -- inferred from SQL queries in api/*.go and existing FreeMED 0.9.x schema)
 
