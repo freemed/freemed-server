@@ -2,14 +2,6 @@
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
 
-	interface DuplicateResult {
-		id: number;
-		last_name: string;
-		first_name: string;
-		patient_id: string;
-		date_of_birth: string;
-	}
-
 	interface PatientForm {
 		first_name: string;
 		last_name: string;
@@ -43,9 +35,9 @@
 	let submitting = $state(false);
 	let error = $state('');
 	let success = $state('');
-	let duplicates = $state<DuplicateResult[]>([]);
 	let checkingDuplicates = $state(false);
 	let duplicateChecked = $state(false);
+	let duplicateIds = $state<string[]>([]);
 
 	async function checkDuplicates() {
 		if (!form.last_name || !form.first_name) {
@@ -54,17 +46,17 @@
 		}
 		checkingDuplicates = true;
 		error = '';
-		duplicates = [];
+		duplicateIds = [];
 		duplicateChecked = false;
 		try {
-			const data = await api.post<DuplicateResult[]>('/patients/searchDuplicates', {
+			const data = await api.post<string[]>('/patients/searchDuplicates', {
 				ptlname: form.last_name,
 				ptfname: form.first_name,
-				ptmname: form.middle_name,
+				ptmname: form.middle_name || undefined,
 				ptsuffix: '',
-				ptdob: form.date_of_birth,
+				ptdob: form.date_of_birth || undefined,
 			});
-			duplicates = data || [];
+			duplicateIds = data || [];
 			duplicateChecked = true;
 		} catch (e: any) {
 			error = e.message || 'Duplicate check failed';
@@ -78,20 +70,19 @@
 		error = '';
 		success = '';
 		try {
-			// Placeholder — actual create endpoint TBD
 			await api.post('/patients', {
-				ptlname: form.last_name,
-				ptfname: form.first_name,
-				ptmname: form.middle_name,
-				ptdob: form.date_of_birth,
-				ptsex: form.gender,
-				ptid: form.patient_id,
-				ptaddr1: form.address_line_1,
-				ptaddr2: form.address_line_2,
-				ptcity: form.city,
-				ptstate: form.state,
-				ptzip: form.postal,
-				pthphone: form.phone,
+				first_name: form.first_name,
+				last_name: form.last_name,
+				middle_name: form.middle_name,
+				date_of_birth: form.date_of_birth,
+				gender: form.gender,
+				patient_id: form.patient_id,
+				address_line_1: form.address_line_1,
+				address_line_2: form.address_line_2,
+				city: form.city,
+				state: form.state,
+				zip: form.postal,
+				phone: form.phone,
 			});
 			success = 'Patient created successfully';
 			setTimeout(() => {
@@ -117,7 +108,7 @@
 			await checkDuplicates();
 		}
 
-		if (duplicates.length > 0) {
+		if (duplicateIds.length > 0) {
 			return;
 		}
 
@@ -141,26 +132,19 @@
 	{/if}
 
 	<!-- Duplicate results -->
-	{#if duplicates.length > 0}
+	{#if duplicateIds.length > 0}
 		<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
 			<h2 class="text-sm font-semibold text-yellow-800 mb-2">
-				Possible duplicates found ({duplicates.length})
+				Possible duplicates found ({duplicateIds.length})
 			</h2>
 			<p class="text-sm text-yellow-700 mb-3">
 				Existing patients match the name{form.date_of_birth ? ' and date of birth' : ''} you entered. Please review before creating.
 			</p>
 			<div class="space-y-2">
-				{#each duplicates as dup}
-					<a
-						href="/patients/{dup.id}"
-						class="block bg-white border border-yellow-200 rounded px-3 py-2 text-sm hover:bg-yellow-50 transition-colors"
-					>
-						<span class="font-medium text-gray-900">{dup.last_name}, {dup.first_name}</span>
-						<span class="text-gray-500 ml-2">ID: {dup.patient_id}</span>
-						{#if dup.date_of_birth}
-							<span class="text-gray-400 ml-2">DOB: {new Date(dup.date_of_birth).toLocaleDateString('en-US')}</span>
-						{/if}
-					</a>
+				{#each duplicateIds as ptid}
+					<div class="bg-white border border-yellow-200 rounded px-3 py-2 text-sm">
+						Patient ID: <span class="font-medium text-gray-900">{ptid}</span>
+					</div>
 				{/each}
 			</div>
 			<div class="mt-3 flex gap-2">
