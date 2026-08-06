@@ -24,6 +24,10 @@ func init() {
 			r.GET("/dateappt/:date", schedulerFindDateAppt)
 			r.GET("/event/:id", schedulerGetEvent)
 			r.POST("/reschedule/:id", schedulerReschedule)
+			r.POST("/", schedulerCreateAppointment)
+			r.POST("/group", schedulerCreateGroupAppointment)
+			r.GET("/group/:id", schedulerFindGroupAppointments)
+			r.POST("/:id/copy", schedulerCopyAppointment)
 			r.DELETE("/:id", schedulerCancelAppointment)
 		},
 	}
@@ -231,4 +235,177 @@ func schedulerCancelAppointment(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, true)
+}
+
+// schedulerCreateAppointment handles POST /api/scheduler — create a new appointment.
+func schedulerCreateAppointment(c *gin.Context) {
+	session, err := common.GetSession(c)
+	if err != nil {
+		log.Printf("schedulerCreateAppointment: failed to get session: %v", err)
+		c.AbortWithError(http.StatusUnauthorized, err)
+		return
+	}
+
+	var input struct {
+		Date     string `json:"date"     binding:"required"`
+		Hour     int64  `json:"hour"     binding:"required"`
+		Minute   int64  `json:"minute"   binding:"required"`
+		Duration int64  `json:"duration" binding:"required"`
+		Type     string `json:"type"`
+		Provider int64  `json:"provider"`
+		Patient  int64  `json:"patient"`
+		Note     string `json:"note"`
+	}
+	if err := c.ShouldBind(&input); err != nil {
+		log.Printf("schedulerCreateAppointment: bind error: %v", err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	if input.Type == "" {
+		input.Type = "patient"
+	}
+
+	calDateOf, err := common.ParseDate(input.Date)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	result, err := model.Queries.CreateAppointment(c.Request.Context(), dbgen.CreateAppointmentParams{
+		Caldateof:    calDateOf,
+		Calhour:      input.Hour,
+		Calminute:    input.Minute,
+		Calduration:  input.Duration,
+		Caltype:      input.Type,
+		Calphysician: input.Provider,
+		Calpatient:   input.Patient,
+		Calprenote:   input.Note,
+		User:         session.UserId,
+	})
+	if err != nil {
+		log.Printf("schedulerCreateAppointment: ERROR: %s", err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	newID, _ := result.LastInsertId()
+	c.JSON(http.StatusCreated, gin.H{"id": newID})
+}
+
+// schedulerCopyAppointment handles POST /api/scheduler/:id/copy — copy an appointment to a new date/time.
+func schedulerCopyAppointment(c *gin.Context) {
+	id := common.ParseInt(c.Param("id"))
+	if id < 1 {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("bad event id"))
+		return
+	}
+
+	var input struct {
+		Date   string `json:"date"   binding:"required"`
+		Hour   int64  `json:"hour"   binding:"required"`
+		Minute int64  `json:"minute" binding:"required"`
+	}
+	if err := c.ShouldBind(&input); err != nil {
+		log.Printf("schedulerCopyAppointment: bind error: %v", err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	calDateOf, err := common.ParseDate(input.Date)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	result, err := model.Queries.CopyAppointment(c.Request.Context(), dbgen.CopyAppointmentParams{
+		NewCaldateof: calDateOf,
+		NewCalhour:   input.Hour,
+		NewCalminute: input.Minute,
+		SourceID:     id,
+	})
+	if err != nil {
+		log.Printf("schedulerCopyAppointment(%d): ERROR: %s", id, err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	newID, _ := result.LastInsertId()
+	c.JSON(http.StatusCreated, gin.H{"id": newID})
+}
+
+// schedulerCreateGroupAppointment handles POST /api/scheduler/group — create a group appointment.
+func schedulerCreateGroupAppointment(c *gin.Context) {
+	session, err := common.GetSession(c)
+	if err != nil {
+		log.Printf("schedulerCreateGroupAppointment: failed to get session: %v", err)
+		c.AbortWithError(http.StatusUnauthorized, err)
+		return
+	}
+
+	var input struct {
+		Date         string `json:"date"           binding:"required"`
+		Hour         int64  `json:"hour"           binding:"required"`
+		Minute       int64  `json:"minute"         binding:"required"`
+		Duration     int64  `json:"duration"       binding:"required"`
+		Provider     int64  `json:"provider"       binding:"required"`
+		Note         string `json:"note"`
+		GroupID      int64  `json:"group_id"       binding:"required"`
+		GroupMembers string `json:"group_members"`
+		Attendees    string `json:"attendees"`
+	}
+	if err := c.ShouldBind(&input); err != nil {
+		log.Printf("schedulerCreateGroupAppointment: bind error: %v", err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	calDateOf, err := common.ParseDate(input.Date)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var attendees sql.NullString
+	if input.Attendees != "" {
+		attendees = sql.NullString{String: input.Attendees, Valid: true}
+	}
+
+	result, err := model.Queries.CreateGroupAppointment(c.Request.Context(), dbgen.CreateGroupAppointmentParams{
+		Caldateof:       calDateOf,
+		Calhour:         input.Hour,
+		Calminute:       input.Minute,
+		Calduration:     input.Duration,
+		Calphysician:    input.Provider,
+		Calprenote:      input.Note,
+		Calgroupid:      input.GroupID,
+		Calgroupmembers: sql.NullString{String: input.GroupMembers, Valid: input.GroupMembers != ""},
+		Calattendees:    attendees,
+		User:            session.UserId,
+	})
+	if err != nil {
+		log.Printf("schedulerCreateGroupAppointment: ERROR: %s", err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	newID, _ := result.LastInsertId()
+	c.JSON(http.StatusCreated, gin.H{"id": newID})
+}
+
+// schedulerFindGroupAppointments handles GET /api/scheduler/group/:id — list group appointments.
+func schedulerFindGroupAppointments(c *gin.Context) {
+	id := common.ParseInt(c.Param("id"))
+	if id < 1 {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("bad group id"))
+		return
+	}
+
+	rows, err := model.Queries.FindGroupAppointments(c.Request.Context(), id)
+	if err != nil {
+		log.Printf("schedulerFindGroupAppointments(%d): ERROR: %s", id, err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, rows)
 }

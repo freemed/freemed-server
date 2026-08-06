@@ -11,6 +11,226 @@ import (
 	"time"
 )
 
+const copyAppointment = `-- name: CopyAppointment :execresult
+INSERT INTO scheduler (
+  caldateof, calhour, calminute, calduration, caltype,
+  calphysician, calpatient, calstatus, calprenote, calpostnote,
+  calcreated, calmodified, calfacility, calroom, calmark,
+  calgroupid, calgroupmembers, calrecurnote, calrecurid,
+  calappttemplate, calattendees, user,
+  created_at, updated_at
+)
+SELECT
+  ?, ?, ?,
+  calduration, caltype,
+  calphysician, calpatient, 'scheduled', calprenote, calpostnote,
+  NOW(), NULL, calfacility, calroom, calmark,
+  calgroupid, calgroupmembers, calrecurnote, calrecurid,
+  calappttemplate, calattendees, user,
+  NOW(), NOW()
+FROM scheduler s
+WHERE s.id = ?
+`
+
+type CopyAppointmentParams struct {
+	NewCaldateof time.Time `json:"new_caldateof"`
+	NewCalhour   int64     `json:"new_calhour"`
+	NewCalminute int64     `json:"new_calminute"`
+	SourceID     int64     `json:"source_id"`
+}
+
+func (q *Queries) CopyAppointment(ctx context.Context, arg CopyAppointmentParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, copyAppointment,
+		arg.NewCaldateof,
+		arg.NewCalhour,
+		arg.NewCalminute,
+		arg.SourceID,
+	)
+}
+
+const createAppointment = `-- name: CreateAppointment :execresult
+INSERT INTO scheduler (
+  caldateof, calhour, calminute, calduration, caltype,
+  calphysician, calpatient, calstatus, calprenote,
+  calcreated, calmodified, calgroupid, calgroupmembers,
+  calattendees, user,
+  created_at, updated_at
+) VALUES (
+  ?, ?, ?, ?,
+  ?, ?, ?,
+  'scheduled', ?,
+  NOW(), NULL, ?, ?,
+  ?, ?,
+  NOW(), NOW()
+)
+`
+
+type CreateAppointmentParams struct {
+	Caldateof       time.Time      `json:"caldateof"`
+	Calhour         int64          `json:"calhour"`
+	Calminute       int64          `json:"calminute"`
+	Calduration     int64          `json:"calduration"`
+	Caltype         string         `json:"caltype"`
+	Calphysician    int64          `json:"calphysician"`
+	Calpatient      int64          `json:"calpatient"`
+	Calprenote      string         `json:"calprenote"`
+	Calgroupid      sql.NullInt64  `json:"calgroupid"`
+	Calgroupmembers sql.NullString `json:"calgroupmembers"`
+	Calattendees    sql.NullString `json:"calattendees"`
+	User            int64          `json:"user"`
+}
+
+func (q *Queries) CreateAppointment(ctx context.Context, arg CreateAppointmentParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createAppointment,
+		arg.Caldateof,
+		arg.Calhour,
+		arg.Calminute,
+		arg.Calduration,
+		arg.Caltype,
+		arg.Calphysician,
+		arg.Calpatient,
+		arg.Calprenote,
+		arg.Calgroupid,
+		arg.Calgroupmembers,
+		arg.Calattendees,
+		arg.User,
+	)
+}
+
+const createGroupAppointment = `-- name: CreateGroupAppointment :execresult
+INSERT INTO scheduler (
+  caldateof, calhour, calminute, calduration, caltype,
+  calphysician, calpatient, calstatus, calprenote,
+  calcreated, calmodified, calgroupid, calgroupmembers,
+  calattendees, user,
+  created_at, updated_at
+) VALUES (
+  ?, ?, ?, ?,
+  'group', ?, 0, 'scheduled', ?,
+  NOW(), NULL, ?, ?,
+  ?, ?,
+  NOW(), NOW()
+)
+`
+
+type CreateGroupAppointmentParams struct {
+	Caldateof       time.Time      `json:"caldateof"`
+	Calhour         int64          `json:"calhour"`
+	Calminute       int64          `json:"calminute"`
+	Calduration     int64          `json:"calduration"`
+	Calphysician    int64          `json:"calphysician"`
+	Calprenote      string         `json:"calprenote"`
+	Calgroupid      int64          `json:"calgroupid"`
+	Calgroupmembers sql.NullString `json:"calgroupmembers"`
+	Calattendees    sql.NullString `json:"calattendees"`
+	User            int64          `json:"user"`
+}
+
+func (q *Queries) CreateGroupAppointment(ctx context.Context, arg CreateGroupAppointmentParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createGroupAppointment,
+		arg.Caldateof,
+		arg.Calhour,
+		arg.Calminute,
+		arg.Calduration,
+		arg.Calphysician,
+		arg.Calprenote,
+		arg.Calgroupid,
+		arg.Calgroupmembers,
+		arg.Calattendees,
+		arg.User,
+	)
+}
+
+const findGroupAppointments = `-- name: FindGroupAppointments :many
+SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.caldateof, s.calcreated, s.calmodified, s.caltype, s.calhour, s.calminute, s.calduration, s.calfacility, s.calroom, s.calphysician, s.calpatient, s.calcptcode, s.calstatus, s.calprenote, s.calpostnote, s.calmark, s.calgroupid, s.calgroupmembers, s.calrecurnote, s.calrecurid, s.calappttemplate, s.calattendees, s.user, cg.groupname
+FROM scheduler s
+LEFT JOIN calgroup cg ON s.calgroupid = cg.id
+WHERE s.caltype = 'group' AND s.calgroupid = ?
+`
+
+type FindGroupAppointmentsRow struct {
+	ID              int64          `json:"id"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
+	DeletedAt       sql.NullTime   `json:"deleted_at"`
+	Caldateof       time.Time      `json:"caldateof"`
+	Calcreated      time.Time      `json:"calcreated"`
+	Calmodified     sql.NullTime   `json:"calmodified"`
+	Caltype         string         `json:"caltype"`
+	Calhour         int64          `json:"calhour"`
+	Calminute       int64          `json:"calminute"`
+	Calduration     int64          `json:"calduration"`
+	Calfacility     sql.NullInt64  `json:"calfacility"`
+	Calroom         sql.NullInt64  `json:"calroom"`
+	Calphysician    int64          `json:"calphysician"`
+	Calpatient      int64          `json:"calpatient"`
+	Calcptcode      sql.NullInt64  `json:"calcptcode"`
+	Calstatus       string         `json:"calstatus"`
+	Calprenote      string         `json:"calprenote"`
+	Calpostnote     sql.NullString `json:"calpostnote"`
+	Calmark         int64          `json:"calmark"`
+	Calgroupid      int64          `json:"calgroupid"`
+	Calgroupmembers sql.NullString `json:"calgroupmembers"`
+	Calrecurnote    sql.NullString `json:"calrecurnote"`
+	Calrecurid      int64          `json:"calrecurid"`
+	Calappttemplate int64          `json:"calappttemplate"`
+	Calattendees    sql.NullString `json:"calattendees"`
+	User            int64          `json:"user"`
+	Groupname       sql.NullString `json:"groupname"`
+}
+
+func (q *Queries) FindGroupAppointments(ctx context.Context, calgroupid int64) ([]FindGroupAppointmentsRow, error) {
+	rows, err := q.db.QueryContext(ctx, findGroupAppointments, calgroupid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindGroupAppointmentsRow
+	for rows.Next() {
+		var i FindGroupAppointmentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Caldateof,
+			&i.Calcreated,
+			&i.Calmodified,
+			&i.Caltype,
+			&i.Calhour,
+			&i.Calminute,
+			&i.Calduration,
+			&i.Calfacility,
+			&i.Calroom,
+			&i.Calphysician,
+			&i.Calpatient,
+			&i.Calcptcode,
+			&i.Calstatus,
+			&i.Calprenote,
+			&i.Calpostnote,
+			&i.Calmark,
+			&i.Calgroupid,
+			&i.Calgroupmembers,
+			&i.Calrecurnote,
+			&i.Calrecurid,
+			&i.Calappttemplate,
+			&i.Calattendees,
+			&i.User,
+			&i.Groupname,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSchedulerById = `-- name: GetSchedulerById :one
 SELECT id, created_at, updated_at, deleted_at, caldateof, calcreated, calmodified, caltype, calhour, calminute, calduration, calfacility, calroom, calphysician, calpatient, calcptcode, calstatus, calprenote, calpostnote, calmark, calgroupid, calgroupmembers, calrecurnote, calrecurid, calappttemplate, calattendees, user FROM scheduler WHERE id = ?
 `

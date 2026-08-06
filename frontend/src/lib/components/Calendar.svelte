@@ -5,25 +5,27 @@
 	import timeGridPlugin from '@fullcalendar/timegrid';
 	import interactionPlugin from '@fullcalendar/interaction';
 
-	interface Props {
-		events: any[] | ((info: any, success: any, failure: any) => void);
-		onEventClick?: (info: any) => void;
-		onEventDrop?: (info: any) => void;
-		onEventResize?: (info: any) => void;
-		onDateClick?: (info: any) => void;
-		editable?: boolean;
-		height?: string;
-	}
+		interface Props {
+			events: any[] | ((info: any, success: any, failure: any) => void);
+			onEventClick?: (info: any) => void;
+			onEventDrop?: (info: any) => void;
+			onEventResize?: (info: any) => void;
+			onDateClick?: (info: any) => void;
+			onReady?: (cal: Calendar) => void;
+			editable?: boolean;
+			height?: string;
+		}
 
-	let {
-		events = [],
-		onEventClick,
-		onEventDrop,
-		onEventResize,
-		onDateClick,
-		editable = true,
-		height = 'auto',
-	}: Props = $props();
+		let {
+			events = [],
+			onEventClick,
+			onEventDrop,
+			onEventResize,
+			onDateClick,
+			onReady,
+			editable = true,
+			height = 'auto',
+		}: Props = $props();
 
 	let calendarEl = $state<HTMLElement | null>(null);
 	let calendar: Calendar | null = null;
@@ -56,15 +58,16 @@
 		};
 	}
 
-	onMount(() => {
-		if (calendarEl) {
-			calendar = new Calendar(calendarEl, buildOptions());
-			calendar.render();
-		}
-		return () => {
-			calendar?.destroy();
-		};
-	});
+		onMount(() => {
+			if (calendarEl) {
+				calendar = new Calendar(calendarEl, buildOptions());
+				calendar.render();
+				onReady?.(calendar);
+			}
+			return () => {
+				calendar?.destroy();
+			};
+		});
 </script>
 
 <div bind:this={calendarEl} class="fc-calendar"></div>
