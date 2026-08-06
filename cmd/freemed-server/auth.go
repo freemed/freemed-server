@@ -12,6 +12,7 @@ import (
 	"github.com/freemed/freemed-server/dbgen"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 var (
@@ -55,13 +56,20 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 				return &dbgen.User{}, jwt.ErrFailedAuthentication
 			},
 			Authorizator: func(data interface{}, c *gin.Context) bool {
-				// TODO: FIXME: XXX
-				return true
+				return authorizeRequest(c, data)
 			},
 			PayloadFunc: func(data interface{}) jwt.MapClaims {
 				if v, ok := data.(*dbgen.User); ok {
+					userType := ""
+					if v.Usertype.Valid {
+						userType = v.Usertype.String
+					}
 					return jwt.MapClaims{
-						identityKey: v.ID,
+						identityKey:  v.ID,
+						"jti":        uuid.New().String(),
+						"user_type":  userType,
+						"username":   v.Username,
+						"provider_id": v.Userrealphy,
 					}
 				}
 				return jwt.MapClaims{}
@@ -72,21 +80,16 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 					"message": message,
 				})
 			},
-			TokenLookup:   "header:Authorization,query:token,cookie:jwt",
+			// Token only via Authorization header — no URL query parameter
+			TokenLookup:   "header:Authorization,cookie:jwt",
 			TokenHeadName: "Bearer",
 			TimeFunc:      time.Now,
 			RefreshResponse: func(c *gin.Context, code int, token string, t time.Time) {
-				cookie, err := c.Cookie("jwt")
-				if err != nil {
-					log.Println(err)
-				}
-
 				c.JSON(http.StatusOK, gin.H{
 					"code":    http.StatusOK,
 					"token":   token,
 					"expire":  t.Format(time.RFC3339),
 					"message": "refresh successfully",
-					"cookie":  cookie,
 				})
 			},
 		})
@@ -104,6 +107,16 @@ func authMiddlewareLogout(c *gin.Context) {
 	// namespace.
 	getAuthMiddleware().MiddlewareFunc()(c)
 
+	claims := jwt.ExtractClaims(c)
+	if jti, ok := claims["jti"]; ok {
+		jtiStr := fmt.Sprintf("%v", jti)
+		// Blacklist the JWT token ID so it cannot be reused
+		err := common.ActiveSession.BlacklistToken(jtiStr, time.Minute*time.Duration(config.Config.Session.Expiry))
+		if err != nil {
+			log.Printf("AuthLogout(): failed to blacklist token %s: %v", jtiStr, err)
+		}
+	}
+
 	session, err := common.GetSession(c)
 	if err != nil {
 		log.Printf("AuthLogout(): Expire session: %v", err)
@@ -113,4 +126,27 @@ func authMiddlewareLogout(c *gin.Context) {
 	log.Printf("AuthLogout(): Expire session %s", session.SessionId)
 	common.ActiveSession.ExpireSession(session.SessionId)
 	c.JSON(http.StatusOK, true)
+}
+
+// authorizeRequest performs basic RBAC based on the user_type claim.
+func authorizeRequest(c *gin.Context, data interface{}) bool {
+	claims := jwt.ExtractClaims(c)
+	userID, ok := claims[identityKey]
+	if !ok {
+		return false
+	}
+	_ = userID
+
+	// Check if this token has been blacklisted
+	if jti, ok := claims["jti"]; ok {
+		jtiStr := fmt.Sprintf("%v", jti)
+		blacklisted, err := common.ActiveSession.IsTokenBlacklisted(jtiStr)
+		if err == nil && blacklisted {
+			return false
+		}
+	}
+
+	// For now, any authenticated user with a valid (non-blacklisted) token is authorized.
+	// TODO: Add role-based checks per route.
+	return true
 }

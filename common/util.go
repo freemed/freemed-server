@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -56,6 +57,33 @@ func GetSession(c *gin.Context) (SessionModel, error) {
 	sm.UserId = int64(userid.(float64))
 	sm.SessionId = jwt.GetToken(c)
 	return sm, nil
+}
+
+// GetClaim returns a string claim from the JWT, or empty string if not found.
+func GetClaim(c *gin.Context, key string) string {
+	claims := jwt.ExtractClaims(c)
+	if v, ok := claims[key]; ok {
+		return fmt.Sprintf("%v", v)
+	}
+	return ""
+}
+
+// RequireRole returns a Gin handler that checks the JWT user_type claim
+// against a list of allowed roles. If the claim doesn't match, it returns 403.
+func RequireRole(allowed ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userType := GetClaim(c, "user_type")
+		for _, role := range allowed {
+			if userType == role {
+				c.Next()
+				return
+			}
+		}
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			"code":    http.StatusForbidden,
+			"message": "Insufficient permissions",
+		})
+	}
 }
 
 // ParseInt forces an integer to be parsed and returns 0 if unparseable

@@ -132,7 +132,6 @@ func main() {
 	auth.POST("/login", mw.LoginHandler)
 	auth.GET("/refresh_token", mw.RefreshHandler)
 	auth.DELETE("/logout", authMiddlewareLogout)
-	auth.GET("/logout", authMiddlewareLogout) // for compatibility -- really shouldn't use this
 
 	// Iterate through initializing API maps
 	for k, v := range common.ApiMap {

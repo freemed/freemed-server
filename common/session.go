@@ -90,6 +90,24 @@ func (s *SessionConnector) ExpireSession(sid string) error {
 	return s.client.Del(sid).Err()
 }
 
+// BlacklistToken stores a JWT jti in Redis to prevent reuse after logout.
+func (s *SessionConnector) BlacklistToken(jti string, ttl time.Duration) error {
+	log.Printf("BlacklistToken(%s, %v)", jti, ttl)
+	return s.client.Set("blacklist:"+jti, "1", ttl).Err()
+}
+
+// IsTokenBlacklisted checks whether a JWT jti has been blacklisted.
+func (s *SessionConnector) IsTokenBlacklisted(jti string) (bool, error) {
+	val, err := s.client.Get("blacklist:" + jti).Result()
+	if err == redis.Nil {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return val == "1", nil
+}
+
 func (s *SessionConnector) StoreFreshenSession(sm SessionModel) error {
 	log.Printf("StoreFreshenSession(): %v", sm)
 	sm.Expires = s.SessionLength
