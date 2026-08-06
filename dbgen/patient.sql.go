@@ -239,3 +239,66 @@ func (q *Queries) PatientInformation(ctx context.Context, arg PatientInformation
 	)
 	return i, err
 }
+
+const patientProgressNotes = `-- name: PatientProgressNotes :many
+SELECT
+  pn.id,
+  pn.pnotesdt AS date,
+  pn.pnotesdescrip AS description,
+  pn.pnotes_S AS soap_subjective,
+  pn.pnotes_O AS soap_objective,
+  pn.pnotes_A AS soap_assessment,
+  pn.pnotes_P AS soap_plan,
+  CONCAT(u.userfname, ' ', u.userlname) AS author_name,
+  pn.active
+FROM pnotes pn
+LEFT OUTER JOIN user u ON u.id = pn.user
+WHERE pn.pnotespat = ?
+ORDER BY pn.pnotesdt DESC
+`
+
+type PatientProgressNotesRow struct {
+	ID             int64          `json:"id"`
+	Date           sql.NullString `json:"date"`
+	Description    string         `json:"description"`
+	SoapSubjective string         `json:"soap_subjective"`
+	SoapObjective  string         `json:"soap_objective"`
+	SoapAssessment string         `json:"soap_assessment"`
+	SoapPlan       string         `json:"soap_plan"`
+	AuthorName     string         `json:"author_name"`
+	Active         string         `json:"active"`
+}
+
+// Patient progress notes listing with author name
+func (q *Queries) PatientProgressNotes(ctx context.Context, patientID int64) ([]PatientProgressNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, patientProgressNotes, patientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PatientProgressNotesRow
+	for rows.Next() {
+		var i PatientProgressNotesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Date,
+			&i.Description,
+			&i.SoapSubjective,
+			&i.SoapObjective,
+			&i.SoapAssessment,
+			&i.SoapPlan,
+			&i.AuthorName,
+			&i.Active,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

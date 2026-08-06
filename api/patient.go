@@ -15,6 +15,7 @@ func init() {
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
 			r.GET("/:id/info", patientInformation)
+			r.GET("/:id/progress-notes", patientProgressNotes)
 			r.GET("/:id/attachments", patientEmrAttachments)
 			r.GET("/:id/attachments/:module", patientEmrAttachments)
 		},

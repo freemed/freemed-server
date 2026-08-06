@@ -10,6 +10,42 @@ import (
 	"database/sql"
 )
 
+const patientCreate = `-- name: PatientCreate :execresult
+INSERT INTO patient (
+  ptlname, ptfname, ptmname, ptsuffix, ptsex, ptid, ptdob,
+  ptarchive, ptbilltype, user, stamp
+) VALUES (
+  ?, ?, ?, ?,
+  ?, ?, ?,
+  0, '', ?, NOW()
+)
+`
+
+type PatientCreateParams struct {
+	Ptlname  string         `json:"ptlname"`
+	Ptfname  string         `json:"ptfname"`
+	Ptmname  sql.NullString `json:"ptmname"`
+	Ptsuffix string         `json:"ptsuffix"`
+	Ptsex    string         `json:"ptsex"`
+	Ptid     string         `json:"ptid"`
+	Ptdob    sql.NullTime   `json:"ptdob"`
+	User     int64          `json:"user"`
+}
+
+// Patient create: insert a new patient record
+func (q *Queries) PatientCreate(ctx context.Context, arg PatientCreateParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, patientCreate,
+		arg.Ptlname,
+		arg.Ptfname,
+		arg.Ptmname,
+		arg.Ptsuffix,
+		arg.Ptsex,
+		arg.Ptid,
+		arg.Ptdob,
+		arg.User,
+	)
+}
+
 const patientPicklistByEither = `-- name: PatientPicklistByEither :many
 SELECT
   CONCAT(ptlname, ', ', ptfname, ' (', ptid, ')') AS value,

@@ -17,6 +17,7 @@ func init() {
 	common.ApiMap["patients"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
+			r.POST("/", patientCreate)
 			r.POST("/searchDuplicates", patientSearchForDuplicates)
 			r.POST("/search", patientSearch)
 			r.GET("/picklist/:param", patientPicklist)
@@ -290,4 +291,100 @@ func patientSearchForDuplicates(r *gin.Context) {
 	}
 
 	r.JSON(http.StatusOK, results)
+}
+
+// patientCreate handles POST /patients — creates a new patient with address.
+func patientCreate(r *gin.Context) {
+	var input struct {
+		FirstName     string `json:"first_name"`
+		LastName      string `json:"last_name"`
+		MiddleName    string `json:"middle_name"`
+		NameSuffix    string `json:"name_suffix"`
+		DateOfBirth   string `json:"date_of_birth"`
+		Gender        string `json:"gender"`
+		PatientID     string `json:"patient_id"`
+		AddressLine1  string `json:"address_line_1"`
+		AddressLine2  string `json:"address_line_2"`
+		City          string `json:"city"`
+		State         string `json:"state"`
+		Zip           string `json:"zip"`
+		Phone         string `json:"phone"`
+	}
+
+	if err := r.BindJSON(&input); err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	// Get the current user from the JWT session.
+	session, err := common.GetSession(r)
+	if err != nil {
+		log.Printf("patientCreate: failed to get session: %v", err)
+		r.AbortWithError(http.StatusUnauthorized, err)
+		return
+	}
+
+	// Parse date of birth if provided.
+	var dob interface{}
+	if input.DateOfBirth != "" {
+		parsed, err := common.ParseDate(input.DateOfBirth)
+		if err != nil {
+			r.AbortWithError(http.StatusBadRequest, fmt.Errorf("invalid date_of_birth: %v", err))
+			return
+		}
+		dob = parsed
+	}
+
+	// Use a transaction for atomicity.
+	tx, err := model.SqlDb.BeginTx(r.Request.Context(), nil)
+	if err != nil {
+		log.Printf("patientCreate: begin tx: %v", err)
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	defer tx.Rollback()
+
+	// Insert into patient table.
+	result, err := tx.ExecContext(r.Request.Context(),
+		`INSERT INTO patient
+			(ptlname, ptfname, ptmname, ptsuffix, ptsex, ptid, ptdob, ptarchive, ptbilltype, user, stamp)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, 0, '', ?, NOW())`,
+		input.LastName, input.FirstName, input.MiddleName, input.NameSuffix,
+		input.Gender, input.PatientID, dob, session.UserId,
+	)
+	if err != nil {
+		log.Printf("patientCreate: insert patient: %v", err)
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	patientID, err := result.LastInsertId()
+	if err != nil {
+		log.Printf("patientCreate: get last insert id: %v", err)
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Insert into patient_address table.
+	_, err = tx.ExecContext(r.Request.Context(),
+		`INSERT INTO patient_address
+			(patient, line1, line2, city, stpr, postal, active)
+		 VALUES (?, ?, ?, ?, ?, ?, 1)`,
+		patientID, input.AddressLine1, input.AddressLine2,
+		input.City, input.State, input.Zip,
+	)
+	if err != nil {
+		log.Printf("patientCreate: insert address: %v", err)
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("patientCreate: commit: %v", err)
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	r.JSON(http.StatusCreated, gin.H{"id": patientID})
 }

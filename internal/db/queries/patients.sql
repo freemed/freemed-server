@@ -116,3 +116,14 @@ WHERE ptlname = sqlc.arg(ptlname)
   AND (sqlc.narg('ptsuffix') IS NULL OR ptsuffix = sqlc.narg('ptsuffix'))
   AND (sqlc.narg('ptdob') IS NULL OR ptdob = sqlc.narg('ptdob'))
   AND ptarchive = 0;
+
+-- Patient create: insert a new patient record
+-- name: PatientCreate :execresult
+INSERT INTO patient (
+  ptlname, ptfname, ptmname, ptsuffix, ptsex, ptid, ptdob,
+  ptarchive, ptbilltype, user, stamp
+) VALUES (
+  sqlc.arg(ptlname), sqlc.arg(ptfname), sqlc.arg(ptmname), sqlc.arg(ptsuffix),
+  sqlc.arg(ptsex), sqlc.arg(ptid), sqlc.arg(ptdob),
+  0, '', sqlc.arg(user), NOW()
+);

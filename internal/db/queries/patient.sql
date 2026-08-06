@@ -37,6 +37,23 @@ WHERE p.patient = sqlc.arg(patient_id)
   AND p.module = sqlc.arg(module)
   AND m.module_hidden = 0;
 
+-- Patient progress notes listing with author name
+-- name: PatientProgressNotes :many
+SELECT
+  pn.id,
+  pn.pnotesdt AS date,
+  pn.pnotesdescrip AS description,
+  pn.pnotes_S AS soap_subjective,
+  pn.pnotes_O AS soap_objective,
+  pn.pnotes_A AS soap_assessment,
+  pn.pnotes_P AS soap_plan,
+  CONCAT(u.userfname, ' ', u.userlname) AS author_name,
+  pn.active
+FROM pnotes pn
+LEFT OUTER JOIN user u ON u.id = pn.user
+WHERE pn.pnotespat = sqlc.arg(patient_id)
+ORDER BY pn.pnotesdt DESC;
+
 -- Patient information: full patient details with joins
 -- name: PatientInformation :one
 SELECT
