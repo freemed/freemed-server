@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	let patientId = $state('');
-	$effect(() => { patientId = $page.params.id; });
+	$effect(() => { patientId = $page.params.id || ""; });
 </script>
 
 <div class="max-w-4xl mx-auto">

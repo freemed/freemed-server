@@ -1,0 +1,9 @@
+node_modules/
+.git/
+.hermes/
+*.md
+!README.md
+ui/
+frontend/src/
+frontend/node_modules/
+frontend/.svelte-kit/

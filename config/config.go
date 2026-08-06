@@ -2,7 +2,8 @@ package config
 
 import (
 	"encoding/xml"
-	"io/ioutil"
+	"os"
+	"strconv"
 
 	"gopkg.in/yaml.v2"
 )
@@ -79,24 +80,72 @@ func (c *AppConfig) SetDefaults() {
 	c.Session.Key = "freemed"
 }
 
+// applyEnvOverrides applies environment variable overrides for Docker/cloud deployment.
+func (c *AppConfig) applyEnvOverrides() {
+	if v := os.Getenv("FREEMED_DB_HOST"); v != "" {
+		c.Database.Host = v
+	}
+	if v := os.Getenv("FREEMED_DB_USER"); v != "" {
+		c.Database.User = v
+	}
+	if v := os.Getenv("FREEMED_DB_PASS"); v != "" {
+		c.Database.Pass = v
+	}
+	if v := os.Getenv("FREEMED_DB_NAME"); v != "" {
+		c.Database.Name = v
+	}
+	if v := os.Getenv("FREEMED_REDIS_HOST"); v != "" {
+		c.Redis.Host = v
+	}
+	if v := os.Getenv("FREEMED_REDIS_PASS"); v != "" {
+		c.Redis.Pass = v
+	}
+	if v := os.Getenv("FREEMED_REDIS_DB"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			c.Redis.DatabaseId = n
+		}
+	}
+	if v := os.Getenv("FREEMED_WEB_PORT"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			c.Web.Port = n
+		}
+	}
+	if v := os.Getenv("FREEMED_SESSION_KEY"); v != "" {
+		c.Session.Key = v
+	}
+	if v := os.Getenv("FREEMED_DEBUG"); v != "" {
+		c.Debug = v == "true" || v == "1"
+	}
+}
+
 func LoadYamlConfigWithDefaults(configPath string) (*AppConfig, error) {
 	c := &AppConfig{}
 	c.SetDefaults()
-	data, err := ioutil.ReadFile(configPath)
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		// Config file is optional when using env vars
+		c.applyEnvOverrides()
+		return c, nil
+	}
+	err = yaml.Unmarshal(data, c)
 	if err != nil {
 		return c, err
 	}
-	err = yaml.Unmarshal([]byte(data), c)
-	return c, err
+	c.applyEnvOverrides()
+	return c, nil
 }
 
 func LoadXmlConfigWithDefaults(configPath string) (*AppConfig, error) {
 	c := &AppConfig{}
 	c.SetDefaults()
-	data, err := ioutil.ReadFile(configPath)
+	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return c, err
 	}
-	err = xml.Unmarshal([]byte(data), c)
-	return c, err
+	err = xml.Unmarshal(data, c)
+	if err != nil {
+		return c, err
+	}
+	c.applyEnvOverrides()
+	return c, nil
 }

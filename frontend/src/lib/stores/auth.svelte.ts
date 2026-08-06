@@ -27,7 +27,7 @@ export const authToken = {
 	}
 };
 
-export const isAuthenticated = $derived(!!_token);
+export const isAuthenticated = () => !!_token;
 
 export async function login(username: string, password: string): Promise<boolean> {
 	const res = await fetch('/auth/login', {
