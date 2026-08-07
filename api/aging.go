@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/freemed/freemed-server/common"
-	"github.com/freemed/freemed-server/dbgen"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
 )

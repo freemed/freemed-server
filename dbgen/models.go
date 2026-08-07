@@ -1067,6 +1067,41 @@ type Systemnotification struct {
 	Npatient  int64        `json:"npatient"`
 }
 
+type UnfiledDoc struct {
+	ID           int64          `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    sql.NullTime   `json:"deleted_at"`
+	Filename     string         `json:"filename"`
+	PageCount    int64          `json:"page_count"`
+	FileType     string         `json:"file_type"`
+	ReceivedDate sql.NullTime   `json:"received_date"`
+	AssignedTo   int64          `json:"assigned_to"`
+	Status       string         `json:"status"`
+	Notes        sql.NullString `json:"notes"`
+	User         int64          `json:"user"`
+	Active       string         `json:"active"`
+}
+
+type UnreadDoc struct {
+	ID              int64          `json:"id"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
+	DeletedAt       sql.NullTime   `json:"deleted_at"`
+	DocumentType    string         `json:"document_type"`
+	Patient         int64          `json:"patient"`
+	Filename        string         `json:"filename"`
+	PageCount       int64          `json:"page_count"`
+	SentDate        sql.NullTime   `json:"sent_date"`
+	SendingProvider int64          `json:"sending_provider"`
+	AssignedTo      int64          `json:"assigned_to"`
+	Reviewed        bool           `json:"reviewed"`
+	ReviewDate      sql.NullTime   `json:"review_date"`
+	Notes           sql.NullString `json:"notes"`
+	User            int64          `json:"user"`
+	Active          string         `json:"active"`
+}
+
 type User struct {
 	ID              int64          `json:"id"`
 	CreatedAt       time.Time      `json:"created_at"`
