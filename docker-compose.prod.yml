@@ -1,0 +1,56 @@
+services:
+  db:
+    restart: always
+    # Remove public port exposure in production — db is only accessible
+    # via the internal Docker network (backend service).
+    ports: !reset []
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  redis:
+    restart: always
+    # Remove public port exposure in production — redis is only accessible
+    # via the internal Docker network (backend service).
+    ports: !reset []
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  backend:
+    restart: always
+    environment:
+      FREEMED_SESSION_KEY: "REPLACE-WITH-STRONG-RANDOM-KEY-AT-LEAST-64-CHARS"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  frontend:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

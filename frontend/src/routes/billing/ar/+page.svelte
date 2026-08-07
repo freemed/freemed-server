@@ -21,9 +21,10 @@
 	{:else if rows.length === 0}
 		<p class="p-6 text-gray-500 text-sm">No aging data available.</p>
 	{:else}
-		<table class="w-full text-sm">
-			<thead class="bg-gray-50 text-gray-500 uppercase text-xs">
-				<tr><th class="px-6 py-3 text-left">Age Bucket</th><th class="px-6 py-3 text-right">Balance</th></tr>
+		<div class="overflow-x-auto">
+			<table class="w-full text-sm">
+				<thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+					<tr><th class="px-6 py-3 text-left">Age Bucket</th><th class="px-6 py-3 text-right">Balance</th></tr>
 			</thead>
 			<tbody>
 				{#each rows as row}
@@ -34,5 +35,6 @@
 				{/each}
 			</tbody>
 		</table>
+		</div>
 	{/if}
 </div>

@@ -1,7 +1,6 @@
 package common
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,11 +16,6 @@ import (
 var (
 	IsRunning = true
 )
-
-// Md5hash produces an MD5 sum for a string
-func Md5hash(orig string) string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(orig)))
-}
 
 // SleepFor waits for sec seconds
 func SleepFor(sec int64) {

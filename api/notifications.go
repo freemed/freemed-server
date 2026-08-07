@@ -68,7 +68,7 @@ func notificationsUnreadCount(c *gin.Context) {
 func notificationsFromTimestamp(c *gin.Context) {
 	ts := c.Query("timestamp")
 	if ts == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "timestamp query parameter required"})
+		common.ErrorResponse(c, http.StatusBadRequest, "timestamp query parameter required")
 		return
 	}
 
@@ -77,7 +77,7 @@ func notificationsFromTimestamp(c *gin.Context) {
 		// Also try common datetime format
 		since, err = time.Parse("2006-01-02 15:04:05", ts)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid timestamp format, use RFC3339 or YYYY-MM-DD HH:MM:SS"})
+			common.ErrorResponse(c, http.StatusBadRequest, "invalid timestamp format, use RFC3339 or YYYY-MM-DD HH:MM:SS")
 			return
 		}
 	}

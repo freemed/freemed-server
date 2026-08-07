@@ -25,3 +25,41 @@ UPDATE prescriptions
 SET status = 'discontinued', updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
+
+-- List prescriptions for a patient with pharmacy details and refill info
+-- name: ListPrescriptionsWithPharmacy :many
+SELECT
+  p.id,
+  p.created_at,
+  p.updated_at,
+  p.deleted_at,
+  p.patient,
+  p.drug_name,
+  p.dosage,
+  p.frequency,
+  p.quantity,
+  p.refills,
+  p.date_written,
+  p.prescribing_provider,
+  p.status,
+  p.notes,
+  p.user,
+  ph.id AS pharmacy_id,
+  ph.phname AS pharmacy_name,
+  ph.phcity AS pharmacy_city,
+  ph.phstate AS pharmacy_state,
+  (SELECT COUNT(*) FROM rxrefillrequest r
+   WHERE r.patient = p.patient
+     AND r.rxorig LIKE CONCAT('%', p.id, '%')
+     AND r.deleted_at IS NULL) AS refills_used,
+  (SELECT MAX(r.approved) FROM rxrefillrequest r
+   WHERE r.patient = p.patient
+     AND r.rxorig LIKE CONCAT('%', p.id, '%')
+     AND r.approved IS NOT NULL
+     AND r.deleted_at IS NULL) AS last_fill_date
+FROM prescriptions p
+LEFT JOIN pharmacy ph ON ph.phname = p.pharmacy AND ph.deleted_at IS NULL
+WHERE p.patient = sqlc.arg(patient_id)
+  AND p.status = 'active'
+  AND p.deleted_at IS NULL
+ORDER BY p.date_written DESC;

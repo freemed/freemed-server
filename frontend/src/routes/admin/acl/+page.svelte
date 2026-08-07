@@ -449,7 +449,7 @@
 				<p class="text-lg">No groups found</p>
 			</div>
 		{:else}
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead class="bg-gray-50 border-b border-gray-200">
 						<tr>
@@ -512,7 +512,7 @@
 				<p class="text-lg">No permissions found</p>
 			</div>
 		{:else}
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead class="bg-gray-50 border-b border-gray-200">
 						<tr>
@@ -594,7 +594,7 @@
 						<p>No permissions assigned to this group</p>
 					</div>
 				{:else}
-					<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+					<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
 						<table class="w-full text-sm">
 							<thead class="bg-gray-50 border-b border-gray-200">
 								<tr>
@@ -685,7 +685,7 @@
 						<p>User is not in any groups</p>
 					</div>
 				{:else}
-					<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+					<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
 						<table class="w-full text-sm">
 							<thead class="bg-gray-50 border-b border-gray-200">
 								<tr>

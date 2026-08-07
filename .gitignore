@@ -6,5 +6,19 @@ go.work.sum
 ui/bower_components
 ui/node_modules
 ui/yarn-error.log
+### Frontend build artifacts
+frontend/node_modules
+frontend/build
+frontend/.svelte-kit
+frontend-portal/node_modules
+frontend-portal/build
+frontend-portal/.svelte-kit
+### Test artifacts
+frontend/test-results
+frontend/playwright-report
+frontend-portal/test-results
+frontend-portal/playwright-report
 ### Any logs left behind
 *.log
+### Backups
+backups/

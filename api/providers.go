@@ -23,7 +23,7 @@ func providersList(r *gin.Context) {
 	rows, err := model.Queries.ListProviders(r.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, rows)
@@ -32,13 +32,13 @@ func providersList(r *gin.Context) {
 func providersLookupNPI(r *gin.Context) {
 	npi := r.Query("npi")
 	if npi == "" {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 	rows, err := model.Queries.LookupNPI(r.Request.Context(), npi)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, rows)

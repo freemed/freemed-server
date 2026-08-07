@@ -170,6 +170,31 @@ type Callin struct {
 	DeletedAt   sql.NullTime `json:"deleted_at"`
 }
 
+type Certification struct {
+	ID           int64          `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    sql.NullTime   `json:"deleted_at"`
+	Patient      int64          `json:"patient"`
+	CertType     int64          `json:"cert_type"`
+	CertFormNum  sql.NullInt64  `json:"cert_form_num"`
+	CertDesc     string         `json:"cert_desc"`
+	CertFormData sql.NullString `json:"cert_form_data"`
+	User         int64          `json:"user"`
+	Active       string         `json:"active"`
+}
+
+type ChronicProblem struct {
+	ID        int64        `json:"id"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+	Patient   int64        `json:"patient"`
+	Date      time.Time    `json:"date"`
+	Problem   string       `json:"problem"`
+	User      int64        `json:"user"`
+}
+
 type Claimlog struct {
 	ID          int64        `json:"id"`
 	CreatedAt   time.Time    `json:"created_at"`
@@ -286,6 +311,18 @@ type Cptmod struct {
 	DeletedAt     sql.NullTime `json:"deleted_at"`
 	Cptmod        string       `json:"cptmod"`
 	Cptmoddescrip string       `json:"cptmoddescrip"`
+}
+
+type CurrentProblem struct {
+	ID        int64        `json:"id"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+	Patient   int64        `json:"patient"`
+	Date      time.Time    `json:"date"`
+	Problem   string       `json:"problem"`
+	User      int64        `json:"user"`
+	Active    string       `json:"active"`
 }
 
 type DocumentsTc struct {
@@ -406,6 +443,41 @@ type Facility struct {
 	Psrpos       int64          `json:"psrpos"`
 	Psrx12id     sql.NullString `json:"psrx12id"`
 	Psrx12idtype sql.NullString `json:"psrx12idtype"`
+}
+
+type FinancialDemographic struct {
+	ID              int64          `json:"id"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
+	DeletedAt       sql.NullTime   `json:"deleted_at"`
+	Patient         int64          `json:"patient"`
+	Income          int32          `json:"income"`
+	IDType          string         `json:"id_type"`
+	IDIssuer        string         `json:"id_issuer"`
+	IDNumber        string         `json:"id_number"`
+	IDExpire        string         `json:"id_expire"`
+	HouseholdSize   int32          `json:"household_size"`
+	Spouse          int32          `json:"spouse"`
+	Children        int32          `json:"children"`
+	OtherDependents int32          `json:"other_dependents"`
+	FreeText        sql.NullString `json:"free_text"`
+	EntryDesc       string         `json:"entry_desc"`
+	EntryTs         time.Time      `json:"entry_ts"`
+	User            int64          `json:"user"`
+	Active          string         `json:"active"`
+}
+
+type FormTemplate struct {
+	ID           int64          `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    sql.NullTime   `json:"deleted_at"`
+	Name         string         `json:"name"`
+	Description  sql.NullString `json:"description"`
+	FormType     string         `json:"form_type"`
+	TemplateData sql.NullString `json:"template_data"`
+	IsDefault    bool           `json:"is_default"`
+	User         int64          `json:"user"`
 }
 
 type GroupPermission struct {
@@ -651,50 +723,55 @@ type Module struct {
 }
 
 type Patient struct {
-	ID                int64          `json:"id"`
-	CreatedAt         time.Time      `json:"created_at"`
-	UpdatedAt         time.Time      `json:"updated_at"`
-	DeletedAt         sql.NullTime   `json:"deleted_at"`
-	Ptdtadd           time.Time      `json:"ptdtadd"`
-	Ptdtmod           sql.NullTime   `json:"ptdtmod"`
-	Ptsalut           string         `json:"ptsalut"`
-	Ptlname           string         `json:"ptlname"`
-	Ptmaidenname      sql.NullString `json:"ptmaidenname"`
-	Ptfname           string         `json:"ptfname"`
-	Ptmname           sql.NullString `json:"ptmname"`
-	Ptsuffix          string         `json:"ptsuffix"`
-	Ptsex             string         `json:"ptsex"`
-	Ptid              string         `json:"ptid"`
-	Ptdiag1           sql.NullInt64  `json:"ptdiag1"`
-	Ptdiag2           sql.NullInt64  `json:"ptdiag2"`
-	Ptdiag3           sql.NullInt64  `json:"ptdiag3"`
-	Ptdiag4           sql.NullInt64  `json:"ptdiag4"`
-	Ptdiagset         string         `json:"ptdiagset"`
-	Ptarchive         int64          `json:"ptarchive"`
-	Iso               string         `json:"iso"`
-	Ptblood           string         `json:"ptblood"`
-	Ptdead            int64          `json:"ptdead"`
-	Ptdeaddt          sql.NullTime   `json:"ptdeaddt"`
-	Ptbudg            float64        `json:"ptbudg"`
-	Ptbilltype        string         `json:"ptbilltype"`
-	Ptprimaryfacility int64          `json:"ptprimaryfacility"`
-	Ptprimarylanguage string         `json:"ptprimarylanguage"`
-	Ptdob             sql.NullTime   `json:"ptdob"`
-	Ptpcp             int64          `json:"ptpcp"`
-	Ptpharmacy        int64          `json:"ptpharmacy"`
-	Ssn               sql.NullString `json:"ssn"`
-	Pemail            sql.NullString `json:"pemail"`
-	Dmv               sql.NullString `json:"dmv"`
-	Patient           int64          `json:"patient"`
-	Module            string         `json:"module"`
-	Oid               int64          `json:"oid"`
-	Stamp             time.Time      `json:"stamp"`
-	Summary           string         `json:"summary"`
-	Locked            bool           `json:"locked"`
-	Annotation        sql.NullString `json:"annotation"`
-	User              int64          `json:"user"`
-	Provider          int64          `json:"provider"`
-	Status            string         `json:"status"`
+	ID                   int64          `json:"id"`
+	CreatedAt            time.Time      `json:"created_at"`
+	UpdatedAt            time.Time      `json:"updated_at"`
+	DeletedAt            sql.NullTime   `json:"deleted_at"`
+	Ptdtadd              time.Time      `json:"ptdtadd"`
+	Ptdtmod              sql.NullTime   `json:"ptdtmod"`
+	Ptsalut              string         `json:"ptsalut"`
+	Ptlname              string         `json:"ptlname"`
+	Ptmaidenname         sql.NullString `json:"ptmaidenname"`
+	Ptfname              string         `json:"ptfname"`
+	Ptmname              sql.NullString `json:"ptmname"`
+	Ptsuffix             string         `json:"ptsuffix"`
+	Ptsex                string         `json:"ptsex"`
+	Ptid                 string         `json:"ptid"`
+	Ptdiag1              sql.NullInt64  `json:"ptdiag1"`
+	Ptdiag2              sql.NullInt64  `json:"ptdiag2"`
+	Ptdiag3              sql.NullInt64  `json:"ptdiag3"`
+	Ptdiag4              sql.NullInt64  `json:"ptdiag4"`
+	Ptdiagset            string         `json:"ptdiagset"`
+	Ptarchive            int64          `json:"ptarchive"`
+	Iso                  string         `json:"iso"`
+	Ptblood              string         `json:"ptblood"`
+	Ptdead               int64          `json:"ptdead"`
+	Ptdeaddt             sql.NullTime   `json:"ptdeaddt"`
+	Ptbudg               float64        `json:"ptbudg"`
+	Ptbilltype           string         `json:"ptbilltype"`
+	Ptprimaryfacility    int64          `json:"ptprimaryfacility"`
+	Ptprimarylanguage    string         `json:"ptprimarylanguage"`
+	Ptdob                sql.NullTime   `json:"ptdob"`
+	Ptpcp                int64          `json:"ptpcp"`
+	Ptpharmacy           int64          `json:"ptpharmacy"`
+	Ssn                  sql.NullString `json:"ssn"`
+	Pemail               sql.NullString `json:"pemail"`
+	PortalPassword       string         `json:"portal_password"`
+	PortalPin            string         `json:"portal_pin"`
+	PortalEnabled        bool           `json:"portal_enabled"`
+	PortalLastLogin      sql.NullTime   `json:"portal_last_login"`
+	PortalFailedAttempts int32          `json:"portal_failed_attempts"`
+	Dmv                  sql.NullString `json:"dmv"`
+	Patient              int64          `json:"patient"`
+	Module               string         `json:"module"`
+	Oid                  int64          `json:"oid"`
+	Stamp                time.Time      `json:"stamp"`
+	Summary              string         `json:"summary"`
+	Locked               bool           `json:"locked"`
+	Annotation           sql.NullString `json:"annotation"`
+	User                 int64          `json:"user"`
+	Provider             int64          `json:"provider"`
+	Status               string         `json:"status"`
 }
 
 type PatientAddress struct {
@@ -966,6 +1043,18 @@ type Po struct {
 	Posdtmod   sql.NullTime `json:"posdtmod"`
 }
 
+type PortalAuditLog struct {
+	ID        int64        `json:"id"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+	PatientID int64        `json:"patient_id"`
+	Action    string       `json:"action"`
+	IpAddress string       `json:"ip_address"`
+	UserAgent string       `json:"user_agent"`
+	Success   bool         `json:"success"`
+}
+
 type Practice struct {
 	ID        int64          `json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
@@ -1009,6 +1098,17 @@ type Prescription struct {
 	Status              string         `json:"status"`
 	Notes               sql.NullString `json:"notes"`
 	User                int64          `json:"user"`
+}
+
+type PreviousOperation struct {
+	ID            int64        `json:"id"`
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at"`
+	DeletedAt     sql.NullTime `json:"deleted_at"`
+	Patient       int64        `json:"patient"`
+	OperationDate sql.NullTime `json:"operation_date"`
+	Operation     string       `json:"operation"`
+	User          int64        `json:"user"`
 }
 
 type Procrec struct {
@@ -1078,6 +1178,21 @@ type Referral struct {
 	Notes             string       `json:"notes"`
 	User              int64        `json:"user"`
 	Active            string       `json:"active"`
+}
+
+type Reminder struct {
+	ID          int64          `json:"id"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   sql.NullTime   `json:"deleted_at"`
+	User        int64          `json:"user"`
+	Patient     sql.NullInt64  `json:"patient"`
+	Title       string         `json:"title"`
+	Description sql.NullString `json:"description"`
+	DueDate     sql.NullTime   `json:"due_date"`
+	Priority    int32          `json:"priority"`
+	Status      string         `json:"status"`
+	CompletedAt sql.NullTime   `json:"completed_at"`
 }
 
 type Rxrefillrequest struct {
@@ -1174,6 +1289,24 @@ type Schedulerstatustype struct {
 	Sdescrip  string       `json:"sdescrip"`
 	Scolor    string       `json:"scolor"`
 	Sage      int64        `json:"sage"`
+}
+
+type Signature struct {
+	ID                int64          `json:"id"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
+	DeletedAt         sql.NullTime   `json:"deleted_at"`
+	Patient           int64          `json:"patient"`
+	Module            string         `json:"module"`
+	ModuleField       string         `json:"module_field"`
+	Oid               int64          `json:"oid"`
+	SignatureData     sql.NullString `json:"signature_data"`
+	Format            string         `json:"format"`
+	CollectorLocation string         `json:"collector_location"`
+	CollectorModel    string         `json:"collector_model"`
+	CollectorJobid    string         `json:"collector_jobid"`
+	CollectorFinished bool           `json:"collector_finished"`
+	User              int64          `json:"user"`
 }
 
 type Smsprovider struct {
@@ -1283,27 +1416,28 @@ type UnreadDoc struct {
 }
 
 type User struct {
-	ID              int64          `json:"id"`
-	CreatedAt       time.Time      `json:"created_at"`
-	UpdatedAt       time.Time      `json:"updated_at"`
-	DeletedAt       sql.NullTime   `json:"deleted_at"`
-	Username        string         `json:"username"`
-	Userpassword    string         `json:"userpassword"`
-	Usertype        sql.NullString `json:"usertype"`
-	Userrealphy     int64          `json:"userrealphy"`
-	Userfname       sql.NullString `json:"userfname"`
-	Usermname       sql.NullString `json:"usermname"`
-	Userlname       sql.NullString `json:"userlname"`
-	Userdescrip     sql.NullString `json:"userdescrip"`
-	Userlevel       sql.NullString `json:"userlevel"`
-	Userfac         sql.NullString `json:"userfac"`
-	Userphy         sql.NullString `json:"userphy"`
-	Userphygrp      sql.NullString `json:"userphygrp"`
-	Usermanageopt   sql.NullString `json:"usermanageopt"`
-	Useremail       sql.NullString `json:"useremail"`
-	Usersms         sql.NullInt64  `json:"usersms"`
-	Usersmsprovider sql.NullInt64  `json:"usersmsprovider"`
-	Usertitle       sql.NullString `json:"usertitle"`
+	ID                 int64          `json:"id"`
+	CreatedAt          time.Time      `json:"created_at"`
+	UpdatedAt          time.Time      `json:"updated_at"`
+	DeletedAt          sql.NullTime   `json:"deleted_at"`
+	Username           string         `json:"username"`
+	Userpassword       string         `json:"userpassword"`
+	UserpasswordBcrypt string         `json:"userpassword_bcrypt"`
+	Usertype           sql.NullString `json:"usertype"`
+	Userrealphy        int64          `json:"userrealphy"`
+	Userfname          sql.NullString `json:"userfname"`
+	Usermname          sql.NullString `json:"usermname"`
+	Userlname          sql.NullString `json:"userlname"`
+	Userdescrip        sql.NullString `json:"userdescrip"`
+	Userlevel          sql.NullString `json:"userlevel"`
+	Userfac            sql.NullString `json:"userfac"`
+	Userphy            sql.NullString `json:"userphy"`
+	Userphygrp         sql.NullString `json:"userphygrp"`
+	Usermanageopt      sql.NullString `json:"usermanageopt"`
+	Useremail          sql.NullString `json:"useremail"`
+	Usersms            sql.NullInt64  `json:"usersms"`
+	Usersmsprovider    sql.NullInt64  `json:"usersmsprovider"`
+	Usertitle          sql.NullString `json:"usertitle"`
 }
 
 type UserGroup struct {
@@ -1313,6 +1447,19 @@ type UserGroup struct {
 	DeletedAt sql.NullTime `json:"deleted_at"`
 	UserID    int64        `json:"user_id"`
 	GroupID   int64        `json:"group_id"`
+}
+
+type UserPreference struct {
+	ID           int64          `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    sql.NullTime   `json:"deleted_at"`
+	OptionKey    string         `json:"option_key"`
+	DefaultValue string         `json:"default_value"`
+	Title        string         `json:"title"`
+	Section      string         `json:"section"`
+	OptionType   string         `json:"option_type"`
+	Options      sql.NullString `json:"options"`
 }
 
 type Usergroup struct {

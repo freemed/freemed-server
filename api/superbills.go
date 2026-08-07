@@ -49,12 +49,12 @@ func createSuperbill(c *gin.Context) {
 
 	dateFrom, err := time.Parse("2006-01-02", in.DateFrom)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid date_from format, use YYYY-MM-DD"})
+		common.ErrorResponse(c, http.StatusBadRequest, "invalid date_from format, use YYYY-MM-DD")
 		return
 	}
 	dateTo, err := time.Parse("2006-01-02", in.DateTo)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid date_to format, use YYYY-MM-DD"})
+		common.ErrorResponse(c, http.StatusBadRequest, "invalid date_to format, use YYYY-MM-DD")
 		return
 	}
 

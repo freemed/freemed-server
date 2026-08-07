@@ -38,7 +38,7 @@ type prescriptionInput struct {
 func prescriptionsList(r *gin.Context) {
 	id := r.Param("id")
 	if id == "" {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -47,7 +47,7 @@ func prescriptionsList(r *gin.Context) {
 	prescriptions, err := model.Queries.ListPrescriptions(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -57,13 +57,13 @@ func prescriptionsList(r *gin.Context) {
 func prescriptionCreate(r *gin.Context) {
 	patientID := common.ParseInt(r.Param("id"))
 	if patientID == 0 {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	var in prescriptionInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -94,7 +94,7 @@ func prescriptionCreate(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -105,14 +105,14 @@ func prescriptionCreate(r *gin.Context) {
 func prescriptionDiscontinue(r *gin.Context) {
 	id := common.ParseInt(r.Param("id"))
 	if id == 0 {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	err := model.Queries.DiscontinuePrescription(r.Request.Context(), id)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

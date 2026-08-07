@@ -7,7 +7,43 @@ package dbgen
 
 import (
 	"context"
+	"database/sql"
 )
+
+const createTemplate = `-- name: CreateTemplate :execresult
+INSERT INTO appttemplate (
+  atname, atduration, atequipment, atcolor,
+  created_at, updated_at
+) VALUES (
+  ?, ?, ?, ?,
+  NOW(), NOW()
+)
+`
+
+type CreateTemplateParams struct {
+	Atname      string         `json:"atname"`
+	Atduration  int64          `json:"atduration"`
+	Atequipment sql.NullString `json:"atequipment"`
+	Atcolor     string         `json:"atcolor"`
+}
+
+func (q *Queries) CreateTemplate(ctx context.Context, arg CreateTemplateParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createTemplate,
+		arg.Atname,
+		arg.Atduration,
+		arg.Atequipment,
+		arg.Atcolor,
+	)
+}
+
+const deleteTemplate = `-- name: DeleteTemplate :exec
+DELETE FROM appttemplate WHERE id = ?
+`
+
+func (q *Queries) DeleteTemplate(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteTemplate, id)
+	return err
+}
 
 const getTemplate = `-- name: GetTemplate :one
 SELECT id, created_at, updated_at, deleted_at, atname, atduration, atequipment, atcolor FROM appttemplate WHERE id = ?
@@ -63,4 +99,33 @@ func (q *Queries) ListTemplates(ctx context.Context) ([]Appttemplate, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateTemplate = `-- name: UpdateTemplate :exec
+UPDATE appttemplate SET
+  atname = ?,
+  atduration = ?,
+  atequipment = ?,
+  atcolor = ?,
+  updated_at = NOW()
+WHERE id = ?
+`
+
+type UpdateTemplateParams struct {
+	Atname      string         `json:"atname"`
+	Atduration  int64          `json:"atduration"`
+	Atequipment sql.NullString `json:"atequipment"`
+	Atcolor     string         `json:"atcolor"`
+	ID          int64          `json:"id"`
+}
+
+func (q *Queries) UpdateTemplate(ctx context.Context, arg UpdateTemplateParams) error {
+	_, err := q.db.ExecContext(ctx, updateTemplate,
+		arg.Atname,
+		arg.Atduration,
+		arg.Atequipment,
+		arg.Atcolor,
+		arg.ID,
+	)
+	return err
 }

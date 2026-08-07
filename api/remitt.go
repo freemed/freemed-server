@@ -31,7 +31,7 @@ func remittStatus(c *gin.Context) {
 	url, err := model.ConfigGetByKey("remitt_url")
 	if err != nil {
 		log.Printf("remittStatus: %s", err.Error())
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "remitt not configured"})
+		common.ErrorResponse(c, http.StatusInternalServerError, "remitt not configured")
 		return
 	}
 
@@ -46,7 +46,7 @@ func remittMonths(c *gin.Context) {
 	months, err := model.Queries.ListBillkeyMonths(c.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -74,7 +74,7 @@ func patientsToBillList(c *gin.Context) {
 	rows, err := model.Queries.PatientsToBill(c.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, rows)
@@ -84,13 +84,13 @@ func patientsToBillList(c *gin.Context) {
 func proceduresToBillList(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		c.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(c, http.StatusBadRequest, "bad request")
 		return
 	}
 	rows, err := model.Queries.ProceduresToBill(c.Request.Context(), common.ParseInt(id))
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, rows)
@@ -101,7 +101,7 @@ func claimInfoList(c *gin.Context) {
 	rows, err := model.Queries.GetClaimInfo(c.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, rows)
@@ -115,13 +115,13 @@ type markBilledInput struct {
 func markBilled(c *gin.Context) {
 	var in markBilledInput
 	if err := c.BindJSON(&in); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 	for _, id := range in.IDs {
 		if err := model.Queries.MarkAsBilled(c.Request.Context(), id); err != nil {
 			log.Printf("markBilled: id=%d: %s", id, err.Error())
-			c.AbortWithError(http.StatusInternalServerError, err)
+			common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 			return
 		}
 	}
@@ -133,7 +133,7 @@ func rebillList(c *gin.Context) {
 	rows, err := model.Queries.GetRebillList(c.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, rows)

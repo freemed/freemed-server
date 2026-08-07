@@ -57,16 +57,28 @@ func init() {
 			r.POST("/:id/correspondence", patientCorrespondenceCreate)
 			r.GET("/:id/clinical-orders", patientClinicalOrdersList)
 			r.POST("/:id/clinical-orders", patientClinicalOrdersCreate)
+			r.GET("/:id/chronic-problems", patientChronicProblemsList)
+			r.POST("/:id/chronic-problems", patientChronicProblemCreate)
 			r.GET("/:id/scanned-documents", patientScannedDocsList)
 			r.GET("/:id/photo-id", patientPhotoIDList)
 			r.POST("/:id/photo-id", patientPhotoIDCreate)
 			r.GET("/:id/annotations", patientAnnotationsList)
 			r.POST("/:id/annotations", patientAnnotationCreate)
-			r.GET("/:id/growth-charts", patientGrowthCharts)
+			r.GET("/:id/surgical-history", patientPreviousOperationsList)
+		r.POST("/:id/surgical-history", patientPreviousOperationCreate)
+		r.GET("/:id/growth-charts", patientGrowthCharts)
 			r.GET("/:id/labs", patientLabsList)
 			r.POST("/:id/labs", patientLabsCreate)
 			r.GET("/:id/workflow-status", patientWorkflowStatusList)
 			r.POST("/:id/workflow-status", patientWorkflowStatusCreate)
+			r.GET("/:id/current-problems", patientCurrentProblemsList)
+			r.POST("/:id/current-problems", patientCurrentProblemsCreate)
+			r.GET("/:id/certifications", patientCertificationsList)
+			r.POST("/:id/certifications", patientCertificationsCreate)
+			r.GET("/:id/financial", patientFinancialDemographicsList)
+			r.POST("/:id/financial", patientFinancialDemographicsCreate)
+			r.GET("/:id/signatures", patientSignaturesList)
+			r.POST("/:id/signatures", patientSignaturesCreate)
 			},
 	}
 }
@@ -85,7 +97,7 @@ func patientEmrAttachments(r *gin.Context) {
 		o, err := model.Queries.PatientEmrAttachments(r.Request.Context(), patientID)
 		if err != nil {
 			log.Print(err.Error())
-			r.AbortWithError(http.StatusInternalServerError, err)
+			common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 			return
 		}
 		r.JSON(http.StatusOK, o)
@@ -98,7 +110,7 @@ func patientEmrAttachments(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, o)
@@ -117,7 +129,7 @@ func patientDiagnoses(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -137,7 +149,7 @@ func patientInformation(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, o)
@@ -156,7 +168,7 @@ func patientHistory(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, rows)

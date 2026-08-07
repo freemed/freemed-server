@@ -8,7 +8,94 @@ package dbgen
 import (
 	"context"
 	"database/sql"
+	"time"
 )
+
+const countPatients = `-- name: CountPatients :one
+SELECT COUNT(*) AS total FROM patient WHERE ptarchive = 0
+`
+
+// Patient count (non-archived)
+func (q *Queries) CountPatients(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countPatients)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
+const listPatients = `-- name: ListPatients :many
+SELECT
+  id,
+  ptlname AS last_name,
+  ptfname AS first_name,
+  ptmname AS middle_name,
+  ptsuffix AS suffix,
+  ptsex AS gender,
+  ptid AS patient_id,
+  ptdob AS date_of_birth,
+  ptarchive AS archived,
+  created_at,
+  updated_at
+FROM patient
+WHERE ptarchive = 0
+ORDER BY ptlname, ptfname, ptmname
+LIMIT ? OFFSET ?
+`
+
+type ListPatientsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type ListPatientsRow struct {
+	ID          int64          `json:"id"`
+	LastName    string         `json:"last_name"`
+	FirstName   string         `json:"first_name"`
+	MiddleName  sql.NullString `json:"middle_name"`
+	Suffix      string         `json:"suffix"`
+	Gender      string         `json:"gender"`
+	PatientID   string         `json:"patient_id"`
+	DateOfBirth sql.NullTime   `json:"date_of_birth"`
+	Archived    int64          `json:"archived"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
+// Patient list with pagination
+func (q *Queries) ListPatients(ctx context.Context, arg ListPatientsParams) ([]ListPatientsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPatients, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPatientsRow
+	for rows.Next() {
+		var i ListPatientsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.LastName,
+			&i.FirstName,
+			&i.MiddleName,
+			&i.Suffix,
+			&i.Gender,
+			&i.PatientID,
+			&i.DateOfBirth,
+			&i.Archived,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const patientCreate = `-- name: PatientCreate :execresult
 INSERT INTO patient (

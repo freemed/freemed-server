@@ -13,7 +13,7 @@ import (
 func patientEncounters(r *gin.Context) {
 	id := r.Param("id")
 	if id == "" {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -21,7 +21,7 @@ func patientEncounters(r *gin.Context) {
 	encounters, err := model.Queries.ListEncounters(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -32,7 +32,7 @@ func patientEncounterDetail(r *gin.Context) {
 	id := r.Param("id")
 	encounterID := r.Param("encounterId")
 	if id == "" || encounterID == "" {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -43,7 +43,7 @@ func patientEncounterDetail(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

@@ -12,34 +12,58 @@ WHERE pr.payrecpatient = sqlc.arg(patient_id)
   AND pr.active = 'active'
 ORDER BY pr.payrecdtadd DESC;
 
--- Patient ledger: combined procedure charges + payments view (simplified)
+-- Patient ledger: combined procedure charges + payments view with date range filtering and pagination
 -- name: PatientLedger :many
-SELECT
-  'charge' AS entry_type,
-  p.id,
-  p.procdt AS date,
-  p.proccharges AS amount,
-  p.procbalcurrent AS balance,
-  cpt.abbrev AS cpt_code,
-  p.proccomment AS description,
-  p.procstatus AS status
-FROM procrec p
-LEFT OUTER JOIN cpt cpt ON cpt.id = p.proccpt
-WHERE p.procpatient = sqlc.arg(patient_id)
-UNION ALL
-SELECT
-  'payment' AS entry_type,
-  pr.id,
-  pr.payrecdtadd AS date,
-  pr.payrecamt AS amount,
-  0.0 AS balance,
-  '' AS cpt_code,
-  pr.payrecdescrip AS description,
-  '' AS status
-FROM payrec pr
-WHERE pr.payrecpatient = sqlc.arg(patient_id)
-  AND pr.active = 'active'
-ORDER BY date DESC;
+SELECT * FROM (
+  SELECT
+    'charge' AS entry_type,
+    p.id,
+    p.procdt AS date,
+    p.proccharges AS amount,
+    p.procbalcurrent AS balance,
+    cpt.abbrev AS cpt_code,
+    p.proccomment AS description,
+    p.procstatus AS status
+  FROM procrec p
+  LEFT OUTER JOIN cpt cpt ON cpt.id = p.proccpt
+  WHERE p.procpatient = sqlc.arg(patient_id)
+    AND (sqlc.narg(from_date) IS NULL OR p.procdt >= sqlc.narg(from_date))
+    AND (sqlc.narg(to_date) IS NULL OR p.procdt <= sqlc.narg(to_date))
+  UNION ALL
+  SELECT
+    'payment' AS entry_type,
+    pr.id,
+    pr.payrecdtadd AS date,
+    pr.payrecamt AS amount,
+    0.0 AS balance,
+    '' AS cpt_code,
+    pr.payrecdescrip AS description,
+    '' AS status
+  FROM payrec pr
+  WHERE pr.payrecpatient = sqlc.arg(patient_id)
+    AND pr.active = 'active'
+    AND (sqlc.narg(from_date) IS NULL OR pr.payrecdtadd >= sqlc.narg(from_date))
+    AND (sqlc.narg(to_date) IS NULL OR pr.payrecdtadd <= sqlc.narg(to_date))
+) AS ledger
+ORDER BY date DESC
+LIMIT ? OFFSET ?;
+
+-- CountPatientLedger: total number of ledger entries matching the same filters
+-- name: CountPatientLedger :one
+SELECT COUNT(*) AS total FROM (
+  SELECT 1
+  FROM procrec p
+  WHERE p.procpatient = sqlc.arg(patient_id)
+    AND (sqlc.narg(from_date) IS NULL OR p.procdt >= sqlc.narg(from_date))
+    AND (sqlc.narg(to_date) IS NULL OR p.procdt <= sqlc.narg(to_date))
+  UNION ALL
+  SELECT 1
+  FROM payrec pr
+  WHERE pr.payrecpatient = sqlc.arg(patient_id)
+    AND pr.active = 'active'
+    AND (sqlc.narg(from_date) IS NULL OR pr.payrecdtadd >= sqlc.narg(from_date))
+    AND (sqlc.narg(to_date) IS NULL OR pr.payrecdtadd <= sqlc.narg(to_date))
+) AS subq;
 
 -- AttachPaymentToProcedure: link a payment to a procedure
 -- name: AttachPaymentToProcedure :exec

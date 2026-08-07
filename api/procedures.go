@@ -22,7 +22,7 @@ func init() {
 func getProcedure(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		c.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(c, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -30,7 +30,7 @@ func getProcedure(c *gin.Context) {
 	procedure, err := model.Queries.GetProcedure(c.Request.Context(), procedureID)
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -40,7 +40,7 @@ func getProcedure(c *gin.Context) {
 func patientProcedures(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		c.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(c, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -48,7 +48,7 @@ func patientProcedures(c *gin.Context) {
 	procedures, err := model.Queries.PatientProcedures(c.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 

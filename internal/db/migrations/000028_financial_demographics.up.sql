@@ -1,0 +1,21 @@
+CREATE TABLE `financial_demographics` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `income` INT NOT NULL DEFAULT 0,
+  `id_type` VARCHAR(50) NOT NULL DEFAULT '',
+  `id_issuer` VARCHAR(50) NOT NULL DEFAULT '',
+  `id_number` VARCHAR(50) NOT NULL DEFAULT '',
+  `id_expire` VARCHAR(10) NOT NULL DEFAULT '',
+  `household_size` INT NOT NULL DEFAULT 0,
+  `spouse` INT NOT NULL DEFAULT 0,
+  `children` INT NOT NULL DEFAULT 0,
+  `other_dependents` INT NOT NULL DEFAULT 0,
+  `free_text` TEXT,
+  `entry_desc` VARCHAR(75) NOT NULL DEFAULT '',
+  `entry_ts` DATETIME NOT NULL,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT 'active'
+);

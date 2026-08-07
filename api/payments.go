@@ -23,6 +23,15 @@ func init() {
 	}
 }
 
+func init() {
+	common.ApiMap["ledger"] = common.ApiMapping{
+		Authenticated: true,
+		RouterFunction: func(r *gin.RouterGroup) {
+			r.GET("/:patientId", standaloneLedger)
+		},
+	}
+}
+
 type attachProcedureInput struct {
 	ProcedureID int64 `json:"procedure_id" binding:"required"`
 }
@@ -128,21 +137,92 @@ func patientPayments(r *gin.Context) {
 func patientLedger(r *gin.Context) {
 	id := r.Param("id")
 	if id == "" {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	patientID := common.ParseInt(id)
+	fromDate := parseOptionalDate(r.Query("from"))
+	toDate := parseOptionalDate(r.Query("to"))
+	offset := common.ParseInt(r.DefaultQuery("offset", "0"))
+	limit := common.ParseInt(r.DefaultQuery("limit", "50"))
+
 	ledger, err := model.Queries.PatientLedger(r.Request.Context(), dbgen.PatientLedgerParams{
 		PatientID: patientID,
+		FromDate:  fromDate,
+		ToDate:    toDate,
+		Limit:     int32(limit),
+		Offset:    int32(offset),
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
-	r.JSON(http.StatusOK, ledger)
+	total, err := model.Queries.CountPatientLedger(r.Request.Context(), dbgen.CountPatientLedgerParams{
+		PatientID: patientID,
+		FromDate:  fromDate,
+		ToDate:    toDate,
+	})
+	if err != nil {
+		log.Print(err.Error())
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
+		return
+	}
+
+	r.JSON(http.StatusOK, gin.H{
+		"data":   ledger,
+		"total":  total,
+		"offset": offset,
+		"limit":  limit,
+	})
+}
+
+// standaloneLedger handles GET /api/ledger/:patientId
+func standaloneLedger(r *gin.Context) {
+	patientID := r.Param("patientId")
+	if patientID == "" {
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
+		return
+	}
+
+	pid := common.ParseInt(patientID)
+	fromDate := parseOptionalDate(r.Query("from"))
+	toDate := parseOptionalDate(r.Query("to"))
+	offset := common.ParseInt(r.DefaultQuery("offset", "0"))
+	limit := common.ParseInt(r.DefaultQuery("limit", "50"))
+
+	ledger, err := model.Queries.PatientLedger(r.Request.Context(), dbgen.PatientLedgerParams{
+		PatientID: pid,
+		FromDate:  fromDate,
+		ToDate:    toDate,
+		Limit:     int32(limit),
+		Offset:    int32(offset),
+	})
+	if err != nil {
+		log.Print(err.Error())
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
+		return
+	}
+
+	total, err := model.Queries.CountPatientLedger(r.Request.Context(), dbgen.CountPatientLedgerParams{
+		PatientID: pid,
+		FromDate:  fromDate,
+		ToDate:    toDate,
+	})
+	if err != nil {
+		log.Print(err.Error())
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
+		return
+	}
+
+	r.JSON(http.StatusOK, gin.H{
+		"data":   ledger,
+		"total":  total,
+		"offset": offset,
+		"limit":  limit,
+	})
 }
 
 // patientCoverageInfo handles GET /api/patient/:id/coverage-info

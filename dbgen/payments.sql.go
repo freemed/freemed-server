@@ -28,6 +28,48 @@ func (q *Queries) AttachPaymentToProcedure(ctx context.Context, arg AttachPaymen
 	return err
 }
 
+const countPatientLedger = `-- name: CountPatientLedger :one
+SELECT COUNT(*) AS total FROM (
+  SELECT 1
+  FROM procrec p
+  WHERE p.procpatient = ?
+    AND (? IS NULL OR p.procdt >= ?)
+    AND (? IS NULL OR p.procdt <= ?)
+  UNION ALL
+  SELECT 1
+  FROM payrec pr
+  WHERE pr.payrecpatient = ?
+    AND pr.active = 'active'
+    AND (? IS NULL OR pr.payrecdtadd >= ?)
+    AND (? IS NULL OR pr.payrecdtadd <= ?)
+) AS subq
+`
+
+type CountPatientLedgerParams struct {
+	PatientID int64        `json:"patient_id"`
+	FromDate  sql.NullTime `json:"from_date"`
+	ToDate    sql.NullTime `json:"to_date"`
+}
+
+// CountPatientLedger: total number of ledger entries matching the same filters
+func (q *Queries) CountPatientLedger(ctx context.Context, arg CountPatientLedgerParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countPatientLedger,
+		arg.PatientID,
+		arg.FromDate,
+		arg.FromDate,
+		arg.ToDate,
+		arg.ToDate,
+		arg.PatientID,
+		arg.FromDate,
+		arg.FromDate,
+		arg.ToDate,
+		arg.ToDate,
+	)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const getCoverageCopayInfo = `-- name: GetCoverageCopayInfo :one
 SELECT
   pc.id,
@@ -123,36 +165,47 @@ func (q *Queries) GetCoverageDeductibleInfo(ctx context.Context, patientID int64
 }
 
 const patientLedger = `-- name: PatientLedger :many
-SELECT
-  'charge' AS entry_type,
-  p.id,
-  p.procdt AS date,
-  p.proccharges AS amount,
-  p.procbalcurrent AS balance,
-  cpt.abbrev AS cpt_code,
-  p.proccomment AS description,
-  p.procstatus AS status
-FROM procrec p
-LEFT OUTER JOIN cpt cpt ON cpt.id = p.proccpt
-WHERE p.procpatient = ?
-UNION ALL
-SELECT
-  'payment' AS entry_type,
-  pr.id,
-  pr.payrecdtadd AS date,
-  pr.payrecamt AS amount,
-  0.0 AS balance,
-  '' AS cpt_code,
-  pr.payrecdescrip AS description,
-  '' AS status
-FROM payrec pr
-WHERE pr.payrecpatient = ?
-  AND pr.active = 'active'
+SELECT entry_type, id, date, amount, balance, cpt_code, description, status FROM (
+  SELECT
+    'charge' AS entry_type,
+    p.id,
+    p.procdt AS date,
+    p.proccharges AS amount,
+    p.procbalcurrent AS balance,
+    cpt.abbrev AS cpt_code,
+    p.proccomment AS description,
+    p.procstatus AS status
+  FROM procrec p
+  LEFT OUTER JOIN cpt cpt ON cpt.id = p.proccpt
+  WHERE p.procpatient = ?
+    AND (? IS NULL OR p.procdt >= ?)
+    AND (? IS NULL OR p.procdt <= ?)
+  UNION ALL
+  SELECT
+    'payment' AS entry_type,
+    pr.id,
+    pr.payrecdtadd AS date,
+    pr.payrecamt AS amount,
+    0.0 AS balance,
+    '' AS cpt_code,
+    pr.payrecdescrip AS description,
+    '' AS status
+  FROM payrec pr
+  WHERE pr.payrecpatient = ?
+    AND pr.active = 'active'
+    AND (? IS NULL OR pr.payrecdtadd >= ?)
+    AND (? IS NULL OR pr.payrecdtadd <= ?)
+) AS ledger
 ORDER BY date DESC
+LIMIT ? OFFSET ?
 `
 
 type PatientLedgerParams struct {
-	PatientID int64 `json:"patient_id"`
+	PatientID int64        `json:"patient_id"`
+	FromDate  sql.NullTime `json:"from_date"`
+	ToDate    sql.NullTime `json:"to_date"`
+	Limit     int32        `json:"limit"`
+	Offset    int32        `json:"offset"`
 }
 
 type PatientLedgerRow struct {
@@ -166,9 +219,22 @@ type PatientLedgerRow struct {
 	Status      sql.NullString `json:"status"`
 }
 
-// Patient ledger: combined procedure charges + payments view (simplified)
+// Patient ledger: combined procedure charges + payments view with date range filtering and pagination
 func (q *Queries) PatientLedger(ctx context.Context, arg PatientLedgerParams) ([]PatientLedgerRow, error) {
-	rows, err := q.db.QueryContext(ctx, patientLedger, arg.PatientID, arg.PatientID)
+	rows, err := q.db.QueryContext(ctx, patientLedger,
+		arg.PatientID,
+		arg.FromDate,
+		arg.FromDate,
+		arg.ToDate,
+		arg.ToDate,
+		arg.PatientID,
+		arg.FromDate,
+		arg.FromDate,
+		arg.ToDate,
+		arg.ToDate,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}

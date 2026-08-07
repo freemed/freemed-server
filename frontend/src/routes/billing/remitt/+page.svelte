@@ -295,6 +295,7 @@
 			{#if patientsToBill.length === 0}
 				<p class="p-6 text-gray-500 text-sm">No patients with unbilled procedures.</p>
 			{:else}
+			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead class="bg-gray-50 text-gray-500 uppercase text-xs">
 						<tr>
@@ -330,6 +331,7 @@
 										{:else if patientProcedures.length === 0}
 											<p class="text-gray-500 text-xs">No procedures found.</p>
 										{:else}
+										<div class="overflow-x-auto">
 											<table class="w-full text-xs border border-gray-200 rounded bg-white">
 												<thead class="bg-gray-100 text-gray-500 uppercase">
 													<tr>
@@ -362,6 +364,7 @@
 													{/each}
 												</tbody>
 											</table>
+										</div>
 										{/if}
 									</td>
 								</tr>
@@ -369,6 +372,7 @@
 						{/each}
 					</tbody>
 				</table>
+			</div>
 			{/if}
 		</div>
 
@@ -404,6 +408,7 @@
 				{#if claimInfo.length === 0}
 					<p class="p-6 text-gray-500 text-sm">No claim info entries found.</p>
 				{:else}
+			<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead class="bg-gray-50 text-gray-500 uppercase text-xs">
 							<tr>
@@ -444,6 +449,7 @@
 							{/each}
 						</tbody>
 					</table>
+			</div>
 				{/if}
 			{/if}
 		</div>
@@ -461,6 +467,7 @@
 			{#if rebillList.length === 0}
 				<p class="p-6 text-gray-500 text-sm">No rebill candidates.</p>
 			{:else}
+			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead class="bg-gray-50 text-gray-500 uppercase text-xs">
 						<tr>
@@ -481,6 +488,7 @@
 						{/each}
 					</tbody>
 				</table>
+			</div>
 			{/if}
 		</div>
 	{/if}

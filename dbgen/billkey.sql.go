@@ -7,6 +7,8 @@ package dbgen
 
 import (
 	"context"
+	"database/sql"
+	"time"
 )
 
 const getBillkeyById = `-- name: GetBillkeyById :one
@@ -26,4 +28,30 @@ func (q *Queries) GetBillkeyById(ctx context.Context, id int64) (Billkey, error)
 		&i.Bkprocs,
 	)
 	return i, err
+}
+
+const insertBillkey = `-- name: InsertBillkey :execresult
+INSERT INTO billkey (
+  billkeydate,
+  billkey,
+  bkprocs,
+  created_at,
+  updated_at
+) VALUES (
+  ?,
+  ?,
+  ?,
+  NOW(),
+  NOW()
+)
+`
+
+type InsertBillkeyParams struct {
+	Billkeydate time.Time      `json:"billkeydate"`
+	Billkey     sql.NullString `json:"billkey"`
+	Bkprocs     string         `json:"bkprocs"`
+}
+
+func (q *Queries) InsertBillkey(ctx context.Context, arg InsertBillkeyParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, insertBillkey, arg.Billkeydate, arg.Billkey, arg.Bkprocs)
 }

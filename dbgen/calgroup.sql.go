@@ -9,6 +9,17 @@ import (
 	"context"
 )
 
+const countCalGroups = `-- name: CountCalGroups :one
+SELECT COUNT(*) AS total FROM calgroup
+`
+
+func (q *Queries) CountCalGroups(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countCalGroups)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const getCalGroup = `-- name: GetCalGroup :one
 SELECT id, created_at, updated_at, deleted_at, groupname, groupfacility, groupfrequency, grouplength, groupmembers FROM calgroup
 WHERE id = ?
@@ -38,6 +49,50 @@ ORDER BY created_at DESC
 
 func (q *Queries) ListCalGroups(ctx context.Context) ([]Calgroup, error) {
 	rows, err := q.db.QueryContext(ctx, listCalGroups)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Calgroup
+	for rows.Next() {
+		var i Calgroup
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Groupname,
+			&i.Groupfacility,
+			&i.Groupfrequency,
+			&i.Grouplength,
+			&i.Groupmembers,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCalGroupsPaginated = `-- name: ListCalGroupsPaginated :many
+SELECT id, created_at, updated_at, deleted_at, groupname, groupfacility, groupfrequency, grouplength, groupmembers FROM calgroup
+ORDER BY created_at DESC
+LIMIT ? OFFSET ?
+`
+
+type ListCalGroupsPaginatedParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ListCalGroupsPaginated(ctx context.Context, arg ListCalGroupsPaginatedParams) ([]Calgroup, error) {
+	rows, err := q.db.QueryContext(ctx, listCalGroupsPaginated, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

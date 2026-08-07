@@ -33,7 +33,7 @@ func patientReferralsList(r *gin.Context) {
 	referrals, err := model.Queries.ListReferrals(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -50,20 +50,20 @@ func patientReferralsCreate(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Printf("patientReferralsCreate: failed to get session: %v", err)
-		r.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(r, http.StatusUnauthorized, err)
 		return
 	}
 
 	var input ReferralInput
 	if err := r.BindJSON(&input); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
 	dateReferred, err := common.ParseDate(input.DateReferred)
 	if err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -83,7 +83,7 @@ func patientReferralsCreate(r *gin.Context) {
 	result, err := model.Queries.CreateReferral(r.Request.Context(), params)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

@@ -26,21 +26,6 @@ func (q *Queries) AddGroupPermission(ctx context.Context, arg AddGroupPermission
 	return err
 }
 
-const addUserToGroup = `-- name: AddUserToGroup :exec
-INSERT INTO user_groups (user_id, group_id, created_at, updated_at)
-VALUES (?, ?, NOW(), NOW())
-`
-
-type AddUserToGroupParams struct {
-	UserID  int64 `json:"user_id"`
-	GroupID int64 `json:"group_id"`
-}
-
-func (q *Queries) AddUserToGroup(ctx context.Context, arg AddUserToGroupParams) error {
-	_, err := q.db.ExecContext(ctx, addUserToGroup, arg.UserID, arg.GroupID)
-	return err
-}
-
 const createGroup = `-- name: CreateGroup :execresult
 INSERT INTO usergroup (groupname, groupdescrip, created_at, updated_at)
 VALUES (?, ?, NOW(), NOW())
@@ -304,45 +289,6 @@ func (q *Queries) ListPermissions(ctx context.Context) ([]ListPermissionsRow, er
 	return items, nil
 }
 
-const listUserGroups = `-- name: ListUserGroups :many
-
-SELECT ug.group_id, g.groupname, g.groupdescrip
-FROM user_groups ug
-JOIN usergroup g ON ug.group_id = g.id
-WHERE ug.user_id = ?
-ORDER BY g.groupname
-`
-
-type ListUserGroupsRow struct {
-	GroupID      int64  `json:"group_id"`
-	Groupname    string `json:"groupname"`
-	Groupdescrip string `json:"groupdescrip"`
-}
-
-// User-Group Assignments
-func (q *Queries) ListUserGroups(ctx context.Context, userID int64) ([]ListUserGroupsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listUserGroups, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ListUserGroupsRow
-	for rows.Next() {
-		var i ListUserGroupsRow
-		if err := rows.Scan(&i.GroupID, &i.Groupname, &i.Groupdescrip); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const removeGroupPermission = `-- name: RemoveGroupPermission :exec
 DELETE FROM group_permissions
 WHERE group_id = ? AND permission_id = ?
@@ -355,21 +301,6 @@ type RemoveGroupPermissionParams struct {
 
 func (q *Queries) RemoveGroupPermission(ctx context.Context, arg RemoveGroupPermissionParams) error {
 	_, err := q.db.ExecContext(ctx, removeGroupPermission, arg.GroupID, arg.PermissionID)
-	return err
-}
-
-const removeUserFromGroup = `-- name: RemoveUserFromGroup :exec
-DELETE FROM user_groups
-WHERE user_id = ? AND group_id = ?
-`
-
-type RemoveUserFromGroupParams struct {
-	UserID  int64 `json:"user_id"`
-	GroupID int64 `json:"group_id"`
-}
-
-func (q *Queries) RemoveUserFromGroup(ctx context.Context, arg RemoveUserFromGroupParams) error {
-	_, err := q.db.ExecContext(ctx, removeUserFromGroup, arg.UserID, arg.GroupID)
 	return err
 }
 

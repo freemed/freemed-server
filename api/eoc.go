@@ -24,7 +24,7 @@ type eocInput struct {
 func patientEOCsList(r *gin.Context) {
 	id := r.Param("id")
 	if id == "" {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -32,7 +32,7 @@ func patientEOCsList(r *gin.Context) {
 	eocs, err := model.Queries.ListEOCs(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -43,7 +43,7 @@ func patientEOCsList(r *gin.Context) {
 func patientEOCCreate(r *gin.Context) {
 	id := r.Param("id")
 	if id == "" {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -51,14 +51,14 @@ func patientEOCCreate(r *gin.Context) {
 
 	var in eocInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
 	sess, err := common.GetSession(r)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -79,14 +79,14 @@ func patientEOCCreate(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
 	newID, err := result.LastInsertId()
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

@@ -16,6 +16,7 @@
   const { form, errors, enhance, submitting } = superForm(
     { username: '', password: '' },
     {
+      // @ts-expect-error - zod v3.25.76 format() return type mismatch with superforms adapter types
       validators: zodClient(loginSchema),
       onSubmit: async ({ formData, cancel }) => {
         serverError = '';

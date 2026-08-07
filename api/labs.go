@@ -41,7 +41,7 @@ func patientLabsList(r *gin.Context) {
 	labs, err := model.Queries.ListLabs(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -58,19 +58,19 @@ func patientLabsCreate(r *gin.Context) {
 
 	var in labInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
 	labDate, err := common.ParseDate(in.LabDate)
 	if err != nil {
-		r.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid date format, use YYYY-MM-DD"})
+		common.ErrorResponse(r, http.StatusBadRequest, "invalid date format, use YYYY-MM-DD")
 		return
 	}
 
 	sess, err := common.GetSession(r)
 	if err != nil {
-		r.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -87,14 +87,14 @@ func patientLabsCreate(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
 	newID, err := result.LastInsertId()
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

@@ -14,7 +14,7 @@ import (
 func patientImmunizationsList(r *gin.Context) {
 	id := r.Param("id")
 	if id == "" {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -22,7 +22,7 @@ func patientImmunizationsList(r *gin.Context) {
 	immunizations, err := model.Queries.ListImmunizations(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -47,19 +47,19 @@ type immunizationInput struct {
 func patientImmunizationsCreate(r *gin.Context) {
 	patientID := common.ParseInt(r.Param("id"))
 	if patientID == 0 {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	var in immunizationInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
 	dateof, err := common.ParseDate(in.Dateof)
 	if err != nil {
-		r.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid date format, use YYYY-MM-DD"})
+		common.ErrorResponse(r, http.StatusBadRequest, "invalid date format, use YYYY-MM-DD")
 		return
 	}
 
@@ -80,14 +80,14 @@ func patientImmunizationsCreate(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
 	newID, err := result.LastInsertId()
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

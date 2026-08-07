@@ -38,7 +38,7 @@ func unfiledDocsList(r *gin.Context) {
 	rows, err := model.Queries.ListUnfiledDocs(r.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, rows)
@@ -49,7 +49,7 @@ func unfiledDocsCount(r *gin.Context) {
 	count, err := model.Queries.CountUnfiledDocs(r.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, gin.H{"count": count})
@@ -63,13 +63,13 @@ type assignUnfiledDocInput struct {
 func unfiledDocAssign(r *gin.Context) {
 	id := common.ParseInt(r.Param("id"))
 	if id == 0 {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	var in assignUnfiledDocInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -79,7 +79,7 @@ func unfiledDocAssign(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -90,7 +90,7 @@ func unfiledDocAssign(r *gin.Context) {
 func unfiledDocSplit(r *gin.Context) {
 	id := common.ParseInt(r.Param("id"))
 	if id == 0 {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -111,7 +111,7 @@ func unreadDocsList(r *gin.Context) {
 	rows, err := model.Queries.ListUnreadDocs(r.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, rows)
@@ -122,7 +122,7 @@ func unreadDocsCount(r *gin.Context) {
 	count, err := model.Queries.CountUnreadDocs(r.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, gin.H{"count": count})
@@ -132,14 +132,14 @@ func unreadDocsCount(r *gin.Context) {
 func unreadDocReview(r *gin.Context) {
 	id := common.ParseInt(r.Param("id"))
 	if id == 0 {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	err := model.Queries.ReviewUnreadDoc(r.Request.Context(), id)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -154,13 +154,13 @@ type reassignUnreadDocInput struct {
 func unreadDocReassign(r *gin.Context) {
 	id := common.ParseInt(r.Param("id"))
 	if id == 0 {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	var in reassignUnreadDocInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -170,7 +170,7 @@ func unreadDocReassign(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

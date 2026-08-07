@@ -38,7 +38,7 @@ func (q *Queries) CheckDuplicateUsername(ctx context.Context, username string) (
 }
 
 const checkUserPassword = `-- name: CheckUserPassword :one
-SELECT id, created_at, updated_at, deleted_at, username, userpassword, usertype, userrealphy, userfname, usermname, userlname, userdescrip, userlevel, userfac, userphy, userphygrp, usermanageopt, useremail, usersms, usersmsprovider, usertitle FROM user
+SELECT id, created_at, updated_at, deleted_at, username, userpassword, userpassword_bcrypt, usertype, userrealphy, userfname, usermname, userlname, userdescrip, userlevel, userfac, userphy, userphygrp, usermanageopt, useremail, usersms, usersmsprovider, usertitle FROM user
 WHERE username = ?
   AND userpassword = ?
 `
@@ -58,6 +58,7 @@ func (q *Queries) CheckUserPassword(ctx context.Context, arg CheckUserPasswordPa
 		&i.DeletedAt,
 		&i.Username,
 		&i.Userpassword,
+		&i.UserpasswordBcrypt,
 		&i.Usertype,
 		&i.Userrealphy,
 		&i.Userfname,
@@ -115,7 +116,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, created_at, updated_at, deleted_at, username, userpassword, usertype, userrealphy, userfname, usermname, userlname, userdescrip, userlevel, userfac, userphy, userphygrp, usermanageopt, useremail, usersms, usersmsprovider, usertitle FROM user WHERE id = ?
+SELECT id, created_at, updated_at, deleted_at, username, userpassword, userpassword_bcrypt, usertype, userrealphy, userfname, usermname, userlname, userdescrip, userlevel, userfac, userphy, userphygrp, usermanageopt, useremail, usersms, usersmsprovider, usertitle FROM user WHERE id = ?
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
@@ -128,6 +129,7 @@ func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
 		&i.DeletedAt,
 		&i.Username,
 		&i.Userpassword,
+		&i.UserpasswordBcrypt,
 		&i.Usertype,
 		&i.Userrealphy,
 		&i.Userfname,
@@ -148,7 +150,7 @@ func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, created_at, updated_at, deleted_at, username, userpassword, usertype, userrealphy, userfname, usermname, userlname, userdescrip, userlevel, userfac, userphy, userphygrp, usermanageopt, useremail, usersms, usersmsprovider, usertitle FROM user WHERE username = ?
+SELECT id, created_at, updated_at, deleted_at, username, userpassword, userpassword_bcrypt, usertype, userrealphy, userfname, usermname, userlname, userdescrip, userlevel, userfac, userphy, userphygrp, usermanageopt, useremail, usersms, usersmsprovider, usertitle FROM user WHERE username = ?
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
@@ -161,6 +163,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.DeletedAt,
 		&i.Username,
 		&i.Userpassword,
+		&i.UserpasswordBcrypt,
 		&i.Usertype,
 		&i.Userrealphy,
 		&i.Userfname,

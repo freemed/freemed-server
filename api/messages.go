@@ -38,7 +38,7 @@ func messagesListUsers(r *gin.Context) {
 	rows, err := model.Queries.MessagesListUsers(r.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	// Convert dbgen rows to messagesUserObj for API response
@@ -53,7 +53,7 @@ func messagesView(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -67,85 +67,119 @@ func messagesView(r *gin.Context) {
 		patient = 0
 	}
 
+	offset := common.ParseInt(r.DefaultQuery("offset", "0"))
+	limit := common.ParseInt(r.DefaultQuery("limit", "50"))
+
+	var messages interface{}
 	if patient != 0 {
 		if unreadOnly {
-			o, err := model.Queries.MessagesViewUnreadForPatient(r.Request.Context(), dbgen.MessagesViewUnreadForPatientParams{
+			messages, err = model.Queries.MessagesViewUnreadForPatient(r.Request.Context(), dbgen.MessagesViewUnreadForPatientParams{
 				PatientID: patient,
 				UserID:    session.UserId,
 			})
-			if err != nil {
-				log.Print(err.Error())
-				r.AbortWithError(http.StatusInternalServerError, err)
-				return
-			}
-			r.JSON(http.StatusOK, o)
-			return
+		} else {
+			messages, err = model.Queries.MessagesViewForPatient(r.Request.Context(), dbgen.MessagesViewForPatientParams{
+				PatientID: patient,
+				UserID:    session.UserId,
+			})
 		}
-		o, err := model.Queries.MessagesViewForPatient(r.Request.Context(), dbgen.MessagesViewForPatientParams{
-			PatientID: patient,
-			UserID:    session.UserId,
-		})
-		if err != nil {
-			log.Print(err.Error())
-			r.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-		r.JSON(http.StatusOK, o)
+	} else if unreadOnly {
+		messages, err = model.Queries.MessagesViewUnreadForUser(r.Request.Context(), session.UserId)
+	} else {
+		messages, err = model.Queries.MessagesViewForUser(r.Request.Context(), session.UserId)
+	}
+
+	if err != nil {
+		log.Print(err.Error())
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
-	if unreadOnly {
-		o, err := model.Queries.MessagesViewUnreadForUser(r.Request.Context(), session.UserId)
-		if err != nil {
-			log.Print(err.Error())
-			r.AbortWithError(http.StatusInternalServerError, err)
-			return
+	// Apply pagination via slice operations
+	all := messagesToSlice(messages)
+	total := int64(len(all))
+	start := offset
+	if start > total {
+		start = total
+	}
+	end := start + limit
+	if end > total {
+		end = total
+	}
+
+	r.JSON(http.StatusOK, gin.H{
+		"data":   all[start:end],
+		"total":  total,
+		"offset": offset,
+		"limit":  limit,
+	})
+}
+
+// messagesToSlice converts sqlc message result types to []interface{} for pagination.
+func messagesToSlice(messages interface{}) []interface{} {
+	switch v := messages.(type) {
+	case []dbgen.MessagesViewForUserRow:
+		out := make([]interface{}, len(v))
+		for i, row := range v {
+			out[i] = row
 		}
-		r.JSON(http.StatusOK, o)
-		return
+		return out
+	case []dbgen.MessagesViewUnreadForUserRow:
+		out := make([]interface{}, len(v))
+		for i, row := range v {
+			out[i] = row
+		}
+		return out
+	case []dbgen.MessagesViewForPatientRow:
+		out := make([]interface{}, len(v))
+		for i, row := range v {
+			out[i] = row
+		}
+		return out
+	case []dbgen.MessagesViewUnreadForPatientRow:
+		out := make([]interface{}, len(v))
+		for i, row := range v {
+			out[i] = row
+		}
+		return out
+	default:
+		return []interface{}{}
 	}
-	o, err := model.Queries.MessagesViewForUser(r.Request.Context(), session.UserId)
-	if err != nil {
-		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	r.JSON(http.StatusOK, o)
 }
 
 func messageGet(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
 	idString := r.Param("id")
 	if idString == "" {
 		log.Print("MessageGet(): No id provided")
-		r.AbortWithStatus(http.StatusInternalServerError)
+		common.ErrorResponse(r, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
 	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
 	msg, err := model.MessageById(id)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
 	// Access control: do not allow access from other user
 	if msg.Msgfor != session.UserId {
 		log.Print("MessageGet(): not allowed")
-		r.AbortWithError(http.StatusBadRequest, fmt.Errorf("not allowed"))
+		common.ErrorResponse(r, http.StatusBadRequest, "not allowed")
 		return
 	}
 
@@ -156,14 +190,14 @@ func messageSend(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	log.Printf("MessageSend(): user=%d", session.UserId)
 
 	var msg model.MessagesModel
 	if err = r.BindJSON(&msg); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -179,7 +213,7 @@ func messageSend(r *gin.Context) {
 	err = model.MessageSend(msg)
 	if err != nil {
 		log.Print(err)
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -191,7 +225,7 @@ func messagesListTags(r *gin.Context) {
 	tags, err := model.Queries.ListMessageTags(r.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	// Convert []sql.NullString to []string, skipping empty/nil
@@ -214,7 +248,7 @@ func messagesByTag(r *gin.Context) {
 	messages, err := model.Queries.MessagesByTag(r.Request.Context(), sql.NullString{String: tag, Valid: true})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, messages)
@@ -228,7 +262,7 @@ type messagesDeleteRequest struct {
 func messagesDelete(r *gin.Context) {
 	var req messagesDeleteRequest
 	if err := r.BindJSON(&req); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 	if len(req.IDs) == 0 {
@@ -237,7 +271,7 @@ func messagesDelete(r *gin.Context) {
 	}
 	if err := model.Queries.DeleteMessages(r.Request.Context(), req.IDs); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, true)

@@ -36,7 +36,7 @@ func patientTagsList(r *gin.Context) {
 	tags, err := model.Queries.ListTags(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -54,14 +54,14 @@ func patientTagsCreate(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Printf("patientTagsCreate: failed to get session: %v", err)
-		r.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(r, http.StatusUnauthorized, err)
 		return
 	}
 
 	var input TagsInput
 	if err := r.BindJSON(&input); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -74,7 +74,7 @@ func patientTagsCreate(r *gin.Context) {
 	result, err := model.Queries.CreateTag(r.Request.Context(), params)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -93,7 +93,7 @@ func patientTagsExpire(r *gin.Context) {
 	tagID := common.ParseInt(tagIDStr)
 	if err := model.Queries.ExpireTag(r.Request.Context(), tagID); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -111,7 +111,7 @@ func tagsSearch(r *gin.Context) {
 	results, err := model.Queries.SearchByTag(r.Request.Context(), q)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

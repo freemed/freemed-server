@@ -360,12 +360,20 @@
 <div class="max-w-7xl mx-auto">
 	<div class="flex items-center justify-between mb-6">
 		<h1 class="text-2xl font-bold text-gray-900">Scheduler</h1>
-		<button
-			onclick={() => (showNewForm = true)}
-			class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-		>
-			+ New Appointment
-		</button>
+		<div class="flex items-center gap-2">
+			<a
+				href="/scheduler/templates"
+				class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+			>
+				Templates
+			</a>
+			<button
+				onclick={() => (showNewForm = true)}
+				class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+			>
+				+ New Appointment
+			</button>
+		</div>
 	</div>
 
 	<Calendar

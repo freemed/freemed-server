@@ -2,7 +2,6 @@ package api
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -54,6 +53,8 @@ func schedulerDailyApptRange(c *gin.Context) {
 		return
 	}
 	provider := common.ParseInt(c.Query("provider"))
+	offset := common.ParseInt(c.DefaultQuery("offset", "0"))
+	limit := common.ParseInt(c.DefaultQuery("limit", "100"))
 
 	if provider > 0 {
 		out, err := model.Queries.SchedulerDailyApptRangeByProvider(c.Request.Context(), dbgen.SchedulerDailyApptRangeByProviderParams{
@@ -63,10 +64,10 @@ func schedulerDailyApptRange(c *gin.Context) {
 		})
 		if err != nil {
 			log.Print(err.Error())
-			c.AbortWithError(http.StatusInternalServerError, err)
+			common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 			return
 		}
-		c.JSON(http.StatusOK, out)
+		c.JSON(http.StatusOK, paginateSchedulerRange(out, offset, limit))
 		return
 	}
 
@@ -76,10 +77,43 @@ func schedulerDailyApptRange(c *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, out)
+	c.JSON(http.StatusOK, paginateSchedulerRange(out, offset, limit))
+}
+
+// paginateSchedulerRange wraps a scheduler result slice in a paginated envelope.
+func paginateSchedulerRange(data interface{}, offset, limit int64) gin.H {
+	type schedulerRangeRow struct {
+		ID int64 `json:"id"`
+	}
+	switch v := data.(type) {
+	case []dbgen.SchedulerDailyApptRangeRow:
+		return paginateSlice(v, offset, limit)
+	case []dbgen.SchedulerDailyApptRangeByProviderRow:
+		return paginateSlice(v, offset, limit)
+	}
+	return gin.H{"data": data, "total": 0, "offset": offset, "limit": limit}
+}
+
+// paginateSlice applies offset/limit to a generic slice and returns a gin.H envelope.
+func paginateSlice[T any](data []T, offset, limit int64) gin.H {
+	total := int64(len(data))
+	start := offset
+	if start > total {
+		start = total
+	}
+	end := start + limit
+	if end > total {
+		end = total
+	}
+	return gin.H{
+		"data":   data[start:end],
+		"total":  total,
+		"offset": offset,
+		"limit":  limit,
+	}
 }
 
 func schedulerDailyApptScheduler(c *gin.Context) {
@@ -90,7 +124,7 @@ func schedulerDailyApptScheduler(c *gin.Context) {
 	dt, err := common.ParseDate(c.Param("date"))
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 	provider, _ := strconv.ParseInt(c.Query("provider"), 10, 64)
@@ -104,7 +138,7 @@ func schedulerDailyApptScheduler(c *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, out)
@@ -114,7 +148,7 @@ func schedulerFindDateAppt(c *gin.Context) {
 	dt, err := common.ParseDate(c.Param("date"))
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 	provider, _ := strconv.ParseInt(c.Query("provider"), 10, 64)
@@ -126,7 +160,7 @@ func schedulerFindDateAppt(c *gin.Context) {
 		})
 		if err != nil {
 			log.Print(err.Error())
-			c.AbortWithError(http.StatusInternalServerError, err)
+			common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 			return
 		}
 		c.JSON(http.StatusOK, out)
@@ -136,7 +170,7 @@ func schedulerFindDateAppt(c *gin.Context) {
 	out, err := model.Queries.SchedulerFindDateAppt(c.Request.Context(), dt)
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, out)
@@ -145,14 +179,14 @@ func schedulerFindDateAppt(c *gin.Context) {
 func schedulerGetEvent(c *gin.Context) {
 	id := common.ParseInt(c.Param("id"))
 	if id == 0 {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("invalid id presented"))
+		common.ErrorResponse(c, http.StatusBadRequest, "invalid id presented")
 		return
 	}
 
 	out, err := model.Queries.SchedulerGetEvent(c.Request.Context(), id)
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	log.Printf("%#v", out)
@@ -162,7 +196,7 @@ func schedulerGetEvent(c *gin.Context) {
 func schedulerReschedule(c *gin.Context) {
 	id := common.ParseInt(c.Param("id"))
 	if id < 1 {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("bad event id"))
+		common.ErrorResponse(c, http.StatusBadRequest, "bad event id")
 		return
 	}
 
@@ -176,14 +210,14 @@ func schedulerReschedule(c *gin.Context) {
 	err := c.ShouldBind(&info)
 	if err != nil {
 		log.Printf("schedulerReschedule(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	eventObj, err := model.Queries.GetSchedulerById(c.Request.Context(), id)
 	if err != nil {
 		log.Printf("schedulerReschedule(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -216,7 +250,7 @@ func schedulerReschedule(c *gin.Context) {
 	})
 	if err != nil {
 		log.Printf("schedulerReschedule(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -230,7 +264,7 @@ func mysqlDateFormat(t time.Time) string {
 func schedulerCancelAppointment(c *gin.Context) {
 	id := common.ParseInt(c.Param("id"))
 	if id < 1 {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("bad event id"))
+		common.ErrorResponse(c, http.StatusBadRequest, "bad event id")
 		return
 	}
 
@@ -239,7 +273,7 @@ func schedulerCancelAppointment(c *gin.Context) {
 		time.Now(), id)
 	if err != nil {
 		log.Printf("schedulerCancelAppointment(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -251,7 +285,7 @@ func schedulerCreateAppointment(c *gin.Context) {
 	session, err := common.GetSession(c)
 	if err != nil {
 		log.Printf("schedulerCreateAppointment: failed to get session: %v", err)
-		c.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(c, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -267,7 +301,7 @@ func schedulerCreateAppointment(c *gin.Context) {
 	}
 	if err := c.ShouldBind(&input); err != nil {
 		log.Printf("schedulerCreateAppointment: bind error: %v", err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 	if input.Type == "" {
@@ -276,7 +310,7 @@ func schedulerCreateAppointment(c *gin.Context) {
 
 	calDateOf, err := common.ParseDate(input.Date)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -293,7 +327,7 @@ func schedulerCreateAppointment(c *gin.Context) {
 	})
 	if err != nil {
 		log.Printf("schedulerCreateAppointment: ERROR: %s", err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -305,7 +339,7 @@ func schedulerCreateAppointment(c *gin.Context) {
 func schedulerCopyAppointment(c *gin.Context) {
 	id := common.ParseInt(c.Param("id"))
 	if id < 1 {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("bad event id"))
+		common.ErrorResponse(c, http.StatusBadRequest, "bad event id")
 		return
 	}
 
@@ -316,13 +350,13 @@ func schedulerCopyAppointment(c *gin.Context) {
 	}
 	if err := c.ShouldBind(&input); err != nil {
 		log.Printf("schedulerCopyAppointment: bind error: %v", err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	calDateOf, err := common.ParseDate(input.Date)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -334,7 +368,7 @@ func schedulerCopyAppointment(c *gin.Context) {
 	})
 	if err != nil {
 		log.Printf("schedulerCopyAppointment(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -347,7 +381,7 @@ func schedulerCreateGroupAppointment(c *gin.Context) {
 	session, err := common.GetSession(c)
 	if err != nil {
 		log.Printf("schedulerCreateGroupAppointment: failed to get session: %v", err)
-		c.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(c, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -364,13 +398,13 @@ func schedulerCreateGroupAppointment(c *gin.Context) {
 	}
 	if err := c.ShouldBind(&input); err != nil {
 		log.Printf("schedulerCreateGroupAppointment: bind error: %v", err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	calDateOf, err := common.ParseDate(input.Date)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -393,7 +427,7 @@ func schedulerCreateGroupAppointment(c *gin.Context) {
 	})
 	if err != nil {
 		log.Printf("schedulerCreateGroupAppointment: ERROR: %s", err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -405,14 +439,14 @@ func schedulerCreateGroupAppointment(c *gin.Context) {
 func schedulerFindGroupAppointments(c *gin.Context) {
 	id := common.ParseInt(c.Param("id"))
 	if id < 1 {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("bad group id"))
+		common.ErrorResponse(c, http.StatusBadRequest, "bad group id")
 		return
 	}
 
 	rows, err := model.Queries.FindGroupAppointments(c.Request.Context(), id)
 	if err != nil {
 		log.Printf("schedulerFindGroupAppointments(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -425,7 +459,7 @@ func schedulerCreateRecurringAppointments(c *gin.Context) {
 	session, err := common.GetSession(c)
 	if err != nil {
 		log.Printf("schedulerCreateRecurringAppointments: failed to get session: %v", err)
-		c.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(c, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -435,7 +469,7 @@ func schedulerCreateRecurringAppointments(c *gin.Context) {
 	}
 	if err := c.ShouldBind(&input); err != nil {
 		log.Printf("schedulerCreateRecurringAppointments: bind error: %v", err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -444,7 +478,7 @@ func schedulerCreateRecurringAppointments(c *gin.Context) {
 		calDateOf, err := common.ParseDate(dateStr)
 		if err != nil {
 			log.Printf("schedulerCreateRecurringAppointments: invalid date %q: %v", dateStr, err)
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("invalid date %q: %w", dateStr, err))
+			common.ErrorResponse(c, http.StatusBadRequest, "invalid date %q: %w")
 			return
 		}
 
@@ -455,7 +489,7 @@ func schedulerCreateRecurringAppointments(c *gin.Context) {
 		})
 		if err != nil {
 			log.Printf("schedulerCreateRecurringAppointments(id=%d): ERROR: %s", input.ID, err.Error())
-			c.AbortWithError(http.StatusInternalServerError, err)
+			common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 			return
 		}
 		createdIDs = append(createdIDs, input.ID) // sqlc :exec doesn't return LastInsertId

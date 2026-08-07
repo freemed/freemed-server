@@ -32,7 +32,7 @@ func patientWorkflowStatusList(r *gin.Context) {
 	if dateStr != "" {
 		statusDate, err := common.ParseDate(dateStr)
 		if err != nil {
-			r.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid date format, use YYYY-MM-DD"})
+			common.ErrorResponse(r, http.StatusBadRequest, "invalid date format, use YYYY-MM-DD")
 			return
 		}
 		rows, err := model.Queries.ListWorkflowStatusForDate(r.Request.Context(), dbgen.ListWorkflowStatusForDateParams{
@@ -82,7 +82,7 @@ func patientWorkflowStatusCreate(r *gin.Context) {
 	if in.Stamp != "" {
 		stamp, err = common.ParseDate(in.Stamp)
 		if err != nil {
-			r.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid date format, use YYYY-MM-DD"})
+			common.ErrorResponse(r, http.StatusBadRequest, "invalid date format, use YYYY-MM-DD")
 			return
 		}
 	} else {

@@ -12,6 +12,80 @@ import (
 	"time"
 )
 
+const countMessagesForPatient = `-- name: CountMessagesForPatient :one
+SELECT COUNT(*) AS total
+FROM messages m
+WHERE (m.msgtag IS NULL OR LENGTH(m.msgtag) < 1)
+  AND m.msgpatient = ?
+  AND m.msgfor = ?
+`
+
+type CountMessagesForPatientParams struct {
+	PatientID int64 `json:"patient_id"`
+	UserID    int64 `json:"user_id"`
+}
+
+// Count messages: all messages for a specific patient/user
+func (q *Queries) CountMessagesForPatient(ctx context.Context, arg CountMessagesForPatientParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countMessagesForPatient, arg.PatientID, arg.UserID)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
+const countMessagesForUser = `-- name: CountMessagesForUser :one
+SELECT COUNT(*) AS total
+FROM messages m
+WHERE (m.msgtag IS NULL OR LENGTH(m.msgtag) < 1)
+  AND m.msgfor = ?
+`
+
+// Count messages: all messages for a user
+func (q *Queries) CountMessagesForUser(ctx context.Context, userID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countMessagesForUser, userID)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
+const countMessagesUnreadForPatient = `-- name: CountMessagesUnreadForPatient :one
+SELECT COUNT(*) AS total
+FROM messages m
+WHERE (m.msgtag IS NULL OR LENGTH(m.msgtag) < 1)
+  AND m.msgpatient = ?
+  AND m.msgread = 0
+  AND m.msgby = ?
+`
+
+type CountMessagesUnreadForPatientParams struct {
+	PatientID int64 `json:"patient_id"`
+	UserID    int64 `json:"user_id"`
+}
+
+// Count messages: unread messages for a specific patient/user
+func (q *Queries) CountMessagesUnreadForPatient(ctx context.Context, arg CountMessagesUnreadForPatientParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countMessagesUnreadForPatient, arg.PatientID, arg.UserID)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
+const countMessagesUnreadForUser = `-- name: CountMessagesUnreadForUser :one
+SELECT COUNT(*) AS total
+FROM messages m
+WHERE (m.msgtag IS NULL OR LENGTH(m.msgtag) < 1)
+  AND m.msgfor = ?
+  AND m.msgread = 0
+`
+
+// Count messages: unread messages for a user
+func (q *Queries) CountMessagesUnreadForUser(ctx context.Context, userID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countMessagesUnreadForUser, userID)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const deleteMessages = `-- name: DeleteMessages :exec
 DELETE FROM messages WHERE id IN (/*SLICE:ids*/?)
 `
@@ -222,6 +296,96 @@ func (q *Queries) MessagesViewForPatient(ctx context.Context, arg MessagesViewFo
 	return items, nil
 }
 
+const messagesViewForPatientPaginated = `-- name: MessagesViewForPatientPaginated :many
+SELECT
+  m.id, m.created_at, m.updated_at, m.deleted_at, m.msgby, m.sender, m.msgtime, m.msgfor, m.msgrecip, m.msgpatient, m.msgperson, m.msgurgency, m.msgsubject, m.msgtext, m.msgread, m.msgunique, m.msgtag, m.active,
+  u.userdescrip AS sender
+FROM messages m
+LEFT OUTER JOIN user u ON u.id = m.msgby
+WHERE (m.msgtag IS NULL OR LENGTH(m.msgtag) < 1)
+  AND m.msgpatient = ?
+  AND m.msgfor = ?
+LIMIT ? OFFSET ?
+`
+
+type MessagesViewForPatientPaginatedParams struct {
+	PatientID int64 `json:"patient_id"`
+	UserID    int64 `json:"user_id"`
+	Limit     int32 `json:"limit"`
+	Offset    int32 `json:"offset"`
+}
+
+type MessagesViewForPatientPaginatedRow struct {
+	ID         int64          `json:"id"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  sql.NullTime   `json:"deleted_at"`
+	Msgby      int64          `json:"msgby"`
+	Sender     string         `json:"sender"`
+	Msgtime    time.Time      `json:"msgtime"`
+	Msgfor     int64          `json:"msgfor"`
+	Msgrecip   string         `json:"msgrecip"`
+	Msgpatient int64          `json:"msgpatient"`
+	Msgperson  string         `json:"msgperson"`
+	Msgurgency int64          `json:"msgurgency"`
+	Msgsubject string         `json:"msgsubject"`
+	Msgtext    string         `json:"msgtext"`
+	Msgread    int64          `json:"msgread"`
+	Msgunique  sql.NullString `json:"msgunique"`
+	Msgtag     sql.NullString `json:"msgtag"`
+	Active     string         `json:"active"`
+	Sender_2   sql.NullString `json:"sender_2"`
+}
+
+// Paginated messages: all messages for a specific patient/user
+func (q *Queries) MessagesViewForPatientPaginated(ctx context.Context, arg MessagesViewForPatientPaginatedParams) ([]MessagesViewForPatientPaginatedRow, error) {
+	rows, err := q.db.QueryContext(ctx, messagesViewForPatientPaginated,
+		arg.PatientID,
+		arg.UserID,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MessagesViewForPatientPaginatedRow
+	for rows.Next() {
+		var i MessagesViewForPatientPaginatedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Msgby,
+			&i.Sender,
+			&i.Msgtime,
+			&i.Msgfor,
+			&i.Msgrecip,
+			&i.Msgpatient,
+			&i.Msgperson,
+			&i.Msgurgency,
+			&i.Msgsubject,
+			&i.Msgtext,
+			&i.Msgread,
+			&i.Msgunique,
+			&i.Msgtag,
+			&i.Active,
+			&i.Sender_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const messagesViewForUser = `-- name: MessagesViewForUser :many
 SELECT
   m.id, m.created_at, m.updated_at, m.deleted_at, m.msgby, m.sender, m.msgtime, m.msgfor, m.msgrecip, m.msgpatient, m.msgperson, m.msgurgency, m.msgsubject, m.msgtext, m.msgread, m.msgunique, m.msgtag, m.active,
@@ -264,6 +428,89 @@ func (q *Queries) MessagesViewForUser(ctx context.Context, userID int64) ([]Mess
 	var items []MessagesViewForUserRow
 	for rows.Next() {
 		var i MessagesViewForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Msgby,
+			&i.Sender,
+			&i.Msgtime,
+			&i.Msgfor,
+			&i.Msgrecip,
+			&i.Msgpatient,
+			&i.Msgperson,
+			&i.Msgurgency,
+			&i.Msgsubject,
+			&i.Msgtext,
+			&i.Msgread,
+			&i.Msgunique,
+			&i.Msgtag,
+			&i.Active,
+			&i.Sender_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const messagesViewForUserPaginated = `-- name: MessagesViewForUserPaginated :many
+SELECT
+  m.id, m.created_at, m.updated_at, m.deleted_at, m.msgby, m.sender, m.msgtime, m.msgfor, m.msgrecip, m.msgpatient, m.msgperson, m.msgurgency, m.msgsubject, m.msgtext, m.msgread, m.msgunique, m.msgtag, m.active,
+  u.userdescrip AS sender
+FROM messages m
+LEFT OUTER JOIN user u ON u.id = m.msgby
+WHERE (m.msgtag IS NULL OR LENGTH(m.msgtag) < 1)
+  AND m.msgfor = ?
+LIMIT ? OFFSET ?
+`
+
+type MessagesViewForUserPaginatedParams struct {
+	UserID int64 `json:"user_id"`
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type MessagesViewForUserPaginatedRow struct {
+	ID         int64          `json:"id"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  sql.NullTime   `json:"deleted_at"`
+	Msgby      int64          `json:"msgby"`
+	Sender     string         `json:"sender"`
+	Msgtime    time.Time      `json:"msgtime"`
+	Msgfor     int64          `json:"msgfor"`
+	Msgrecip   string         `json:"msgrecip"`
+	Msgpatient int64          `json:"msgpatient"`
+	Msgperson  string         `json:"msgperson"`
+	Msgurgency int64          `json:"msgurgency"`
+	Msgsubject string         `json:"msgsubject"`
+	Msgtext    string         `json:"msgtext"`
+	Msgread    int64          `json:"msgread"`
+	Msgunique  sql.NullString `json:"msgunique"`
+	Msgtag     sql.NullString `json:"msgtag"`
+	Active     string         `json:"active"`
+	Sender_2   sql.NullString `json:"sender_2"`
+}
+
+// Paginated messages: all messages for a user
+func (q *Queries) MessagesViewForUserPaginated(ctx context.Context, arg MessagesViewForUserPaginatedParams) ([]MessagesViewForUserPaginatedRow, error) {
+	rows, err := q.db.QueryContext(ctx, messagesViewForUserPaginated, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MessagesViewForUserPaginatedRow
+	for rows.Next() {
+		var i MessagesViewForUserPaginatedRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatedAt,
@@ -381,6 +628,97 @@ func (q *Queries) MessagesViewUnreadForPatient(ctx context.Context, arg Messages
 	return items, nil
 }
 
+const messagesViewUnreadForPatientPaginated = `-- name: MessagesViewUnreadForPatientPaginated :many
+SELECT
+  m.id, m.created_at, m.updated_at, m.deleted_at, m.msgby, m.sender, m.msgtime, m.msgfor, m.msgrecip, m.msgpatient, m.msgperson, m.msgurgency, m.msgsubject, m.msgtext, m.msgread, m.msgunique, m.msgtag, m.active,
+  u.userdescrip AS sender
+FROM messages m
+LEFT OUTER JOIN user u ON u.id = m.msgby
+WHERE (m.msgtag IS NULL OR LENGTH(m.msgtag) < 1)
+  AND m.msgpatient = ?
+  AND m.msgread = 0
+  AND m.msgby = ?
+LIMIT ? OFFSET ?
+`
+
+type MessagesViewUnreadForPatientPaginatedParams struct {
+	PatientID int64 `json:"patient_id"`
+	UserID    int64 `json:"user_id"`
+	Limit     int32 `json:"limit"`
+	Offset    int32 `json:"offset"`
+}
+
+type MessagesViewUnreadForPatientPaginatedRow struct {
+	ID         int64          `json:"id"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  sql.NullTime   `json:"deleted_at"`
+	Msgby      int64          `json:"msgby"`
+	Sender     string         `json:"sender"`
+	Msgtime    time.Time      `json:"msgtime"`
+	Msgfor     int64          `json:"msgfor"`
+	Msgrecip   string         `json:"msgrecip"`
+	Msgpatient int64          `json:"msgpatient"`
+	Msgperson  string         `json:"msgperson"`
+	Msgurgency int64          `json:"msgurgency"`
+	Msgsubject string         `json:"msgsubject"`
+	Msgtext    string         `json:"msgtext"`
+	Msgread    int64          `json:"msgread"`
+	Msgunique  sql.NullString `json:"msgunique"`
+	Msgtag     sql.NullString `json:"msgtag"`
+	Active     string         `json:"active"`
+	Sender_2   sql.NullString `json:"sender_2"`
+}
+
+// Paginated messages: unread messages for a specific patient/user
+func (q *Queries) MessagesViewUnreadForPatientPaginated(ctx context.Context, arg MessagesViewUnreadForPatientPaginatedParams) ([]MessagesViewUnreadForPatientPaginatedRow, error) {
+	rows, err := q.db.QueryContext(ctx, messagesViewUnreadForPatientPaginated,
+		arg.PatientID,
+		arg.UserID,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MessagesViewUnreadForPatientPaginatedRow
+	for rows.Next() {
+		var i MessagesViewUnreadForPatientPaginatedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Msgby,
+			&i.Sender,
+			&i.Msgtime,
+			&i.Msgfor,
+			&i.Msgrecip,
+			&i.Msgpatient,
+			&i.Msgperson,
+			&i.Msgurgency,
+			&i.Msgsubject,
+			&i.Msgtext,
+			&i.Msgread,
+			&i.Msgunique,
+			&i.Msgtag,
+			&i.Active,
+			&i.Sender_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const messagesViewUnreadForUser = `-- name: MessagesViewUnreadForUser :many
 SELECT
   m.id, m.created_at, m.updated_at, m.deleted_at, m.msgby, m.sender, m.msgtime, m.msgfor, m.msgrecip, m.msgpatient, m.msgperson, m.msgurgency, m.msgsubject, m.msgtext, m.msgread, m.msgunique, m.msgtag, m.active,
@@ -424,6 +762,90 @@ func (q *Queries) MessagesViewUnreadForUser(ctx context.Context, userID int64) (
 	var items []MessagesViewUnreadForUserRow
 	for rows.Next() {
 		var i MessagesViewUnreadForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Msgby,
+			&i.Sender,
+			&i.Msgtime,
+			&i.Msgfor,
+			&i.Msgrecip,
+			&i.Msgpatient,
+			&i.Msgperson,
+			&i.Msgurgency,
+			&i.Msgsubject,
+			&i.Msgtext,
+			&i.Msgread,
+			&i.Msgunique,
+			&i.Msgtag,
+			&i.Active,
+			&i.Sender_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const messagesViewUnreadForUserPaginated = `-- name: MessagesViewUnreadForUserPaginated :many
+SELECT
+  m.id, m.created_at, m.updated_at, m.deleted_at, m.msgby, m.sender, m.msgtime, m.msgfor, m.msgrecip, m.msgpatient, m.msgperson, m.msgurgency, m.msgsubject, m.msgtext, m.msgread, m.msgunique, m.msgtag, m.active,
+  u.userdescrip AS sender
+FROM messages m
+LEFT OUTER JOIN user u ON u.id = m.msgby
+WHERE (m.msgtag IS NULL OR LENGTH(m.msgtag) < 1)
+  AND m.msgfor = ?
+  AND m.msgread = 0
+LIMIT ? OFFSET ?
+`
+
+type MessagesViewUnreadForUserPaginatedParams struct {
+	UserID int64 `json:"user_id"`
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type MessagesViewUnreadForUserPaginatedRow struct {
+	ID         int64          `json:"id"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  sql.NullTime   `json:"deleted_at"`
+	Msgby      int64          `json:"msgby"`
+	Sender     string         `json:"sender"`
+	Msgtime    time.Time      `json:"msgtime"`
+	Msgfor     int64          `json:"msgfor"`
+	Msgrecip   string         `json:"msgrecip"`
+	Msgpatient int64          `json:"msgpatient"`
+	Msgperson  string         `json:"msgperson"`
+	Msgurgency int64          `json:"msgurgency"`
+	Msgsubject string         `json:"msgsubject"`
+	Msgtext    string         `json:"msgtext"`
+	Msgread    int64          `json:"msgread"`
+	Msgunique  sql.NullString `json:"msgunique"`
+	Msgtag     sql.NullString `json:"msgtag"`
+	Active     string         `json:"active"`
+	Sender_2   sql.NullString `json:"sender_2"`
+}
+
+// Paginated messages: unread messages for a user
+func (q *Queries) MessagesViewUnreadForUserPaginated(ctx context.Context, arg MessagesViewUnreadForUserPaginatedParams) ([]MessagesViewUnreadForUserPaginatedRow, error) {
+	rows, err := q.db.QueryContext(ctx, messagesViewUnreadForUserPaginated, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MessagesViewUnreadForUserPaginatedRow
+	for rows.Next() {
+		var i MessagesViewUnreadForUserPaginatedRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatedAt,

@@ -16,13 +16,13 @@ func schedulerListBlockedSlots(c *gin.Context) {
 	date, err := common.ParseDate(c.Query("date"))
 	if err != nil {
 		log.Printf("schedulerListBlockedSlots: bad date: %v", err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	providerID, err := strconv.ParseInt(c.Query("provider_id"), 10, 64)
 	if err != nil || providerID < 1 {
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -32,7 +32,7 @@ func schedulerListBlockedSlots(c *gin.Context) {
 	})
 	if err != nil {
 		log.Printf("schedulerListBlockedSlots: ERROR: %s", err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -44,7 +44,7 @@ func schedulerCreateBlockedSlot(c *gin.Context) {
 	session, err := common.GetSession(c)
 	if err != nil {
 		log.Printf("schedulerCreateBlockedSlot: failed to get session: %v", err)
-		c.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(c, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -58,13 +58,13 @@ func schedulerCreateBlockedSlot(c *gin.Context) {
 	}
 	if err := c.ShouldBind(&input); err != nil {
 		log.Printf("schedulerCreateBlockedSlot: bind error: %v", err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	sbsDate, err := common.ParseDate(input.Date)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -79,7 +79,7 @@ func schedulerCreateBlockedSlot(c *gin.Context) {
 	})
 	if err != nil {
 		log.Printf("schedulerCreateBlockedSlot: ERROR: %s", err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -91,14 +91,14 @@ func schedulerCreateBlockedSlot(c *gin.Context) {
 func schedulerDeleteBlockedSlot(c *gin.Context) {
 	id := common.ParseInt(c.Param("id"))
 	if id < 1 {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		common.ErrorResponse(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	err := model.Queries.DeleteBlockedSlot(c.Request.Context(), id)
 	if err != nil {
 		log.Printf("schedulerDeleteBlockedSlot(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -110,14 +110,14 @@ func schedulerListBlockedSlotsByDate(c *gin.Context) {
 	date, err := common.ParseDate(c.Param("date"))
 	if err != nil {
 		log.Printf("schedulerListBlockedSlotsByDate: bad date: %v", err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	rows, err := model.Queries.ListBlockedSlotsByDate(c.Request.Context(), date)
 	if err != nil {
 		log.Printf("schedulerListBlockedSlotsByDate: ERROR: %s", err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -128,14 +128,14 @@ func schedulerListBlockedSlotsByDate(c *gin.Context) {
 func getBlockedSlot(c *gin.Context) {
 	id := common.ParseInt(c.Param("id"))
 	if id < 1 {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		common.ErrorResponse(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	row, err := model.Queries.GetBlockedSlot(c.Request.Context(), id)
 	if err != nil {
 		log.Printf("getBlockedSlot(%d): ERROR: %s", id, err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 

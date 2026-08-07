@@ -1,0 +1,12 @@
+DROP INDEX idx_user_username ON user;
+DROP INDEX idx_procrec_procpatient ON procrec;
+DROP INDEX idx_messages_msgtag ON messages;
+DROP INDEX idx_messages_msgpatient ON messages;
+DROP INDEX idx_messages_msgfor ON messages;
+DROP INDEX idx_scheduler_calstatus ON scheduler;
+DROP INDEX idx_scheduler_calpatient ON scheduler;
+DROP INDEX idx_scheduler_calphysician ON scheduler;
+DROP INDEX idx_scheduler_caldateof ON scheduler;
+DROP INDEX idx_patient_ptid ON patient;
+DROP INDEX idx_patient_ptfname ON patient;
+DROP INDEX idx_patient_ptarchive_ptlname ON patient;

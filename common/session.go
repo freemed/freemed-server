@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"gopkg.in/redis.v3"
 	"log"
-	"os"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 var (
@@ -51,9 +52,17 @@ func (s *SessionConnector) Connect() error {
 	return err
 }
 
+// Ping checks connectivity to the Redis server.
+func (s *SessionConnector) Ping() error {
+	if s.client == nil {
+		return fmt.Errorf("redis client is nil")
+	}
+	_, err := s.client.Ping().Result()
+	return err
+}
+
 func (s *SessionConnector) CreateSession(uid int64) (SessionModel, error) {
-	hn, _ := os.Hostname()
-	sid := fmt.Sprintf("%d-%s", time.Now().Unix(), Md5hash(fmt.Sprintf("%d.%s.%d", time.Now().Unix(), hn, time.Now().UnixNano())))
+	sid := fmt.Sprintf("%d-%s", time.Now().Unix(), uuid.New().String())
 	sm := SessionModel{
 		SessionId: sid,
 		UserId:    uid,

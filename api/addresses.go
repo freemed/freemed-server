@@ -23,7 +23,7 @@ func patientAddressesList(r *gin.Context) {
 	addresses, err := model.Queries.ListAddresses(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -48,7 +48,7 @@ func patientAddressUpdate(r *gin.Context) {
 	}
 	if err := r.BindJSON(&input); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -65,7 +65,7 @@ func patientAddressUpdate(r *gin.Context) {
 		PatientID: patientID,
 	}); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -89,7 +89,7 @@ func patientAddressDelete(r *gin.Context) {
 		PatientID: patientID,
 	}); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -116,7 +116,7 @@ func patientAddressesDeleteAll(r *gin.Context) {
 
 	if err := model.Queries.DeleteAllAddresses(r.Request.Context(), patientID); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -142,7 +142,7 @@ func patientAddressesBulkCreate(r *gin.Context) {
 	}
 	if err := r.BindJSON(&input); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -157,7 +157,7 @@ func patientAddressesBulkCreate(r *gin.Context) {
 			Postal:    addrNullString(addr.Postal),
 		}); err != nil {
 			log.Print(err.Error())
-			r.AbortWithError(http.StatusInternalServerError, err)
+			common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 			return
 		}
 	}

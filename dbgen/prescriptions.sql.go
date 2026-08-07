@@ -118,3 +118,111 @@ func (q *Queries) ListPrescriptions(ctx context.Context, patientID int64) ([]Pre
 	}
 	return items, nil
 }
+
+const listPrescriptionsWithPharmacy = `-- name: ListPrescriptionsWithPharmacy :many
+SELECT
+  p.id,
+  p.created_at,
+  p.updated_at,
+  p.deleted_at,
+  p.patient,
+  p.drug_name,
+  p.dosage,
+  p.frequency,
+  p.quantity,
+  p.refills,
+  p.date_written,
+  p.prescribing_provider,
+  p.status,
+  p.notes,
+  p.user,
+  ph.id AS pharmacy_id,
+  ph.phname AS pharmacy_name,
+  ph.phcity AS pharmacy_city,
+  ph.phstate AS pharmacy_state,
+  (SELECT COUNT(*) FROM rxrefillrequest r
+   WHERE r.patient = p.patient
+     AND r.rxorig LIKE CONCAT('%', p.id, '%')
+     AND r.deleted_at IS NULL) AS refills_used,
+  (SELECT MAX(r.approved) FROM rxrefillrequest r
+   WHERE r.patient = p.patient
+     AND r.rxorig LIKE CONCAT('%', p.id, '%')
+     AND r.approved IS NOT NULL
+     AND r.deleted_at IS NULL) AS last_fill_date
+FROM prescriptions p
+LEFT JOIN pharmacy ph ON ph.phname = p.pharmacy AND ph.deleted_at IS NULL
+WHERE p.patient = ?
+  AND p.status = 'active'
+  AND p.deleted_at IS NULL
+ORDER BY p.date_written DESC
+`
+
+type ListPrescriptionsWithPharmacyRow struct {
+	ID                  int64          `json:"id"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
+	DeletedAt           sql.NullTime   `json:"deleted_at"`
+	Patient             int64          `json:"patient"`
+	DrugName            string         `json:"drug_name"`
+	Dosage              string         `json:"dosage"`
+	Frequency           string         `json:"frequency"`
+	Quantity            string         `json:"quantity"`
+	Refills             int64          `json:"refills"`
+	DateWritten         time.Time      `json:"date_written"`
+	PrescribingProvider int64          `json:"prescribing_provider"`
+	Status              string         `json:"status"`
+	Notes               sql.NullString `json:"notes"`
+	User                int64          `json:"user"`
+	PharmacyID          sql.NullInt64  `json:"pharmacy_id"`
+	PharmacyName        sql.NullString `json:"pharmacy_name"`
+	PharmacyCity        sql.NullString `json:"pharmacy_city"`
+	PharmacyState       sql.NullString `json:"pharmacy_state"`
+	RefillsUsed         int64          `json:"refills_used"`
+	LastFillDate        interface{}    `json:"last_fill_date"`
+}
+
+// List prescriptions for a patient with pharmacy details and refill info
+func (q *Queries) ListPrescriptionsWithPharmacy(ctx context.Context, patientID int64) ([]ListPrescriptionsWithPharmacyRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPrescriptionsWithPharmacy, patientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPrescriptionsWithPharmacyRow
+	for rows.Next() {
+		var i ListPrescriptionsWithPharmacyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Patient,
+			&i.DrugName,
+			&i.Dosage,
+			&i.Frequency,
+			&i.Quantity,
+			&i.Refills,
+			&i.DateWritten,
+			&i.PrescribingProvider,
+			&i.Status,
+			&i.Notes,
+			&i.User,
+			&i.PharmacyID,
+			&i.PharmacyName,
+			&i.PharmacyCity,
+			&i.PharmacyState,
+			&i.RefillsUsed,
+			&i.LastFillDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

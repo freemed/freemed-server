@@ -32,7 +32,7 @@ func listEvents(c *gin.Context) {
 func getEvent(c *gin.Context) {
 	id := common.ParseInt(c.Param("id"))
 	if id < 1 {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		common.ErrorResponse(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 	row, err := model.Queries.GetEvent(c.Request.Context(), id)

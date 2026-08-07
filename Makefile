@@ -30,7 +30,7 @@ migrate-install:
 
 migrate-up:
 	migrate -path internal/db/migrations \
-	  -database "mysql://${DB_USER}:${DB_PASS}@tcp(${DB_HOST}:3306)/${DB_NAME}" up
+	  -database "mysql://${DB_USER}:${DB_PASS}@tcp(${DB_HOST}:3306)/${DB_NAME}?multiStatements=true" up
 .PHONY: migrate-up
 
 migrate-down:
@@ -78,6 +78,33 @@ frontend-clean:
 	@echo "- Cleaning frontend build output"
 	rm -rf frontend/build frontend/.svelte-kit
 .PHONY: frontend-clean
+
+# === Frontend Patient Portal (SvelteKit) ===
+
+portal-deps:
+	@echo "- Installing portal dependencies"
+	( cd frontend-portal ; npm ci )
+.PHONY: portal-deps
+
+portal-dev:
+	@echo "- Starting portal SvelteKit dev server"
+	( cd frontend-portal ; npm run dev )
+.PHONY: portal-dev
+
+portal-build:
+	@echo "- Building portal SvelteKit frontend for production"
+	( cd frontend-portal ; npm run build )
+.PHONY: portal-build
+
+portal-check:
+	@echo "- Running portal svelte-check"
+	( cd frontend-portal ; npx svelte-check )
+.PHONY: portal-check
+
+portal-clean:
+	@echo "- Cleaning portal build output"
+	rm -rf frontend-portal/build frontend-portal/.svelte-kit
+.PHONY: portal-clean
 
 # === Docker ===
 

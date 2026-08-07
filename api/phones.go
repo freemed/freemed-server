@@ -28,7 +28,7 @@ func patientPhonesList(r *gin.Context) {
 	phones, err := model.Queries.ListPhones(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -45,14 +45,14 @@ func patientPhonesCreate(r *gin.Context) {
 
 	var in phoneInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
 	// Extract user ID from JWT session
 	sess, err := common.GetSession(r)
 	if err != nil {
-		r.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(r, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -64,7 +64,7 @@ func patientPhonesCreate(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

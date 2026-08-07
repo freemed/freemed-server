@@ -59,6 +59,7 @@ type AppConfig struct {
 		End      int `yaml:"end" xml:"end"`
 		Interval int `yaml:"interval" xml:"interval"`
 	} `yaml:"scheduler"`
+	LogFormat string `yaml:"log-format" xml:"log-format"`
 }
 
 var (
@@ -83,6 +84,7 @@ func (c *AppConfig) SetDefaults() {
 	c.Paths.Logs = "logs"
 	c.Session.Expiry = 10
 	c.Session.Key = defaultSessionKey
+	c.LogFormat = "text"
 }
 
 // ValidateProduction returns a list of security warnings when default values
@@ -136,6 +138,9 @@ func (c *AppConfig) applyEnvOverrides() {
 	}
 	if v := os.Getenv("FREEMED_DEBUG"); v != "" {
 		c.Debug = v == "true" || v == "1"
+	}
+	if v := os.Getenv("FREEMED_LOG_FORMAT"); v != "" {
+		c.LogFormat = v
 	}
 }
 

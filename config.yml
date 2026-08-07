@@ -4,6 +4,7 @@ database:
   user: freemed
   pass: freemed
   host: 
+  migrations: false
 redis:
   host: localhost:6379
   pass:

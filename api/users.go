@@ -45,7 +45,7 @@ func usersList(r *gin.Context) {
 	rows, err := model.Queries.ListUsers(r.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 	r.JSON(http.StatusOK, rows)
@@ -54,7 +54,7 @@ func usersList(r *gin.Context) {
 func usersCreate(r *gin.Context) {
 	var in userInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -62,7 +62,7 @@ func usersCreate(r *gin.Context) {
 	hashed, err := model.HashPassword(in.Password)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -76,7 +76,7 @@ func usersCreate(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -93,7 +93,7 @@ func usersUpdate(r *gin.Context) {
 
 	var in userInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -107,7 +107,7 @@ func usersUpdate(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -125,7 +125,7 @@ func usersPasswordChange(r *gin.Context) {
 		Password string `json:"password" binding:"required"`
 	}
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -133,7 +133,7 @@ func usersPasswordChange(r *gin.Context) {
 	hashed, err := model.HashPassword(in.Password)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -143,7 +143,7 @@ func usersPasswordChange(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -160,7 +160,7 @@ func usersDelete(r *gin.Context) {
 	err := model.Queries.DeleteUser(r.Request.Context(), id)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

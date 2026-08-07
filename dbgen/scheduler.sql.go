@@ -11,6 +11,78 @@ import (
 	"time"
 )
 
+const countSchedulerDailyApptRange = `-- name: CountSchedulerDailyApptRange :one
+SELECT COUNT(DISTINCT s.id) AS total
+FROM scheduler s
+WHERE ( s.caldateof >= ? AND s.caldateof <= ? )
+AND s.calstatus NOT IN ( 'noshow', 'cancelled' )
+`
+
+type CountSchedulerDailyApptRangeParams struct {
+	FromDate time.Time `json:"from_date"`
+	ToDate   time.Time `json:"to_date"`
+}
+
+func (q *Queries) CountSchedulerDailyApptRange(ctx context.Context, arg CountSchedulerDailyApptRangeParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSchedulerDailyApptRange, arg.FromDate, arg.ToDate)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
+const countSchedulerDailyApptRangeByProvider = `-- name: CountSchedulerDailyApptRangeByProvider :one
+SELECT COUNT(DISTINCT s.id) AS total
+FROM scheduler s
+WHERE ( s.caldateof >= ? AND s.caldateof <= ? )
+AND s.calstatus NOT IN ( 'noshow', 'cancelled' )
+AND s.calphysician = ?
+`
+
+type CountSchedulerDailyApptRangeByProviderParams struct {
+	FromDate   time.Time `json:"from_date"`
+	ToDate     time.Time `json:"to_date"`
+	ProviderID int64     `json:"provider_id"`
+}
+
+func (q *Queries) CountSchedulerDailyApptRangeByProvider(ctx context.Context, arg CountSchedulerDailyApptRangeByProviderParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSchedulerDailyApptRangeByProvider, arg.FromDate, arg.ToDate, arg.ProviderID)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
+const countSchedulerDateAppt = `-- name: CountSchedulerDateAppt :one
+SELECT COUNT(*) AS total FROM scheduler
+WHERE caldateof = ?
+AND calstatus != 'cancelled'
+`
+
+func (q *Queries) CountSchedulerDateAppt(ctx context.Context, reqDate time.Time) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSchedulerDateAppt, reqDate)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
+const countSchedulerDateApptByProvider = `-- name: CountSchedulerDateApptByProvider :one
+SELECT COUNT(*) AS total FROM scheduler
+WHERE caldateof = ?
+AND calstatus != 'cancelled'
+AND calphysician = ?
+`
+
+type CountSchedulerDateApptByProviderParams struct {
+	ReqDate    time.Time `json:"req_date"`
+	ProviderID int64     `json:"provider_id"`
+}
+
+func (q *Queries) CountSchedulerDateApptByProvider(ctx context.Context, arg CountSchedulerDateApptByProviderParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSchedulerDateApptByProvider, arg.ReqDate, arg.ProviderID)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const schedulerDailyApptRange = `-- name: SchedulerDailyApptRange :many
 SELECT s.caldateof AS date_of
 , DATE_FORMAT(s.caldateof, '%m/%d/%Y') AS date_of_mdy
@@ -209,6 +281,221 @@ func (q *Queries) SchedulerDailyApptRangeByProvider(ctx context.Context, arg Sch
 	return items, nil
 }
 
+const schedulerDailyApptRangeByProviderPaginated = `-- name: SchedulerDailyApptRangeByProviderPaginated :many
+SELECT s.caldateof AS date_of
+, DATE_FORMAT(s.caldateof, '%m/%d/%Y') AS date_of_mdy
+, s.calhour AS hour
+, s.calminute AS minute
+, CONCAT(LPAD(s.calhour, 2, '0'), ':', LPAD(s.calminute, 2, '0')) AS appointment_time
+, s.calduration AS duration
+, CONCAT(ph.phylname, ', ', ph.phyfname) AS provider
+, ph.id AS provider_id
+, s.caltype AS resource_type
+, CASE s.caltype WHEN 'block' THEN '-' WHEN 'temp' THEN CONCAT('[!] ', ci.cilname, ', ', ci.cifname, ' (', ci.cicomplaint, ')') WHEN 'group' THEN CONCAT(cg.groupname, ' (', cg.grouplength, ' members)') ELSE CONCAT(pa.ptlname, ', ', pa.ptfname, IF(LENGTH(pa.ptmname)>0, CONCAT(' ', pa.ptmname), ''), IF(LENGTH(pa.ptsuffix)>0, CONCAT(' ', pa.ptsuffix), ''), IF(LENGTH(pa.ptid)>0, CONCAT(' (', pa.ptid, ')'), '')) END AS patient
+, s.calpatient AS patient_id
+, s.calprenote AS note
+, SUBSTRING_INDEX(GROUP_CONCAT(st.sname), ',', -1) AS status
+, SUBSTRING_INDEX(GROUP_CONCAT(st.scolor), ',', -1) AS status_color
+, s.id AS scheduler_id
+, s.calappttemplate AS appointment_template_id
+, aptm.atcolor AS template_color
+FROM scheduler s
+LEFT OUTER JOIN appttemplate aptm ON s.calappttemplate = aptm.id
+LEFT OUTER JOIN scheduler_status ss ON s.id = ss.csappt
+LEFT OUTER JOIN schedulerstatustype st ON st.id = ss.csstatus
+LEFT OUTER JOIN physician ph ON s.calphysician = ph.id
+LEFT OUTER JOIN patient pa ON s.calpatient = pa.id
+LEFT OUTER JOIN callin ci ON s.calpatient = ci.id
+LEFT OUTER JOIN calgroup cg ON s.calpatient = cg.id
+WHERE ( s.caldateof >= ? AND s.caldateof <= ? )
+AND s.calstatus NOT IN ( 'noshow', 'cancelled' )
+AND s.calphysician = ?
+GROUP BY s.id, ss.csappt
+ORDER BY s.caldateof, s.calhour, s.calminute, s.calphysician DESC
+LIMIT ? OFFSET ?
+`
+
+type SchedulerDailyApptRangeByProviderPaginatedParams struct {
+	FromDate   time.Time `json:"from_date"`
+	ToDate     time.Time `json:"to_date"`
+	ProviderID int64     `json:"provider_id"`
+	Limit      int32     `json:"limit"`
+	Offset     int32     `json:"offset"`
+}
+
+type SchedulerDailyApptRangeByProviderPaginatedRow struct {
+	DateOf                time.Time      `json:"date_of"`
+	DateOfMdy             string         `json:"date_of_mdy"`
+	Hour                  int64          `json:"hour"`
+	Minute                int64          `json:"minute"`
+	AppointmentTime       string         `json:"appointment_time"`
+	Duration              int64          `json:"duration"`
+	Provider              string         `json:"provider"`
+	ProviderID            sql.NullInt64  `json:"provider_id"`
+	ResourceType          string         `json:"resource_type"`
+	Patient               interface{}    `json:"patient"`
+	PatientID             int64          `json:"patient_id"`
+	Note                  string         `json:"note"`
+	Status                string         `json:"status"`
+	StatusColor           string         `json:"status_color"`
+	SchedulerID           int64          `json:"scheduler_id"`
+	AppointmentTemplateID int64          `json:"appointment_template_id"`
+	TemplateColor         sql.NullString `json:"template_color"`
+}
+
+func (q *Queries) SchedulerDailyApptRangeByProviderPaginated(ctx context.Context, arg SchedulerDailyApptRangeByProviderPaginatedParams) ([]SchedulerDailyApptRangeByProviderPaginatedRow, error) {
+	rows, err := q.db.QueryContext(ctx, schedulerDailyApptRangeByProviderPaginated,
+		arg.FromDate,
+		arg.ToDate,
+		arg.ProviderID,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SchedulerDailyApptRangeByProviderPaginatedRow
+	for rows.Next() {
+		var i SchedulerDailyApptRangeByProviderPaginatedRow
+		if err := rows.Scan(
+			&i.DateOf,
+			&i.DateOfMdy,
+			&i.Hour,
+			&i.Minute,
+			&i.AppointmentTime,
+			&i.Duration,
+			&i.Provider,
+			&i.ProviderID,
+			&i.ResourceType,
+			&i.Patient,
+			&i.PatientID,
+			&i.Note,
+			&i.Status,
+			&i.StatusColor,
+			&i.SchedulerID,
+			&i.AppointmentTemplateID,
+			&i.TemplateColor,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const schedulerDailyApptRangePaginated = `-- name: SchedulerDailyApptRangePaginated :many
+SELECT s.caldateof AS date_of
+, DATE_FORMAT(s.caldateof, '%m/%d/%Y') AS date_of_mdy
+, s.calhour AS hour
+, s.calminute AS minute
+, CONCAT(LPAD(s.calhour, 2, '0'), ':', LPAD(s.calminute, 2, '0')) AS appointment_time
+, s.calduration AS duration
+, CONCAT(ph.phylname, ', ', ph.phyfname) AS provider
+, ph.id AS provider_id
+, s.caltype AS resource_type
+, CASE s.caltype WHEN 'block' THEN '-' WHEN 'temp' THEN CONCAT('[!] ', ci.cilname, ', ', ci.cifname, ' (', ci.cicomplaint, ')') WHEN 'group' THEN CONCAT(cg.groupname, ' (', cg.grouplength, ' members)') ELSE CONCAT(pa.ptlname, ', ', pa.ptfname, IF(LENGTH(pa.ptmname)>0, CONCAT(' ', pa.ptmname), ''), IF(LENGTH(pa.ptsuffix)>0, CONCAT(' ', pa.ptsuffix), ''), IF(LENGTH(pa.ptid)>0, CONCAT(' (', pa.ptid, ')'), '')) END AS patient
+, s.calpatient AS patient_id
+, s.calprenote AS note
+, SUBSTRING_INDEX(GROUP_CONCAT(st.sname), ',', -1) AS status
+, SUBSTRING_INDEX(GROUP_CONCAT(st.scolor), ',', -1) AS status_color
+, s.id AS scheduler_id
+, s.calappttemplate AS appointment_template_id
+, aptm.atcolor AS template_color
+FROM scheduler s
+LEFT OUTER JOIN appttemplate aptm ON s.calappttemplate = aptm.id
+LEFT OUTER JOIN scheduler_status ss ON s.id = ss.csappt
+LEFT OUTER JOIN schedulerstatustype st ON st.id = ss.csstatus
+LEFT OUTER JOIN physician ph ON s.calphysician = ph.id
+LEFT OUTER JOIN patient pa ON s.calpatient = pa.id
+LEFT OUTER JOIN callin ci ON s.calpatient = ci.id
+LEFT OUTER JOIN calgroup cg ON s.calpatient = cg.id
+WHERE ( s.caldateof >= ? AND s.caldateof <= ? )
+AND s.calstatus NOT IN ( 'noshow', 'cancelled' )
+GROUP BY s.id, ss.csappt
+ORDER BY s.caldateof, s.calhour, s.calminute, s.calphysician DESC
+LIMIT ? OFFSET ?
+`
+
+type SchedulerDailyApptRangePaginatedParams struct {
+	FromDate time.Time `json:"from_date"`
+	ToDate   time.Time `json:"to_date"`
+	Limit    int32     `json:"limit"`
+	Offset   int32     `json:"offset"`
+}
+
+type SchedulerDailyApptRangePaginatedRow struct {
+	DateOf                time.Time      `json:"date_of"`
+	DateOfMdy             string         `json:"date_of_mdy"`
+	Hour                  int64          `json:"hour"`
+	Minute                int64          `json:"minute"`
+	AppointmentTime       string         `json:"appointment_time"`
+	Duration              int64          `json:"duration"`
+	Provider              string         `json:"provider"`
+	ProviderID            sql.NullInt64  `json:"provider_id"`
+	ResourceType          string         `json:"resource_type"`
+	Patient               interface{}    `json:"patient"`
+	PatientID             int64          `json:"patient_id"`
+	Note                  string         `json:"note"`
+	Status                string         `json:"status"`
+	StatusColor           string         `json:"status_color"`
+	SchedulerID           int64          `json:"scheduler_id"`
+	AppointmentTemplateID int64          `json:"appointment_template_id"`
+	TemplateColor         sql.NullString `json:"template_color"`
+}
+
+func (q *Queries) SchedulerDailyApptRangePaginated(ctx context.Context, arg SchedulerDailyApptRangePaginatedParams) ([]SchedulerDailyApptRangePaginatedRow, error) {
+	rows, err := q.db.QueryContext(ctx, schedulerDailyApptRangePaginated,
+		arg.FromDate,
+		arg.ToDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SchedulerDailyApptRangePaginatedRow
+	for rows.Next() {
+		var i SchedulerDailyApptRangePaginatedRow
+		if err := rows.Scan(
+			&i.DateOf,
+			&i.DateOfMdy,
+			&i.Hour,
+			&i.Minute,
+			&i.AppointmentTime,
+			&i.Duration,
+			&i.Provider,
+			&i.ProviderID,
+			&i.ResourceType,
+			&i.Patient,
+			&i.PatientID,
+			&i.Note,
+			&i.Status,
+			&i.StatusColor,
+			&i.SchedulerID,
+			&i.AppointmentTemplateID,
+			&i.TemplateColor,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const schedulerDailyApptScheduler = `-- name: SchedulerDailyApptScheduler :many
 CALL schedulerGenerateDailySchedule(?, ?, ?, ?, ?)
 `
@@ -324,6 +611,141 @@ type SchedulerFindDateApptByProviderParams struct {
 
 func (q *Queries) SchedulerFindDateApptByProvider(ctx context.Context, arg SchedulerFindDateApptByProviderParams) ([]Scheduler, error) {
 	rows, err := q.db.QueryContext(ctx, schedulerFindDateApptByProvider, arg.ReqDate, arg.ProviderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Scheduler
+	for rows.Next() {
+		var i Scheduler
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Caldateof,
+			&i.Calcreated,
+			&i.Calmodified,
+			&i.Caltype,
+			&i.Calhour,
+			&i.Calminute,
+			&i.Calduration,
+			&i.Calfacility,
+			&i.Calroom,
+			&i.Calphysician,
+			&i.Calpatient,
+			&i.Calcptcode,
+			&i.Calstatus,
+			&i.Calprenote,
+			&i.Calpostnote,
+			&i.Calmark,
+			&i.Calgroupid,
+			&i.Calgroupmembers,
+			&i.Calrecurnote,
+			&i.Calrecurid,
+			&i.Calappttemplate,
+			&i.Calattendees,
+			&i.User,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const schedulerFindDateApptByProviderPaginated = `-- name: SchedulerFindDateApptByProviderPaginated :many
+SELECT id, created_at, updated_at, deleted_at, caldateof, calcreated, calmodified, caltype, calhour, calminute, calduration, calfacility, calroom, calphysician, calpatient, calcptcode, calstatus, calprenote, calpostnote, calmark, calgroupid, calgroupmembers, calrecurnote, calrecurid, calappttemplate, calattendees, user FROM scheduler
+WHERE caldateof = ?
+AND calstatus != 'cancelled'
+AND calphysician = ?
+LIMIT ? OFFSET ?
+`
+
+type SchedulerFindDateApptByProviderPaginatedParams struct {
+	ReqDate    time.Time `json:"req_date"`
+	ProviderID int64     `json:"provider_id"`
+	Limit      int32     `json:"limit"`
+	Offset     int32     `json:"offset"`
+}
+
+func (q *Queries) SchedulerFindDateApptByProviderPaginated(ctx context.Context, arg SchedulerFindDateApptByProviderPaginatedParams) ([]Scheduler, error) {
+	rows, err := q.db.QueryContext(ctx, schedulerFindDateApptByProviderPaginated,
+		arg.ReqDate,
+		arg.ProviderID,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Scheduler
+	for rows.Next() {
+		var i Scheduler
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Caldateof,
+			&i.Calcreated,
+			&i.Calmodified,
+			&i.Caltype,
+			&i.Calhour,
+			&i.Calminute,
+			&i.Calduration,
+			&i.Calfacility,
+			&i.Calroom,
+			&i.Calphysician,
+			&i.Calpatient,
+			&i.Calcptcode,
+			&i.Calstatus,
+			&i.Calprenote,
+			&i.Calpostnote,
+			&i.Calmark,
+			&i.Calgroupid,
+			&i.Calgroupmembers,
+			&i.Calrecurnote,
+			&i.Calrecurid,
+			&i.Calappttemplate,
+			&i.Calattendees,
+			&i.User,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const schedulerFindDateApptPaginated = `-- name: SchedulerFindDateApptPaginated :many
+SELECT id, created_at, updated_at, deleted_at, caldateof, calcreated, calmodified, caltype, calhour, calminute, calduration, calfacility, calroom, calphysician, calpatient, calcptcode, calstatus, calprenote, calpostnote, calmark, calgroupid, calgroupmembers, calrecurnote, calrecurid, calappttemplate, calattendees, user FROM scheduler
+WHERE caldateof = ?
+AND calstatus != 'cancelled'
+LIMIT ? OFFSET ?
+`
+
+type SchedulerFindDateApptPaginatedParams struct {
+	ReqDate time.Time `json:"req_date"`
+	Limit   int32     `json:"limit"`
+	Offset  int32     `json:"offset"`
+}
+
+func (q *Queries) SchedulerFindDateApptPaginated(ctx context.Context, arg SchedulerFindDateApptPaginatedParams) ([]Scheduler, error) {
+	rows, err := q.db.QueryContext(ctx, schedulerFindDateApptPaginated, arg.ReqDate, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

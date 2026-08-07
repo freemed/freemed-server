@@ -22,7 +22,7 @@ type photoIDInput struct {
 func patientPhotoIDList(r *gin.Context) {
 	id := r.Param("id")
 	if id == "" {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -30,7 +30,7 @@ func patientPhotoIDList(r *gin.Context) {
 	rows, err := model.Queries.GetPhotoID(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -41,20 +41,20 @@ func patientPhotoIDList(r *gin.Context) {
 func patientPhotoIDCreate(r *gin.Context) {
 	patientID := common.ParseInt(r.Param("id"))
 	if patientID == 0 {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	sess, err := common.GetSession(r)
 	if err != nil {
 		log.Printf("patientPhotoIDCreate: failed to get session: %v", err)
-		r.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(r, http.StatusUnauthorized, err)
 		return
 	}
 
 	var in photoIDInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func patientPhotoIDCreate(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

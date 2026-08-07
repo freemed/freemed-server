@@ -24,5 +24,5 @@ func (RouteOfAdministrationModel) TableName() string {
 }
 
 func init() {
-	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "inscogroup", Query: "SELECT CONCAT(abbrev, ' ', description) AS v, id AS k FROM " + TABLE_ROUTEOFADMIN + " WHERE abbrev LIKE CONCAT('%', :query, '%') OR description LIKE CONCAT('%', :query, '%') ORDER BY abbrev, description"})
+	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{ModuleName: "routeofadmin", Query: "SELECT CONCAT(abbrev, ' ', description) AS v, id AS k FROM " + TABLE_ROUTEOFADMIN + " WHERE abbrev LIKE CONCAT('%', :query, '%') OR description LIKE CONCAT('%', :query, '%') ORDER BY abbrev, description"})
 }

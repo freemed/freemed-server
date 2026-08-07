@@ -145,7 +145,7 @@
 			<p class="text-lg">No users found</p>
 		</div>
 	{:else}
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
 			<table class="w-full text-sm">
 				<thead class="bg-gray-50 border-b border-gray-200">
 					<tr>

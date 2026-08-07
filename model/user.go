@@ -102,6 +102,15 @@ func CheckUserPassword(username, password string) (int64, bool) {
 		return 0, false
 	}
 
+	// Prefer userpassword_bcrypt when set (bcrypt hash)
+	if u.UserpasswordBcrypt != "" {
+		if err := bcrypt.CompareHashAndPassword([]byte(u.UserpasswordBcrypt), []byte(password)); err == nil {
+			return u.ID, true
+		}
+		return 0, false
+	}
+
+	// Fallback: legacy userpassword column (bcrypt or MD5)
 	storedHash := u.Userpassword
 
 	// Try bcrypt first
@@ -119,7 +128,7 @@ func CheckUserPassword(username, password string) (int64, bool) {
 	return 0, false
 }
 
-// upgradePasswordHash replaces a legacy MD5 hash with bcrypt.
+// upgradePasswordHash writes the bcrypt hash to userpassword_bcrypt.
 func upgradePasswordHash(userID int64, password string) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -128,7 +137,7 @@ func upgradePasswordHash(userID int64, password string) {
 	}
 	// Use raw SQL via SqlDb since we don't have an update-password sqlc query
 	_, err = SqlDb.ExecContext(context.Background(),
-		"UPDATE user SET userpassword = ? WHERE id = ?",
+		"UPDATE user SET userpassword_bcrypt = ? WHERE id = ?",
 		string(hash), userID)
 	if err != nil {
 		log.Printf("upgradePasswordHash: update error for user %d: %s", userID, err.Error())

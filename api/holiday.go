@@ -25,7 +25,7 @@ func listHolidays(c *gin.Context) {
 	rows, err := model.Queries.ListHolidays(c.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, rows)
@@ -34,13 +34,13 @@ func listHolidays(c *gin.Context) {
 func checkHoliday(c *gin.Context) {
 	dateStr := c.Query("date")
 	if dateStr == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "date parameter is required"})
+		common.ErrorResponse(c, http.StatusBadRequest, "date parameter is required")
 		return
 	}
 	parsedDate, err := common.ParseDate(dateStr)
 	if err != nil {
 		log.Printf("checkHoliday: bad date: %v", err)
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
 		return
 	}
 
@@ -51,7 +51,7 @@ func checkHoliday(c *gin.Context) {
 			return
 		}
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{

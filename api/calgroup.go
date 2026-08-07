@@ -14,7 +14,7 @@ func listCalGroups(c *gin.Context) {
 	rows, err := model.Queries.ListCalGroups(c.Request.Context())
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, rows)
@@ -24,14 +24,14 @@ func listCalGroups(c *gin.Context) {
 func getCalGroup(c *gin.Context) {
 	id := common.ParseInt(c.Param("id"))
 	if id == 0 {
-		c.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(c, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	row, err := model.Queries.GetCalGroup(c.Request.Context(), id)
 	if err != nil {
 		log.Print(err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, row)

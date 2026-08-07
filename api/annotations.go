@@ -29,7 +29,7 @@ func patientAnnotationsList(r *gin.Context) {
 	rows, err := model.Queries.ListAnnotations(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -46,13 +46,13 @@ func patientAnnotationCreate(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Printf("patientAnnotationCreate: failed to get session: %v", err)
-		r.AbortWithError(http.StatusUnauthorized, err)
+		common.ErrorResponseFromError(r, http.StatusUnauthorized, err)
 		return
 	}
 
 	var in annotationInput
 	if err := r.BindJSON(&in); err != nil {
-		r.AbortWithError(http.StatusBadRequest, err)
+		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -67,7 +67,7 @@ func patientAnnotationCreate(r *gin.Context) {
 	})
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

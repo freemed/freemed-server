@@ -117,6 +117,29 @@ WHERE ptlname = sqlc.arg(ptlname)
   AND (sqlc.narg('ptdob') IS NULL OR ptdob = sqlc.narg('ptdob'))
   AND ptarchive = 0;
 
+-- Patient list with pagination
+-- name: ListPatients :many
+SELECT
+  id,
+  ptlname AS last_name,
+  ptfname AS first_name,
+  ptmname AS middle_name,
+  ptsuffix AS suffix,
+  ptsex AS gender,
+  ptid AS patient_id,
+  ptdob AS date_of_birth,
+  ptarchive AS archived,
+  created_at,
+  updated_at
+FROM patient
+WHERE ptarchive = 0
+ORDER BY ptlname, ptfname, ptmname
+LIMIT ? OFFSET ?;
+
+-- Patient count (non-archived)
+-- name: CountPatients :one
+SELECT COUNT(*) AS total FROM patient WHERE ptarchive = 0;
+
 -- Patient create: insert a new patient record
 -- name: PatientCreate :execresult
 INSERT INTO patient (

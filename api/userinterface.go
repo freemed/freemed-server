@@ -39,14 +39,14 @@ func userInterfaceGetCurrentUsername(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
 	u, err := model.Queries.GetUserById(r.Request.Context(), session.UserId)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -58,14 +58,14 @@ func userInterfaceGetCurrentProvider(r *gin.Context) {
 	session, err := common.GetSession(r)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
 	u, err := model.Queries.GetUserById(r.Request.Context(), session.UserId)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -77,7 +77,7 @@ func userInterfaceCheckDuplicate(r *gin.Context) {
 	//session, err := common.GetSession(r)
 	//if err != nil {
 	//	log.Print(err.Error())
-	//	r.AbortWithError(http.StatusInternalServerError, err)
+	//	common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 	//	return
 	//}
 
@@ -90,7 +90,7 @@ func userInterfaceCheckDuplicate(r *gin.Context) {
 	us, err := model.Queries.CheckDuplicateUsername(r.Request.Context(), username)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

@@ -67,6 +67,17 @@ FROM scheduler s
 LEFT JOIN calgroup cg ON s.calgroupid = cg.id
 WHERE s.caltype = 'group' AND s.calgroupid = sqlc.arg(calgroupid);
 
+-- name: FindGroupAppointmentsPaginated :many
+SELECT s.*, cg.groupname
+FROM scheduler s
+LEFT JOIN calgroup cg ON s.calgroupid = cg.id
+WHERE s.caltype = 'group' AND s.calgroupid = sqlc.arg(calgroupid)
+LIMIT ? OFFSET ?;
+
+-- name: CountGroupAppointments :one
+SELECT COUNT(*) AS total FROM scheduler
+WHERE caltype = 'group' AND calgroupid = sqlc.arg(calgroupid);
+
 -- name: CreateRecurringAppointment :exec
 INSERT INTO scheduler (
   caldateof, calhour, calminute, calduration, caltype,

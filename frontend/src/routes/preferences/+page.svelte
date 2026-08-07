@@ -79,7 +79,7 @@
 	{:else}
 		<div class="space-y-6">
 			{#each sections as group (group.section)}
-				<div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+				<div class="bg-white rounded-lg border border-gray-200 overflow-x-auto">
 					<div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
 						<h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">
 							{group.section}

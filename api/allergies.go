@@ -30,7 +30,7 @@ func patientAllergiesList(r *gin.Context) {
 	allergies, err := model.Queries.ListAllergies(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -49,14 +49,14 @@ func patientAllergiesCreate(r *gin.Context) {
 	result, err := model.Queries.CreateAllergy(r.Request.Context(), patientID)
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
 	allergyID, err := result.LastInsertId()
 	if err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -74,7 +74,7 @@ func allergiesDeactivate(r *gin.Context) {
 	allergyID := common.ParseInt(allergyIDStr)
 	if err := model.Queries.DeactivateAllergy(r.Request.Context(), allergyID); err != nil {
 		log.Print(err.Error())
-		r.AbortWithError(http.StatusInternalServerError, err)
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
 

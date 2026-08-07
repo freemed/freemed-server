@@ -506,6 +506,11 @@ CREATE TABLE `patient` (
   `ptpharmacy` BIGINT NOT NULL DEFAULT 0,
   `ssn` VARCHAR(255),
   `pemail` VARCHAR(255),
+  `portal_password` VARCHAR(255) NOT NULL DEFAULT '',
+  `portal_pin` VARCHAR(255) NOT NULL DEFAULT '',
+  `portal_enabled` TINYINT(1) NOT NULL DEFAULT 0,
+  `portal_last_login` DATETIME,
+  `portal_failed_attempts` INT NOT NULL DEFAULT 0,
   `dmv` VARCHAR(255),
   `patient` BIGINT NOT NULL DEFAULT 0,
   `module` VARCHAR(255) NOT NULL DEFAULT '',
@@ -836,6 +841,7 @@ CREATE TABLE `user` (
   `deleted_at` DATETIME,
   `username` VARCHAR(255) NOT NULL DEFAULT '',
   `userpassword` VARCHAR(255) NOT NULL DEFAULT '',
+  `userpassword_bcrypt` VARCHAR(255) NOT NULL DEFAULT '',
   `usertype` VARCHAR(255),
   `userrealphy` BIGINT NOT NULL DEFAULT 0,
   `userfname` VARCHAR(255),
@@ -1377,4 +1383,139 @@ CREATE TABLE `holiday` (
   `holiday_name` VARCHAR(255) NOT NULL DEFAULT '',
   `description` VARCHAR(255) NOT NULL DEFAULT '',
   `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+CREATE TABLE `previous_operations` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `operation_date` DATE,
+  `operation` VARCHAR(255) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE `current_problems` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `date` DATE NOT NULL,
+  `problem` VARCHAR(255) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+CREATE TABLE `chronic_problems` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `date` DATE NOT NULL,
+  `problem` VARCHAR(250) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE `certifications` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `cert_type` BIGINT NOT NULL DEFAULT 0,
+  `cert_form_num` BIGINT,
+  `cert_desc` VARCHAR(255) NOT NULL DEFAULT '',
+  `cert_form_data` TEXT,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT 'active'
+);
+
+CREATE TABLE `financial_demographics` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `income` INT NOT NULL DEFAULT 0,
+  `id_type` VARCHAR(50) NOT NULL DEFAULT '',
+  `id_issuer` VARCHAR(50) NOT NULL DEFAULT '',
+  `id_number` VARCHAR(50) NOT NULL DEFAULT '',
+  `id_expire` VARCHAR(10) NOT NULL DEFAULT '',
+  `household_size` INT NOT NULL DEFAULT 0,
+  `spouse` INT NOT NULL DEFAULT 0,
+  `children` INT NOT NULL DEFAULT 0,
+  `other_dependents` INT NOT NULL DEFAULT 0,
+  `free_text` TEXT,
+  `entry_desc` VARCHAR(75) NOT NULL DEFAULT '',
+  `entry_ts` DATETIME NOT NULL,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT 'active'
+);
+CREATE TABLE `user_preferences` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `option_key` VARCHAR(255) NOT NULL,
+  `default_value` VARCHAR(255) NOT NULL DEFAULT '',
+  `title` VARCHAR(255) NOT NULL DEFAULT '',
+  `section` VARCHAR(255) NOT NULL DEFAULT '',
+  `option_type` VARCHAR(255) NOT NULL DEFAULT '',
+  `options` TEXT,
+  UNIQUE KEY `idx_option_key` (`option_key`)
+);
+CREATE TABLE `reminders` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `patient` BIGINT,
+  `title` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` TEXT,
+  `due_date` DATETIME,
+  `priority` INT NOT NULL DEFAULT 0,
+  `status` VARCHAR(50) NOT NULL DEFAULT 'pending',
+  `completed_at` DATETIME
+);
+CREATE TABLE `signatures` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `module` VARCHAR(255) NOT NULL DEFAULT '',
+  `module_field` VARCHAR(255) NOT NULL DEFAULT '',
+  `oid` BIGINT NOT NULL DEFAULT 0,
+  `signature_data` LONGBLOB,
+  `format` VARCHAR(50) NOT NULL DEFAULT 'UNKNOWN',
+  `collector_location` VARCHAR(100) NOT NULL DEFAULT '',
+  `collector_model` VARCHAR(100) NOT NULL DEFAULT '',
+  `collector_jobid` VARCHAR(100) NOT NULL DEFAULT '',
+  `collector_finished` TINYINT(1) NOT NULL DEFAULT 0,
+  `user` BIGINT NOT NULL DEFAULT 0
+);
+CREATE TABLE `form_templates` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` TEXT,
+  `form_type` VARCHAR(100) NOT NULL DEFAULT 'encounter',
+  `template_data` LONGTEXT,
+  `is_default` TINYINT(1) NOT NULL DEFAULT 0,
+  `user` BIGINT NOT NULL DEFAULT 0
+);
+CREATE TABLE `portal_audit_log` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient_id` BIGINT NOT NULL,
+  `action` VARCHAR(255) NOT NULL DEFAULT '',
+  `ip_address` VARCHAR(45) NOT NULL DEFAULT '',
+  `user_agent` VARCHAR(512) NOT NULL DEFAULT '',
+  `success` TINYINT(1) NOT NULL DEFAULT 1
 );
