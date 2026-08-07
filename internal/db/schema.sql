@@ -1021,3 +1021,17 @@ CREATE TABLE `patient_coverage` (
   `active` VARCHAR(255) NOT NULL DEFAULT ''
 );
 
+CREATE TABLE `schedulerblockslots` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `sbsdate` DATETIME NOT NULL,
+  `sbshour` BIGINT NOT NULL DEFAULT 0,
+  `sbsminute` BIGINT NOT NULL DEFAULT 0,
+  `sbsduration` BIGINT NOT NULL DEFAULT 0,
+  `sbsprovider` BIGINT NOT NULL DEFAULT 0,
+  `sbsreason` VARCHAR(255) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0
+);
+

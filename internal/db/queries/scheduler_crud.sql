@@ -79,5 +79,5 @@ SELECT
   calphysician, calpatient, 'scheduled', calprenote,
   NOW(), sqlc.arg(user),
   NOW(), NOW()
-FROM scheduler
-WHERE id = sqlc.arg(source_id);
+FROM scheduler s
+WHERE s.id = sqlc.arg(source_id);

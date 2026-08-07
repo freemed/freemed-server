@@ -27,9 +27,14 @@ func init() {
 			r.POST("/", schedulerCreateAppointment)
 			r.POST("/group", schedulerCreateGroupAppointment)
 			r.GET("/group/:id", schedulerFindGroupAppointments)
+			r.GET("/blocks", schedulerListBlockedSlots)
+			r.POST("/blocks", schedulerCreateBlockedSlot)
+			r.DELETE("/blocks/:id", schedulerDeleteBlockedSlot)
+			r.POST("/recurring", schedulerCreateRecurringAppointments)
 			r.POST("/:id/copy", schedulerCopyAppointment)
+			r.POST("/next-available", schedulerNextAvailable)
 			r.DELETE("/:id", schedulerCancelAppointment)
-		},
+			},
 	}
 }
 
@@ -408,4 +413,51 @@ func schedulerFindGroupAppointments(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, rows)
+}
+
+// schedulerCreateRecurringAppointments handles POST /api/scheduler/recurring —
+// clone an appointment to multiple future dates while keeping the same time.
+func schedulerCreateRecurringAppointments(c *gin.Context) {
+	session, err := common.GetSession(c)
+	if err != nil {
+		log.Printf("schedulerCreateRecurringAppointments: failed to get session: %v", err)
+		c.AbortWithError(http.StatusUnauthorized, err)
+		return
+	}
+
+	var input struct {
+		ID    int64    `json:"id"    binding:"required"`
+		Dates []string `json:"dates" binding:"required"`
+	}
+	if err := c.ShouldBind(&input); err != nil {
+		log.Printf("schedulerCreateRecurringAppointments: bind error: %v", err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var createdIDs []int64
+	for _, dateStr := range input.Dates {
+		calDateOf, err := common.ParseDate(dateStr)
+		if err != nil {
+			log.Printf("schedulerCreateRecurringAppointments: invalid date %q: %v", dateStr, err)
+			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("invalid date %q: %w", dateStr, err))
+			return
+		}
+
+		err = model.Queries.CreateRecurringAppointment(c.Request.Context(), dbgen.CreateRecurringAppointmentParams{
+			Caldateof: calDateOf,
+			User:      session.UserId,
+			SourceID:  input.ID,
+		})
+		if err != nil {
+			log.Printf("schedulerCreateRecurringAppointments(id=%d): ERROR: %s", input.ID, err.Error())
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		createdIDs = append(createdIDs, input.ID) // sqlc :exec doesn't return LastInsertId
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"count": len(createdIDs),
+	})
 }

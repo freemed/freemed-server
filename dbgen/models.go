@@ -918,6 +918,20 @@ type SchedulerStatus struct {
 	User      int64        `json:"user"`
 }
 
+type Schedulerblockslot struct {
+	ID          int64        `json:"id"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	DeletedAt   sql.NullTime `json:"deleted_at"`
+	Sbsdate     time.Time    `json:"sbsdate"`
+	Sbshour     int64        `json:"sbshour"`
+	Sbsminute   int64        `json:"sbsminute"`
+	Sbsduration int64        `json:"sbsduration"`
+	Sbsprovider int64        `json:"sbsprovider"`
+	Sbsreason   string       `json:"sbsreason"`
+	User        int64        `json:"user"`
+}
+
 type Schedulerstatustype struct {
 	ID        int64        `json:"id"`
 	CreatedAt time.Time    `json:"created_at"`

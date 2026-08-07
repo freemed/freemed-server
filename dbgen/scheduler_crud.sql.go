@@ -141,6 +141,33 @@ func (q *Queries) CreateGroupAppointment(ctx context.Context, arg CreateGroupApp
 	)
 }
 
+const createRecurringAppointment = `-- name: CreateRecurringAppointment :exec
+INSERT INTO scheduler (
+  caldateof, calhour, calminute, calduration, caltype,
+  calphysician, calpatient, calstatus, calprenote,
+  calcreated, user,
+  created_at, updated_at
+)
+SELECT
+  ?, calhour, calminute, calduration, caltype,
+  calphysician, calpatient, 'scheduled', calprenote,
+  NOW(), ?,
+  NOW(), NOW()
+FROM scheduler s
+WHERE s.id = ?
+`
+
+type CreateRecurringAppointmentParams struct {
+	Caldateof time.Time `json:"caldateof"`
+	User      int64     `json:"user"`
+	SourceID  int64     `json:"source_id"`
+}
+
+func (q *Queries) CreateRecurringAppointment(ctx context.Context, arg CreateRecurringAppointmentParams) error {
+	_, err := q.db.ExecContext(ctx, createRecurringAppointment, arg.Caldateof, arg.User, arg.SourceID)
+	return err
+}
+
 const findGroupAppointments = `-- name: FindGroupAppointments :many
 SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.caldateof, s.calcreated, s.calmodified, s.caltype, s.calhour, s.calminute, s.calduration, s.calfacility, s.calroom, s.calphysician, s.calpatient, s.calcptcode, s.calstatus, s.calprenote, s.calpostnote, s.calmark, s.calgroupid, s.calgroupmembers, s.calrecurnote, s.calrecurid, s.calappttemplate, s.calattendees, s.user, cg.groupname
 FROM scheduler s
