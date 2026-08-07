@@ -28,6 +28,18 @@ func (q *Queries) DeleteAddress(ctx context.Context, arg DeleteAddressParams) er
 	return err
 }
 
+const deleteAllAddresses = `-- name: DeleteAllAddresses :exec
+UPDATE patient_address
+SET active = 0, updated_at = NOW()
+WHERE patient = ?
+`
+
+// Addresses: deactivate all addresses for a patient (bulk soft delete)
+func (q *Queries) DeleteAllAddresses(ctx context.Context, patientID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteAllAddresses, patientID)
+	return err
+}
+
 const listAddresses = `-- name: ListAddresses :many
 SELECT
   id,
@@ -94,6 +106,40 @@ func (q *Queries) ListAddresses(ctx context.Context, patientID int64) ([]ListAdd
 		return nil, err
 	}
 	return items, nil
+}
+
+const setAddresses = `-- name: SetAddresses :execresult
+INSERT INTO patient_address (patient, line1, line2, city, stpr, postal, active)
+VALUES (
+  ?,
+  ?,
+  ?,
+  ?,
+  ?,
+  ?,
+  1
+)
+`
+
+type SetAddressesParams struct {
+	PatientID int64          `json:"patient_id"`
+	Line1     sql.NullString `json:"line1"`
+	Line2     sql.NullString `json:"line2"`
+	City      sql.NullString `json:"city"`
+	Stpr      sql.NullString `json:"stpr"`
+	Postal    sql.NullString `json:"postal"`
+}
+
+// Addresses: insert a new address for a patient
+func (q *Queries) SetAddresses(ctx context.Context, arg SetAddressesParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, setAddresses,
+		arg.PatientID,
+		arg.Line1,
+		arg.Line2,
+		arg.City,
+		arg.Stpr,
+		arg.Postal,
+	)
 }
 
 const updateAddress = `-- name: UpdateAddress :exec

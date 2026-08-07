@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+type AclPermission struct {
+	ID             int64        `json:"id"`
+	CreatedAt      time.Time    `json:"created_at"`
+	UpdatedAt      time.Time    `json:"updated_at"`
+	DeletedAt      sql.NullTime `json:"deleted_at"`
+	PermissionName string       `json:"permission_name"`
+	PermissionDesc string       `json:"permission_desc"`
+}
+
 type Allergy struct {
 	ID        int64        `json:"id"`
 	CreatedAt time.Time    `json:"created_at"`
@@ -382,6 +391,15 @@ type Facility struct {
 	Psrpos       int64          `json:"psrpos"`
 	Psrx12id     sql.NullString `json:"psrx12id"`
 	Psrx12idtype sql.NullString `json:"psrx12idtype"`
+}
+
+type GroupPermission struct {
+	ID           int64        `json:"id"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	DeletedAt    sql.NullTime `json:"deleted_at"`
+	GroupID      int64        `json:"group_id"`
+	PermissionID int64        `json:"permission_id"`
 }
 
 type I18nlanguage struct {
@@ -1124,6 +1142,24 @@ type User struct {
 	Usersms         sql.NullInt64  `json:"usersms"`
 	Usersmsprovider sql.NullInt64  `json:"usersmsprovider"`
 	Usertitle       sql.NullString `json:"usertitle"`
+}
+
+type UserGroup struct {
+	ID        int64        `json:"id"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+	UserID    int64        `json:"user_id"`
+	GroupID   int64        `json:"group_id"`
+}
+
+type Usergroup struct {
+	ID           int64        `json:"id"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	DeletedAt    sql.NullTime `json:"deleted_at"`
+	Groupname    string       `json:"groupname"`
+	Groupdescrip string       `json:"groupdescrip"`
 }
 
 type Vital struct {

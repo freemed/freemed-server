@@ -11,6 +11,117 @@ import (
 	"time"
 )
 
+const attachPaymentToProcedure = `-- name: AttachPaymentToProcedure :exec
+UPDATE payrec
+SET payrecproc = ?
+WHERE id = ?
+`
+
+type AttachPaymentToProcedureParams struct {
+	ProcedureID int64 `json:"procedure_id"`
+	PaymentID   int64 `json:"payment_id"`
+}
+
+// AttachPaymentToProcedure: link a payment to a procedure
+func (q *Queries) AttachPaymentToProcedure(ctx context.Context, arg AttachPaymentToProcedureParams) error {
+	_, err := q.db.ExecContext(ctx, attachPaymentToProcedure, arg.ProcedureID, arg.PaymentID)
+	return err
+}
+
+const getCoverageCopayInfo = `-- name: GetCoverageCopayInfo :one
+SELECT
+  pc.id,
+  pc.patient,
+  pc.insurance_company,
+  pc.coverage_type,
+  pc.policy_number,
+  pc.group_number,
+  pc.effective_date,
+  pc.termination_date,
+  pc.primary_coverage
+FROM patient_coverage pc
+WHERE pc.patient = ?
+  AND pc.active = 'active'
+LIMIT 1
+`
+
+type GetCoverageCopayInfoRow struct {
+	ID               int64        `json:"id"`
+	Patient          int64        `json:"patient"`
+	InsuranceCompany int64        `json:"insurance_company"`
+	CoverageType     int64        `json:"coverage_type"`
+	PolicyNumber     string       `json:"policy_number"`
+	GroupNumber      string       `json:"group_number"`
+	EffectiveDate    sql.NullTime `json:"effective_date"`
+	TerminationDate  sql.NullTime `json:"termination_date"`
+	PrimaryCoverage  bool         `json:"primary_coverage"`
+}
+
+// GetCoverageCopayInfo: get copay-related coverage info for a patient
+func (q *Queries) GetCoverageCopayInfo(ctx context.Context, patientID int64) (GetCoverageCopayInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, getCoverageCopayInfo, patientID)
+	var i GetCoverageCopayInfoRow
+	err := row.Scan(
+		&i.ID,
+		&i.Patient,
+		&i.InsuranceCompany,
+		&i.CoverageType,
+		&i.PolicyNumber,
+		&i.GroupNumber,
+		&i.EffectiveDate,
+		&i.TerminationDate,
+		&i.PrimaryCoverage,
+	)
+	return i, err
+}
+
+const getCoverageDeductibleInfo = `-- name: GetCoverageDeductibleInfo :one
+SELECT
+  pc.id,
+  pc.patient,
+  pc.insurance_company,
+  pc.coverage_type,
+  pc.policy_number,
+  pc.group_number,
+  pc.effective_date,
+  pc.termination_date,
+  pc.primary_coverage
+FROM patient_coverage pc
+WHERE pc.patient = ?
+  AND pc.active = 'active'
+LIMIT 1
+`
+
+type GetCoverageDeductibleInfoRow struct {
+	ID               int64        `json:"id"`
+	Patient          int64        `json:"patient"`
+	InsuranceCompany int64        `json:"insurance_company"`
+	CoverageType     int64        `json:"coverage_type"`
+	PolicyNumber     string       `json:"policy_number"`
+	GroupNumber      string       `json:"group_number"`
+	EffectiveDate    sql.NullTime `json:"effective_date"`
+	TerminationDate  sql.NullTime `json:"termination_date"`
+	PrimaryCoverage  bool         `json:"primary_coverage"`
+}
+
+// GetCoverageDeductibleInfo: get deductible-related coverage info for a patient
+func (q *Queries) GetCoverageDeductibleInfo(ctx context.Context, patientID int64) (GetCoverageDeductibleInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, getCoverageDeductibleInfo, patientID)
+	var i GetCoverageDeductibleInfoRow
+	err := row.Scan(
+		&i.ID,
+		&i.Patient,
+		&i.InsuranceCompany,
+		&i.CoverageType,
+		&i.PolicyNumber,
+		&i.GroupNumber,
+		&i.EffectiveDate,
+		&i.TerminationDate,
+		&i.PrimaryCoverage,
+	)
+	return i, err
+}
+
 const patientLedger = `-- name: PatientLedger :many
 SELECT
   'charge' AS entry_type,
@@ -121,6 +232,183 @@ func (q *Queries) PatientPayments(ctx context.Context, patientID int64) ([]Patie
 	var items []PatientPaymentsRow
 	for rows.Next() {
 		var i PatientPaymentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Date,
+			&i.Amount,
+			&i.Type,
+			&i.Description,
+			&i.ProcedureID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const removePaymentAsMistake = `-- name: RemovePaymentAsMistake :exec
+UPDATE payrec
+SET active = 'inactive'
+WHERE id = ?
+`
+
+// RemovePaymentAsMistake: mark a payment as a mistake (soft delete)
+func (q *Queries) RemovePaymentAsMistake(ctx context.Context, paymentID int64) error {
+	_, err := q.db.ExecContext(ctx, removePaymentAsMistake, paymentID)
+	return err
+}
+
+const unattachedCopays = `-- name: UnattachedCopays :many
+SELECT
+  pr.id,
+  pr.payrecdtadd AS date,
+  pr.payrecamt AS amount,
+  pr.payrectype AS type,
+  pr.payrecdescrip AS description,
+  pr.payrecproc AS procedure_id
+FROM payrec pr
+WHERE pr.payrecproc = 0
+  AND pr.payrectype = 'copay'
+  AND pr.active = 'active'
+ORDER BY pr.payrecdtadd DESC
+`
+
+type UnattachedCopaysRow struct {
+	ID          int64        `json:"id"`
+	Date        sql.NullTime `json:"date"`
+	Amount      float64      `json:"amount"`
+	Type        int64        `json:"type"`
+	Description string       `json:"description"`
+	ProcedureID int64        `json:"procedure_id"`
+}
+
+// UnattachedCopays: copay payments not yet attached to a procedure
+func (q *Queries) UnattachedCopays(ctx context.Context) ([]UnattachedCopaysRow, error) {
+	rows, err := q.db.QueryContext(ctx, unattachedCopays)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UnattachedCopaysRow
+	for rows.Next() {
+		var i UnattachedCopaysRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Date,
+			&i.Amount,
+			&i.Type,
+			&i.Description,
+			&i.ProcedureID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const unattachedDeductibles = `-- name: UnattachedDeductibles :many
+SELECT
+  pr.id,
+  pr.payrecdtadd AS date,
+  pr.payrecamt AS amount,
+  pr.payrectype AS type,
+  pr.payrecdescrip AS description,
+  pr.payrecproc AS procedure_id
+FROM payrec pr
+WHERE pr.payrecproc = 0
+  AND pr.payrectype = 'deductible'
+  AND pr.active = 'active'
+ORDER BY pr.payrecdtadd DESC
+`
+
+type UnattachedDeductiblesRow struct {
+	ID          int64        `json:"id"`
+	Date        sql.NullTime `json:"date"`
+	Amount      float64      `json:"amount"`
+	Type        int64        `json:"type"`
+	Description string       `json:"description"`
+	ProcedureID int64        `json:"procedure_id"`
+}
+
+// UnattachedDeductibles: deductible payments not yet attached to a procedure
+func (q *Queries) UnattachedDeductibles(ctx context.Context) ([]UnattachedDeductiblesRow, error) {
+	rows, err := q.db.QueryContext(ctx, unattachedDeductibles)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UnattachedDeductiblesRow
+	for rows.Next() {
+		var i UnattachedDeductiblesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Date,
+			&i.Amount,
+			&i.Type,
+			&i.Description,
+			&i.ProcedureID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const unattachedPayments = `-- name: UnattachedPayments :many
+SELECT
+  pr.id,
+  pr.payrecdtadd AS date,
+  pr.payrecamt AS amount,
+  pr.payrectype AS type,
+  pr.payrecdescrip AS description,
+  pr.payrecproc AS procedure_id
+FROM payrec pr
+WHERE pr.payrecproc = 0
+  AND pr.payrectype NOT IN ('copay', 'deductible')
+  AND pr.active = 'active'
+ORDER BY pr.payrecdtadd DESC
+`
+
+type UnattachedPaymentsRow struct {
+	ID          int64        `json:"id"`
+	Date        sql.NullTime `json:"date"`
+	Amount      float64      `json:"amount"`
+	Type        int64        `json:"type"`
+	Description string       `json:"description"`
+	ProcedureID int64        `json:"procedure_id"`
+}
+
+// UnattachedPayments: non-copay/non-deductible payments not yet attached to a procedure
+func (q *Queries) UnattachedPayments(ctx context.Context) ([]UnattachedPaymentsRow, error) {
+	rows, err := q.db.QueryContext(ctx, unattachedPayments)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UnattachedPaymentsRow
+	for rows.Next() {
+		var i UnattachedPaymentsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Date,

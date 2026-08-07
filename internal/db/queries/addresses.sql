@@ -33,3 +33,22 @@ WHERE id = sqlc.arg(address_id) AND patient = sqlc.arg(patient_id);
 UPDATE patient_address
 SET active = 0, updated_at = NOW()
 WHERE id = sqlc.arg(address_id) AND patient = sqlc.arg(patient_id);
+
+-- Addresses: deactivate all addresses for a patient (bulk soft delete)
+-- name: DeleteAllAddresses :exec
+UPDATE patient_address
+SET active = 0, updated_at = NOW()
+WHERE patient = sqlc.arg(patient_id);
+
+-- Addresses: insert a new address for a patient
+-- name: SetAddresses :execresult
+INSERT INTO patient_address (patient, line1, line2, city, stpr, postal, active)
+VALUES (
+  sqlc.arg(patient_id),
+  sqlc.arg(line1),
+  sqlc.arg(line2),
+  sqlc.arg(city),
+  sqlc.arg(stpr),
+  sqlc.arg(postal),
+  1
+);

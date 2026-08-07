@@ -103,3 +103,64 @@ func addrNullString(s string) sql.NullString {
 	}
 	return sql.NullString{String: s, Valid: true}
 }
+
+// patientAddressesDeleteAll handles DELETE /api/patient/:id/addresses (bulk delete all)
+func patientAddressesDeleteAll(r *gin.Context) {
+	id := r.Param("id")
+	if id == "" {
+		r.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	patientID := common.ParseInt(id)
+
+	if err := model.Queries.DeleteAllAddresses(r.Request.Context(), patientID); err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	r.JSON(http.StatusOK, gin.H{"status": "deactivated"})
+}
+
+// patientAddressesBulkCreate handles POST /api/patient/:id/addresses/bulk
+func patientAddressesBulkCreate(r *gin.Context) {
+	id := r.Param("id")
+	if id == "" {
+		r.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	var input struct {
+		Addresses []struct {
+			Line1  string `json:"line1"`
+			Line2  string `json:"line2"`
+			City   string `json:"city"`
+			State  string `json:"stpr"`
+			Postal string `json:"postal"`
+		} `json:"addresses"`
+	}
+	if err := r.BindJSON(&input); err != nil {
+		log.Print(err.Error())
+		r.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	patientID := common.ParseInt(id)
+	for _, addr := range input.Addresses {
+		if _, err := model.Queries.SetAddresses(r.Request.Context(), dbgen.SetAddressesParams{
+			PatientID: patientID,
+			Line1:     addrNullString(addr.Line1),
+			Line2:     addrNullString(addr.Line2),
+			City:      addrNullString(addr.City),
+			Stpr:      addrNullString(addr.State),
+			Postal:    addrNullString(addr.Postal),
+		}); err != nil {
+			log.Print(err.Error())
+			r.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	}
+
+	r.JSON(http.StatusOK, gin.H{"status": "created"})
+}
