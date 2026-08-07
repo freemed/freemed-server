@@ -29,6 +29,10 @@ func init() {
 			r.GET("/:id/procedures", patientProcedures)
 			r.GET("/:id/authorizations", patientAuthorizations)
 			r.GET("/:id/claims", patientClaims)
+			r.GET("/:id/referrals", patientReferralsList)
+			r.POST("/:id/referrals", patientReferralsCreate)
+			r.GET("/:id/immunizations", patientImmunizationsList)
+			r.POST("/:id/immunizations", patientImmunizationsCreate)
 			r.GET("/:id/allergies", patientAllergiesList)
 			r.POST("/:id/allergies", patientAllergiesCreate)
 			r.GET("/:id/addresses", patientAddressesList)
@@ -37,8 +41,10 @@ func init() {
 			r.GET("/:id/tags", patientTagsList)
 			r.POST("/:id/tags", patientTagsCreate)
 			r.DELETE("/:id/tags/:tagId", patientTagsExpire)
+			r.GET("/:id/drug-samples", patientDrugSamplesList)
+			r.POST("/:id/drug-samples", patientDrugSampleCreate)
 			r.GET("/:id/history", patientHistory)
-		},
+			},
 	}
 }
 

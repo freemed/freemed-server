@@ -1035,3 +1035,21 @@ CREATE TABLE `schedulerblockslots` (
   `user` BIGINT NOT NULL DEFAULT 0
 );
 
+CREATE TABLE `referrals` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `referring_provider` BIGINT NOT NULL DEFAULT 0,
+  `referral_to` BIGINT NOT NULL DEFAULT 0,
+  `referral_type` VARCHAR(255) NOT NULL DEFAULT '',
+  `reason` VARCHAR(255) NOT NULL DEFAULT '',
+  `status` VARCHAR(255) NOT NULL DEFAULT '',
+  `date_referred` DATETIME NOT NULL,
+  `date_completed` DATETIME,
+  `notes` VARCHAR(255) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+

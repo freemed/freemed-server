@@ -875,6 +875,24 @@ type Procrec struct {
 	Active            string         `json:"active"`
 }
 
+type Referral struct {
+	ID                int64        `json:"id"`
+	CreatedAt         time.Time    `json:"created_at"`
+	UpdatedAt         time.Time    `json:"updated_at"`
+	DeletedAt         sql.NullTime `json:"deleted_at"`
+	Patient           int64        `json:"patient"`
+	ReferringProvider int64        `json:"referring_provider"`
+	ReferralTo        int64        `json:"referral_to"`
+	ReferralType      string       `json:"referral_type"`
+	Reason            string       `json:"reason"`
+	Status            string       `json:"status"`
+	DateReferred      time.Time    `json:"date_referred"`
+	DateCompleted     sql.NullTime `json:"date_completed"`
+	Notes             string       `json:"notes"`
+	User              int64        `json:"user"`
+	Active            string       `json:"active"`
+}
+
 type Scheduler struct {
 	ID              int64          `json:"id"`
 	CreatedAt       time.Time      `json:"created_at"`
