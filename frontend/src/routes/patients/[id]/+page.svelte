@@ -3,6 +3,7 @@ import { page } from '$app/stores';
 import { goto } from '$app/navigation';
 import { api } from '$lib/api';
 import DiagnosisList from '$lib/components/DiagnosisList.svelte';
+	import GrowthChart from '$lib/components/GrowthChart.svelte';
 
 	interface PatientInfo {
 		patient_name: string;
@@ -190,6 +191,8 @@ import DiagnosisList from '$lib/components/DiagnosisList.svelte';
 
 		<!-- Diagnoses -->
 		<DiagnosisList patientId={patientId} />
+
+		<GrowthChart {patientId} />
 
 		<!-- EMR Attachments Section -->
 		<div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
