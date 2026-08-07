@@ -1220,3 +1220,49 @@ CREATE TABLE `group_permissions` (
   `permission_id` BIGINT NOT NULL DEFAULT 0,
   UNIQUE KEY `uq_group_permission` (`group_id`, `permission_id`)
 );
+CREATE TABLE `photoid` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `photo` LONGBLOB,
+  `photo_mime` VARCHAR(255) NOT NULL DEFAULT '',
+  `page_count` BIGINT NOT NULL DEFAULT 1,
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT 'active'
+);
+CREATE TABLE `phone` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `type` VARCHAR(255) NOT NULL DEFAULT '',
+  `number` VARCHAR(255) NOT NULL DEFAULT '',
+  `active` VARCHAR(255) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE `patient_reporting` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `report_name` VARCHAR(100) NOT NULL DEFAULT '',
+  `report_uuid` CHAR(36) NOT NULL DEFAULT '',
+  `report_locale` CHAR(5) NOT NULL DEFAULT 'en_US',
+  `report_desc` TEXT,
+  `report_type` VARCHAR(150) NOT NULL DEFAULT 'standard',
+  `report_sp` VARCHAR(150) NOT NULL DEFAULT '',
+  `report_param_count` TINYINT NOT NULL DEFAULT 0,
+  `report_param_names` TEXT,
+  `report_param_types` TEXT,
+  `report_param_options` TEXT,
+  `report_param_optional` TEXT,
+  `report_acl` VARCHAR(150),
+  `report_formatting` BLOB,
+  UNIQUE KEY `uq_report_uuid_locale` (`report_uuid`, `report_locale`),
+  KEY `idx_report_name_locale` (`report_name`, `report_locale`)
+);

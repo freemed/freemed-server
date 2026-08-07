@@ -68,7 +68,7 @@ func patientClinicalOrdersCreate(r *gin.Context) {
 		Status:           input.Status,
 		DateOrdered:      dateOrdered,
 		OrderingProvider: input.OrderingProvider,
-		Notes: toNullString(input.Notes),
+		Notes: toNullString(&input.Notes),
 		UserID:           session.UserId,
 	}
 

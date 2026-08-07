@@ -41,6 +41,8 @@ func init() {
 			r.DELETE("/:id/addresses/:addressId", patientAddressDelete)
 			r.DELETE("/:id/addresses", patientAddressesDeleteAll)
 			r.POST("/:id/addresses/bulk", patientAddressesBulkCreate)
+			r.GET("/:id/phones", patientPhonesList)
+			r.POST("/:id/phones", patientPhonesCreate)
 			r.GET("/:id/tags", patientTagsList)
 			r.POST("/:id/tags", patientTagsCreate)
 			r.DELETE("/:id/tags/:tagId", patientTagsExpire)
@@ -56,6 +58,8 @@ func init() {
 			r.GET("/:id/clinical-orders", patientClinicalOrdersList)
 			r.POST("/:id/clinical-orders", patientClinicalOrdersCreate)
 			r.GET("/:id/scanned-documents", patientScannedDocsList)
+			r.GET("/:id/photo-id", patientPhotoIDList)
+			r.POST("/:id/photo-id", patientPhotoIDCreate)
 			r.GET("/:id/annotations", patientAnnotationsList)
 			r.POST("/:id/annotations", patientAnnotationCreate)
 			},

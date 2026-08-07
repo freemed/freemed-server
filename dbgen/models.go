@@ -716,6 +716,26 @@ type PatientID struct {
 	Active    string       `json:"active"`
 }
 
+type PatientReporting struct {
+	ID                  int64          `json:"id"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
+	DeletedAt           sql.NullTime   `json:"deleted_at"`
+	ReportName          string         `json:"report_name"`
+	ReportUuid          string         `json:"report_uuid"`
+	ReportLocale        string         `json:"report_locale"`
+	ReportDesc          sql.NullString `json:"report_desc"`
+	ReportType          string         `json:"report_type"`
+	ReportSp            string         `json:"report_sp"`
+	ReportParamCount    int8           `json:"report_param_count"`
+	ReportParamNames    sql.NullString `json:"report_param_names"`
+	ReportParamTypes    sql.NullString `json:"report_param_types"`
+	ReportParamOptions  sql.NullString `json:"report_param_options"`
+	ReportParamOptional sql.NullString `json:"report_param_optional"`
+	ReportAcl           sql.NullString `json:"report_acl"`
+	ReportFormatting    sql.NullString `json:"report_formatting"`
+}
+
 type Patienttag struct {
 	ID         int64        `json:"id"`
 	CreatedAt  time.Time    `json:"created_at"`
@@ -767,6 +787,32 @@ type Pharmacy struct {
 	Phname    string         `json:"phname"`
 	Phcity    sql.NullString `json:"phcity"`
 	Phstate   sql.NullString `json:"phstate"`
+}
+
+type Phone struct {
+	ID        int64        `json:"id"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+	Patient   int64        `json:"patient"`
+	Type      string       `json:"type"`
+	Number    string       `json:"number"`
+	Active    string       `json:"active"`
+	User      int64        `json:"user"`
+}
+
+type Photoid struct {
+	ID          int64          `json:"id"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   sql.NullTime   `json:"deleted_at"`
+	Patient     int64          `json:"patient"`
+	Photo       sql.NullString `json:"photo"`
+	PhotoMime   string         `json:"photo_mime"`
+	PageCount   int64          `json:"page_count"`
+	Description string         `json:"description"`
+	User        int64          `json:"user"`
+	Active      string         `json:"active"`
 }
 
 type Physician struct {
