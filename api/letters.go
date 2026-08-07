@@ -65,7 +65,7 @@ func patientLettersCreate(r *gin.Context) {
 		LetterType: input.LetterType,
 		Recipient:  input.Recipient,
 		Subject:    input.Subject,
-		Body:       input.Body,
+		Body: toNullString(input.Body),
 		DateSent:   dateSent,
 		UserID:     session.UserId,
 	}

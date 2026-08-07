@@ -6,16 +6,6 @@ replace (
 	github.com/freemed/freemed-server/common => ../common
 	github.com/freemed/freemed-server/config => ../config
 	github.com/freemed/freemed-server/model => ../model
-	github.com/freemed/gokogiri => ../../gokogiri
-	github.com/freemed/gokogiri/help => ../../gokogiri/help
-	github.com/freemed/gokogiri/util => ../../gokogiri/util
-	github.com/freemed/ratago => ../../ratago
-	github.com/freemed/ratago/xslt => ../../ratago/xslt
-	github.com/freemed/remitt-server => ../../remitt-server
-	github.com/freemed/remitt-server/client => ../../remitt-server/client
-	github.com/freemed/remitt-server/common => ../../remitt-server/common
-	github.com/freemed/remitt-server/config => ../../remitt-server/config
-	github.com/freemed/remitt-server/model => ../../remitt-server/model
 )
 
 require (
@@ -32,10 +22,6 @@ require (
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/freemed/freemed-server/common v0.0.0-20250416130701-c7ae75b9c375 // indirect
 	github.com/freemed/freemed-server/config v0.0.0-20250416130701-c7ae75b9c375 // indirect
-	github.com/freemed/gokogiri/help v0.0.0-20250402180648-1e651eb8ffcd // indirect
-	github.com/freemed/gokogiri/util v0.0.0-20250402180648-1e651eb8ffcd // indirect
-	github.com/freemed/gokogiri/xml v0.0.0-20250402180648-1e651eb8ffcd // indirect
-	github.com/freemed/gokogiri/xpath v0.0.0-20250402180648-1e651eb8ffcd // indirect
 	github.com/freemed/ratago/xslt v0.0.0-20250203231425-016f1ea48158 // indirect
 	github.com/freemed/remitt-server/common v0.0.0-20250408203712-6db141480e4c // indirect
 	github.com/freemed/remitt-server/config v0.0.0-20250408203712-6db141480e4c // indirect

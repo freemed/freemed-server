@@ -1,6 +1,6 @@
 module github.com/freemed/freemed-server/cmd/freemed-server
 
-go 1.25
+go 1.25.0
 
 replace (
 	github.com/freemed/freemed-server => ../../
@@ -8,9 +8,6 @@ replace (
 	github.com/freemed/freemed-server/common => ../../common
 	github.com/freemed/freemed-server/config => ../../config
 	github.com/freemed/freemed-server/model => ../../model
-	github.com/freemed/gokogiri => ../../../gokogiri
-	github.com/freemed/gokogiri/help => ../../../gokogiri/help
-	github.com/freemed/gokogiri/xpath => ../../../gokogiri/xpath
 	github.com/freemed/ratago/xslt => ../../../ratago/xslt
 	github.com/freemed/remitt-server => ../../../remitt-server
 	github.com/freemed/remitt-server/client => ../../../remitt-server/client
@@ -31,6 +28,7 @@ require (
 	github.com/freemed/freemed-server/model v0.0.0-20250416130701-c7ae75b9c375
 	github.com/gin-gonic/contrib v0.0.0-20221130124618-7e01895a63f2
 	github.com/gin-gonic/gin v1.10.0
+	github.com/google/uuid v1.6.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
@@ -61,7 +59,7 @@ require (
 	golang.org/x/arch v0.16.0 // indirect
 	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/protobuf v1.36.7 // indirect
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20170922094635-f56db5e73a5e // indirect

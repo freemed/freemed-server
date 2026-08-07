@@ -67,7 +67,7 @@ func patientCorrespondenceCreate(r *gin.Context) {
 		Direction:          input.Direction,
 		ContactName:        input.ContactName,
 		ContactMethod:      input.ContactMethod,
-		Summary:            input.Summary,
+		Summary: toNullString(input.Summary),
 		Date:               corrDate,
 		UserID:             session.UserId,
 	}
