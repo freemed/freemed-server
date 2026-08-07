@@ -56,6 +56,8 @@ func init() {
 			r.GET("/:id/clinical-orders", patientClinicalOrdersList)
 			r.POST("/:id/clinical-orders", patientClinicalOrdersCreate)
 			r.GET("/:id/scanned-documents", patientScannedDocsList)
+			r.GET("/:id/annotations", patientAnnotationsList)
+			r.POST("/:id/annotations", patientAnnotationCreate)
 			},
 	}
 }

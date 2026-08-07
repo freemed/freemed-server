@@ -27,6 +27,8 @@ func init() {
 			r.POST("/", schedulerCreateAppointment)
 			r.POST("/group", schedulerCreateGroupAppointment)
 			r.GET("/group/:id", schedulerFindGroupAppointments)
+			r.GET("/groups", listCalGroups)
+			r.GET("/groups/:id", getCalGroup)
 			r.GET("/blocks", schedulerListBlockedSlots)
 			r.POST("/blocks", schedulerCreateBlockedSlot)
 			r.DELETE("/blocks/:id", schedulerDeleteBlockedSlot)
