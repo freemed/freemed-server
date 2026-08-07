@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime/pprof"
 	"strings"
+	"time"
 
 	"github.com/braintree/manners"
 	_ "github.com/freemed/freemed-server/api"
@@ -16,6 +17,7 @@ import (
 	dbpkg "github.com/freemed/freemed-server/internal/db"
 	"github.com/freemed/freemed-server/model"
 	"github.com/freemed/freemed-server/dbgen"
+	"github.com/freemed/freemed-server/internal/middleware"
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -58,6 +60,10 @@ func main() {
 		panic("UNABLE TO LOAD CONFIG")
 	}
 	config.Config = *c
+
+	for _, w := range c.ValidateProduction() {
+		log.Printf("SECURITY WARNING: %s", w)
+	}
 
 	if !*logToStdout {
 		log.SetOutput(&lumberjack.Logger{
@@ -102,6 +108,7 @@ func main() {
 	m := gin.New()
 	m.Use(gin.Logger())
 	m.Use(gin.Recovery())
+	m.Use(middleware.SecurityHeaders())
 
 	// Enable gzip compression
 	m.Use(gzip.Gzip(gzip.DefaultCompression))
@@ -127,12 +134,18 @@ func main() {
 
 	mw := getAuthMiddleware()
 
+	// Rate limiting for login endpoint (10 attempts per minute per IP)
+	loginLimiter := middleware.NewLoginRateLimiter(10, time.Minute)
+	go loginLimiter.Cleanup(5 * time.Minute)
+
 	// All authorized pieces live in /api
 	a := m.Group("/api")
 
 	// JWT pieces
 	auth := m.Group("/auth")
-	auth.POST("/login", mw.LoginHandler)
+	auth.GET("/csrf", middleware.GenerateCSRF)
+	auth.POST("/login", loginLimiter.Middleware(), middleware.ValidateCSRF(), mw.LoginHandler)
+	auth.GET("/me", mw.MiddlewareFunc(), authMe)
 	auth.GET("/refresh_token", mw.RefreshHandler)
 	auth.DELETE("/logout", authMiddlewareLogout)
 

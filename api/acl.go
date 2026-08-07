@@ -15,25 +15,25 @@ func init() {
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
 			// Groups
-			r.GET("/groups", aclGroupsList)
-			r.POST("/groups", aclGroupsCreate)
-			r.PUT("/groups/:id", aclGroupsUpdate)
-			r.DELETE("/groups/:id", aclGroupsDelete)
+			r.GET("/groups", common.RequireRole("admin"), aclGroupsList)
+			r.POST("/groups", common.RequireRole("admin"), aclGroupsCreate)
+			r.PUT("/groups/:id", common.RequireRole("admin"), aclGroupsUpdate)
+			r.DELETE("/groups/:id", common.RequireRole("admin"), aclGroupsDelete)
 
 			// Permissions
-			r.GET("/permissions", aclPermissionsList)
-			r.POST("/permissions", aclPermissionsCreate)
-			r.DELETE("/permissions/:id", aclPermissionsDelete)
+			r.GET("/permissions", common.RequireRole("admin"), aclPermissionsList)
+			r.POST("/permissions", common.RequireRole("admin"), aclPermissionsCreate)
+			r.DELETE("/permissions/:id", common.RequireRole("admin"), aclPermissionsDelete)
 
 			// Group permissions
-			r.GET("/groups/:id/permissions", aclGroupPermissionsList)
-			r.POST("/groups/:id/permissions", aclGroupPermissionAdd)
-			r.DELETE("/groups/:id/permissions/:permId", aclGroupPermissionRemove)
+			r.GET("/groups/:id/permissions", common.RequireRole("admin"), aclGroupPermissionsList)
+			r.POST("/groups/:id/permissions", common.RequireRole("admin"), aclGroupPermissionAdd)
+			r.DELETE("/groups/:id/permissions/:permId", common.RequireRole("admin"), aclGroupPermissionRemove)
 
 			// User group assignments
-			r.GET("/users/:id/groups", aclUserGroupsList)
-			r.POST("/users/:id/groups", aclUserGroupAdd)
-			r.DELETE("/users/:id/groups/:groupId", aclUserGroupRemove)
+			r.GET("/users/:id/groups", common.RequireRole("admin"), aclUserGroupsList)
+			r.POST("/users/:id/groups", common.RequireRole("admin"), aclUserGroupAdd)
+			r.DELETE("/users/:id/groups/:groupId", common.RequireRole("admin"), aclUserGroupRemove)
 		},
 	}
 }

@@ -61,13 +61,18 @@ type AppConfig struct {
 	} `yaml:"scheduler"`
 }
 
+var (
+	defaultDatabasePass = "freemed"
+	defaultSessionKey   = "freemed"
+)
+
 func (c *AppConfig) SetDefaults() {
 	c.Debug = false
 	c.Web.Port = 3000
 	c.Web.TlsPort = 4000
 	c.Database.Name = "freemed"
 	c.Database.User = "freemed"
-	c.Database.Pass = "freemed"
+	c.Database.Pass = defaultDatabasePass
 	c.Database.Host = ""
 	c.Database.Migrations = true
 	c.Redis.Host = "localhost:6379"
@@ -77,7 +82,23 @@ func (c *AppConfig) SetDefaults() {
 	c.Paths.DbMigrationsPath = "db/migrations"
 	c.Paths.Logs = "logs"
 	c.Session.Expiry = 10
-	c.Session.Key = "freemed"
+	c.Session.Key = defaultSessionKey
+}
+
+// ValidateProduction returns a list of security warnings when default values
+// are still in use. Call at startup and log findings; non-blocking.
+func (c *AppConfig) ValidateProduction() []string {
+	var warnings []string
+	if c.Session.Key == defaultSessionKey {
+		warnings = append(warnings, "FREEMED_SESSION_KEY is using the default value — set it via environment or config.yml for production")
+	}
+	if c.Database.Pass == defaultDatabasePass {
+		warnings = append(warnings, "database password is using the default value — change it in config.yml or set FREEMED_DB_PASS")
+	}
+	if c.Debug {
+		warnings = append(warnings, "debug mode is enabled — turn off in production")
+	}
+	return warnings
 }
 
 // applyEnvOverrides applies environment variable overrides for Docker/cloud deployment.

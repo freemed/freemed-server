@@ -1,34 +1,45 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { login } from '$lib/stores/auth.svelte';
+  import { login, fetchCSRFToken } from '$lib/stores/auth.svelte';
+  import { onMount } from 'svelte';
+  import { superForm } from 'sveltekit-superforms/client';
+  import { zodClient } from 'sveltekit-superforms/adapters';
+  import { z } from 'zod';
 
-  let username = $state('');
-  let password = $state('');
-  let loading = $state(false);
-  let error = $state('');
+  const loginSchema = z.object({
+    username: z.string().min(1, 'Username is required'),
+    password: z.string().min(1, 'Password is required'),
+  });
 
-  let isValid = $derived(username.trim() !== '' && password.trim() !== '');
+  let serverError = $state('');
 
-  async function handleSubmit(e: SubmitEvent) {
-    e.preventDefault();
-    if (!isValid || loading) return;
+  const { form, errors, enhance, submitting } = superForm(
+    { username: '', password: '' },
+    {
+      validators: zodClient(loginSchema),
+      onSubmit: async ({ formData, cancel }) => {
+        serverError = '';
+        cancel();
+        try {
+          const ok = await login(
+            formData.get('username') as string,
+            formData.get('password') as string,
+          );
+          if (ok) {
+            await goto('/');
+          } else {
+            serverError = 'Invalid username or password.';
+          }
+        } catch (_err) {
+          serverError = 'An error occurred. Please try again.';
+        }
+      },
+    },
+  );
 
-    error = '';
-    loading = true;
-
-    try {
-      const ok = await login(username, password);
-      if (ok) {
-        await goto('/');
-      } else {
-        error = 'Invalid username or password.';
-      }
-    } catch (_err) {
-      error = 'An error occurred. Please try again.';
-    } finally {
-      loading = false;
-    }
-  }
+  onMount(() => {
+    fetchCSRFToken().catch(() => {});
+  });
 </script>
 
 <svelte:head>
@@ -43,16 +54,16 @@
         <p class="text-gray-500 mt-1 text-sm">Sign in to your account</p>
       </div>
 
-      {#if error}
+      {#if serverError}
         <div
           class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm"
           role="alert"
         >
-          {error}
+          {serverError}
         </div>
       {/if}
 
-      <form onsubmit={handleSubmit} class="space-y-5">
+      <form method="POST" use:enhance class="space-y-5">
         <div>
           <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
             Username
@@ -60,16 +71,19 @@
           <input
             id="username"
             type="text"
-            bind:value={username}
-            required
+            name="username"
+            bind:value={$form.username}
             autocomplete="username"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm
                    placeholder-gray-400 text-sm
                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                    disabled:bg-gray-100 disabled:cursor-not-allowed"
             placeholder="Enter your username"
-            disabled={loading}
+            disabled={$submitting}
           />
+          {#if $errors.username}
+            <p class="text-red-600 text-xs mt-1">{$errors.username}</p>
+          {/if}
         </div>
 
         <div>
@@ -79,21 +93,24 @@
           <input
             id="password"
             type="password"
-            bind:value={password}
-            required
+            name="password"
+            bind:value={$form.password}
             autocomplete="current-password"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm
                    placeholder-gray-400 text-sm
                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                    disabled:bg-gray-100 disabled:cursor-not-allowed"
             placeholder="Enter your password"
-            disabled={loading}
+            disabled={$submitting}
           />
+          {#if $errors.password}
+            <p class="text-red-600 text-xs mt-1">{$errors.password}</p>
+          {/if}
         </div>
 
         <button
           type="submit"
-          disabled={!isValid || loading}
+          disabled={$submitting}
           class="w-full flex items-center justify-center px-4 py-2.5 border border-transparent
                  rounded-lg shadow-sm text-sm font-medium text-white
                  bg-blue-600 hover:bg-blue-700
@@ -101,7 +118,7 @@
                  disabled:opacity-50 disabled:cursor-not-allowed
                  transition-colors"
         >
-          {#if loading}
+          {#if $submitting}
             <svg
               class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
               xmlns="http://www.w3.org/2000/svg"

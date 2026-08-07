@@ -80,11 +80,31 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 					"message": message,
 				})
 			},
-			// Token only via Authorization header — no URL query parameter
+			// Token only via Authorization header or httpOnly cookie
 			TokenLookup:   "header:Authorization,cookie:jwt",
 			TokenHeadName: "Bearer",
 			TimeFunc:      time.Now,
+			// LoginResponse sets the JWT as an httpOnly cookie alongside the JSON response.
+			LoginResponse: func(c *gin.Context, code int, token string, expire time.Time) {
+				maxAge := int(time.Until(expire).Seconds())
+				if maxAge < 0 {
+					maxAge = 0
+				}
+				secure := config.Config.Web.Keys.Cert != "" && config.Config.Web.Keys.Key != ""
+				c.SetCookie("jwt", token, maxAge, "/", "", secure, true)
+				c.JSON(http.StatusOK, gin.H{
+					"code":    http.StatusOK,
+					"expire":  expire.Format(time.RFC3339),
+					"message": "login successful",
+				})
+			},
 			RefreshResponse: func(c *gin.Context, code int, token string, t time.Time) {
+				maxAge := int(time.Until(t).Seconds())
+				if maxAge < 0 {
+					maxAge = 0
+				}
+				secure := config.Config.Web.Keys.Cert != "" && config.Config.Web.Keys.Key != ""
+				c.SetCookie("jwt", token, maxAge, "/", "", secure, true)
 				c.JSON(http.StatusOK, gin.H{
 					"code":    http.StatusOK,
 					"token":   token,
@@ -125,7 +145,21 @@ func authMiddlewareLogout(c *gin.Context) {
 	}
 	log.Printf("AuthLogout(): Expire session %s", session.SessionId)
 	common.ActiveSession.ExpireSession(session.SessionId)
+
+	// Clear the httpOnly jwt cookie
+	c.SetCookie("jwt", "", -1, "/", "", false, true)
 	c.JSON(http.StatusOK, true)
+}
+
+// authMe returns the current user's session info from JWT claims.
+func authMe(c *gin.Context) {
+	claims := jwt.ExtractClaims(c)
+	c.JSON(http.StatusOK, gin.H{
+		"user_id":     claims[identityKey],
+		"user_type":   claims["user_type"],
+		"username":    claims["username"],
+		"provider_id": claims["provider_id"],
+	})
 }
 
 // authorizeRequest performs basic RBAC based on the user_type claim.

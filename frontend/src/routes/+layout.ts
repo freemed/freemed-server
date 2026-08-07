@@ -1,9 +1,7 @@
-import { redirect, type LoadEvent } from '@sveltejs/kit';
-import { authToken } from '$lib/stores/auth.svelte';
+import type { LoadEvent } from '@sveltejs/kit';
 
+// SPA fallback mode: no server-side auth checks.
+// Auth redirect is handled client-side in +layout.svelte.
 export const load = ({ url }: LoadEvent) => {
-	const publicPaths = ['/login'];
-	if (!authToken.current && !publicPaths.includes(url.pathname)) {
-		throw redirect(307, '/login');
-	}
+	return { pathname: url.pathname };
 };

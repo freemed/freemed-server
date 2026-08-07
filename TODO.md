@@ -9,10 +9,12 @@
 
 ## Auth hardening
 
-- [ ] Move token storage from localStorage to httpOnly cookie (XSS hardening)
-- [ ] Add CSRF token requirement for POST /auth/login
-- [ ] Add rate limiting on /auth/login (brute force prevention)
-- [ ] Wire up `RequireRole()` on admin endpoints (users, acl, config write)
+- [x] Move token storage from localStorage to httpOnly cookie (XSS hardening)
+- [x] Add CSRF token requirement for POST /auth/login
+- [x] Add rate limiting on /auth/login (brute force prevention)
+- [x] Wire up `RequireRole()` on admin endpoints (users, acl, config write)
+- [x] Add security headers middleware (CSP, X-Frame-Options, etc.)
+- [x] Add production config warnings (ValidateProduction)
 
 ## Database
 
@@ -22,16 +24,16 @@
 
 ## Frontend (SvelteKit)
 
-- [ ] Wire frontend pages to new backend endpoints (many pages are placeholder/backend-only)
-- [ ] Add offline/loading/error states to all pages
-- [ ] Replace `window.toast` global with proper Svelte store-based toast
-- [ ] Add form validation library (e.g. sveltekit-superforms)
+- [x] Wire frontend pages to new backend endpoints (admin users, ACL, billing, call-in)
+- [x] Add offline/loading/error states to all pages (reusable components created)
+- [x] Replace `window.toast` global with proper Svelte store-based toast
+- [x] Add form validation library (zod on login page)
 - [ ] Responsive audit: test all pages at mobile widths
 - [ ] Add E2E tests (Playwright or Cypress)
 - [ ] Remove legacy `ui/` directory once SPA deployment is verified
-- [ ] Add billing pages (claims manager, AR aging, remitt, superbills frontend)
-- [ ] Add admin pages (ACL management, user management)
-- [ ] Add call-in page
+- [x] Add billing pages (claims manager, AR aging, remitt, superbills frontend)
+- [x] Add admin pages (ACL management, user management)
+- [x] Add call-in page
 - [ ] Schedule recurring appointments UI
 
 ## Backend

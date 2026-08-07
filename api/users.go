@@ -15,11 +15,11 @@ func init() {
 	common.ApiMap["users"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.GET("/", usersList)
-			r.POST("/", usersCreate)
-			r.PUT("/:id/password", usersPasswordChange)
-			r.PUT("/:id", usersUpdate)
-			r.DELETE("/:id", usersDelete)
+			r.GET("/", common.RequireRole("admin"), usersList)
+			r.POST("/", common.RequireRole("admin"), usersCreate)
+			r.PUT("/:id/password", common.RequireRole("admin"), usersPasswordChange)
+			r.PUT("/:id", common.RequireRole("admin"), usersUpdate)
+			r.DELETE("/:id", common.RequireRole("admin"), usersDelete)
 		},
 	}
 }

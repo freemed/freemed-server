@@ -13,9 +13,9 @@ func init() {
 	common.ApiMap["tools"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.GET("/", listTools)
-			r.GET("/:id", getTool)
-			r.POST("/:id/execute", executeTool)
+			r.GET("/", common.RequireRole("admin"), listTools)
+			r.GET("/:id", common.RequireRole("admin"), getTool)
+			r.POST("/:id/execute", common.RequireRole("admin"), executeTool)
 		},
 	}
 }

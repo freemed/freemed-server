@@ -8,7 +8,7 @@
 	let error = $state('');
 
 	$effect(() => {
-		api.get<AgingRow[]>('/billing/aging').then(d => { rows = d; loading = false; }).catch(e => { error = e.message; loading = false; });
+		api.get<AgingRow[]>('/aging').then(d => { rows = d; loading = false; }).catch(e => { error = e.message; loading = false; });
 	});
 </script>
 

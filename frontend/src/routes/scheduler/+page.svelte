@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
+	import { toast } from '$lib/stores/toast.svelte';
 	import Calendar from '$lib/components/Calendar.svelte';
 	import type { Calendar as FullCalendar } from '@fullcalendar/core';
 
@@ -118,7 +119,7 @@
 
 	async function createAppointment() {
 		if (newForm.patient <= 0) {
-			(window as any).toast?.error('Patient ID is required.');
+			toast.error('Patient ID is required.');
 			return;
 		}
 		newFormSubmitting = true;
@@ -133,12 +134,12 @@
 				patient: newForm.patient,
 				note: newForm.note
 			});
-			(window as any).toast?.success('Appointment created.');
+			toast.success('Appointment created.');
 			showNewForm = false;
 			resetNewForm();
 			refreshCalendar();
 		} catch (e: any) {
-			(window as any).toast?.error(e.message || 'Failed to create appointment.');
+			toast.error(e.message || 'Failed to create appointment.');
 		} finally {
 			newFormSubmitting = false;
 		}
@@ -146,7 +147,7 @@
 
 	async function createGroupAppointment() {
 		if (groupPatientIds.length === 0) {
-			(window as any).toast?.error('Add at least one patient.');
+			toast.error('Add at least one patient.');
 			return;
 		}
 		groupFormSubmitting = true;
@@ -159,13 +160,13 @@
 				duration: groupForm.duration,
 				note: groupForm.note
 			});
-			(window as any).toast?.success('Group appointment created.');
+			toast.success('Group appointment created.');
 			showNewGroup = false;
 			groupPatientIds = [];
 			groupForm = { date: '', hour: 9, minute: 0, duration: 30, note: '' };
 			refreshCalendar();
 		} catch (e: any) {
-			(window as any).toast?.error(e.message || 'Failed to create group.');
+			toast.error(e.message || 'Failed to create group.');
 		} finally {
 			groupFormSubmitting = false;
 		}
@@ -212,11 +213,11 @@
 				hour: copyHour,
 				minute: copyMinute
 			});
-			(window as any).toast?.success('Appointment copied.');
+			toast.success('Appointment copied.');
 			copyDate = '';
 			refreshCalendar();
 		} catch (e: any) {
-			(window as any).toast?.error(e.message || 'Failed to copy appointment.');
+			toast.error(e.message || 'Failed to copy appointment.');
 		} finally {
 			copySubmitting = false;
 		}
@@ -274,7 +275,7 @@
 				selectedEvent = data;
 			})
 			.catch(() => {
-				(window as any).toast?.error('Unable to retrieve event.');
+				toast.error('Unable to retrieve event.');
 				showModal = false;
 			})
 			.finally(() => {
@@ -293,10 +294,10 @@
 		api
 			.post('/scheduler/reschedule/' + info.event.id, changes)
 			.then(() => {
-				(window as any).toast?.info('Appointment rescheduled.');
+				toast.info('Appointment rescheduled.');
 			})
 			.catch(() => {
-				(window as any).toast?.error('Unable to reschedule appointment.');
+				toast.error('Unable to reschedule appointment.');
 				info.revert();
 			});
 	}
@@ -309,10 +310,10 @@
 		api
 			.post('/scheduler/reschedule/' + info.event.id, { duration })
 			.then(() => {
-				(window as any).toast?.info('Appointment duration changed.');
+				toast.info('Appointment duration changed.');
 			})
 			.catch(() => {
-				(window as any).toast?.error('Unable to adjust appointment duration.');
+				toast.error('Unable to adjust appointment duration.');
 				info.revert();
 			});
 	}
@@ -322,11 +323,11 @@
 		if (!confirm('Cancel this appointment?')) return;
 		try {
 			await api.del('/scheduler/' + selectedEvent.scheduler_id);
-			(window as any).toast?.success('Appointment cancelled.');
+			toast.success('Appointment cancelled.');
 			closeModal();
 			refreshCalendar();
 		} catch (e: any) {
-			(window as any).toast?.error(e.message || 'Failed to cancel appointment.');
+			toast.error(e.message || 'Failed to cancel appointment.');
 		}
 	}
 

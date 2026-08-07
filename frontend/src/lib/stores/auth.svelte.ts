@@ -1,64 +1,93 @@
 import { browser } from '$app/environment';
 
-const STORAGE_KEY = 'freemed_token';
+// ---- Reactive auth state ----
+let _authenticated = $state(false);
+let _userType = $state<string | null>(null);
+let _username = $state<string | null>(null);
 
-function loadToken(): string | null {
-	if (!browser) return null;
-	return localStorage.getItem(STORAGE_KEY);
-}
-
-function saveToken(token: string | null) {
-	if (!browser) return;
-	if (token) {
-		localStorage.setItem(STORAGE_KEY, token);
-	} else {
-		localStorage.removeItem(STORAGE_KEY);
-	}
-}
-
-// Module-level reactive state using Svelte 5 runes
-let _token = $state<string | null>(loadToken());
-
-export const authToken = {
-	get current() { return _token; },
-	set current(val: string | null) {
-		_token = val;
-		saveToken(val);
-	}
+// ---- Public API ----
+export const auth = {
+	get authenticated() { return _authenticated; },
+	get userType() { return _userType; },
+	get username() { return _username; },
 };
 
-export const isAuthenticated = () => !!_token;
+export const isAuthenticated = () => _authenticated;
+export const userType = () => _userType;
+export const currentUsername = () => _username;
+
+// ---- CSRF ----
+function readCSRFCookie(): string | null {
+	if (!browser) return null;
+	const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
+	return match ? match[1] : null;
+}
+
+export async function fetchCSRFToken(): Promise<string | null> {
+	try {
+		const res = await fetch('/auth/csrf');
+		if (!res.ok) return null;
+		const data = await res.json();
+		return data.token || readCSRFCookie();
+	} catch {
+		return readCSRFCookie();
+	}
+}
+
+// ---- Auth actions ----
+
+export async function checkAuth(): Promise<boolean> {
+	if (!browser) return false;
+	try {
+		const res = await fetch('/auth/me');
+		if (!res.ok) {
+			_authenticated = false;
+			_userType = null;
+			_username = null;
+			return false;
+		}
+		const data = await res.json();
+		_authenticated = true;
+		_userType = data.user_type || null;
+		_username = data.username || null;
+		return true;
+	} catch {
+		_authenticated = false;
+		_userType = null;
+		_username = null;
+		return false;
+	}
+}
 
 export async function login(username: string, password: string): Promise<boolean> {
+	const csrfToken = readCSRFCookie();
+	const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+	if (csrfToken) {
+		headers['X-CSRF-Token'] = csrfToken;
+	}
 	const res = await fetch('/auth/login', {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
+		headers,
 		body: JSON.stringify({ username, password }),
 	});
 	if (!res.ok) return false;
-	const data = await res.json();
-	authToken.current = data.token;
-	return true;
+
+	// The JWT is now in an httpOnly cookie — verify by calling /auth/me
+	const ok = await checkAuth();
+	return ok;
 }
 
 export async function refreshToken(): Promise<boolean> {
-	if (!_token) return false;
-	const res = await fetch('/auth/refresh_token', {
-		headers: { Authorization: `Bearer ${_token}` },
-	});
+	const res = await fetch('/auth/refresh_token');
 	if (!res.ok) return false;
-	const data = await res.json();
-	authToken.current = data.token;
-	return true;
+	return checkAuth();
 }
 
 export function logout() {
-	const token = _token;
-	authToken.current = null;
-	if (token && browser) {
-		fetch('/auth/logout', {
-			method: 'DELETE',
-			headers: { Authorization: `Bearer ${token}` },
-		}).catch(() => {});
+	if (browser) {
+		fetch('/auth/logout', { method: 'DELETE' }).catch(() => {});
 	}
+	_authenticated = false;
+	_userType = null;
+	_username = null;
 }
