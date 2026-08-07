@@ -4,44 +4,91 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/freemed/freemed-server)](https://goreportcard.com/report/github.com/freemed/freemed-server)
 [![codecov](https://codecov.io/gh/freemed/freemed-server/branch/master/graph/badge.svg)](https://codecov.io/gh/freemed/freemed-server)
 [![GoDoc](https://godoc.org/github.com/freemed/freemed-server?status.png)](https://godoc.org/github.com/freemed/freemed-server)
-[![Join the chat at https://gitter.im/freemed/freemed-server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/freemed/freemed-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Refactoring of **FreeMED** in Golang / Gin.
+Refactoring of **FreeMED** in Golang / Gin + SvelteKit.
 
-The backend uses:
- * [Go](https://golang.org/): Efficient programming language
- * [Gin](https://github.com/gin-gonic/gin/): Web framework for Go
- * [Gin-JWT](https://github.com/appleboy/gin-jwt): JWT middleware for Gin
- * [sqlc](https://sqlc.dev): Type-safe SQL query generation (migrating from GORM)
- * [Go-MySQL-Driver](http://github.com/go-sql-driver/mysql): MySQL driver
- * [golang-migrate](https://github.com/golang-migrate/migrate): Database migrations
- * [go-redis](https://github.com/go-redis/redis): Redis driver
- * [lumberjack](https://github.com/natefinch/lumberjack): Rolling logger
- * [manners](https://github.com/braintree/manners): Graceful http/https serving
+## Backend
 
-The frontend uses:
- * [jQuery](https://jquery.com): Fast Javascript framework
- * [Popper](https://popper.js.org/): Pop-over management, required by bootstrap
- * [Bootstrap](http://getbootstrap.com): Responsive framework
- * [Bootstrap-Switch](http://www.bootstrap-switch.org): Switches for Bootstrap
- * [Knockout](http://knockoutjs.com/): MVVM UI toolkit
- * [Knockout.Mapping](https://github.com/SteveSanderson/knockout.mapping): Automatic JS object mapping for Knockout
- * [Select2](https://select2.org/): Extensible select widgets
- * [toastr](https://github.com/CodeSeven/toastr): Toaster widget
- 
-Code in this repository can be run against a valid FreeMED 0.9.x series database with no modifications.
+| Component | Technology |
+|-----------|-----------|
+| Language | Go 1.26 |
+| Web framework | Gin |
+| Auth | gin-jwt v2 (bcrypt, JWT with jti blacklist via Redis) |
+| Database | MySQL via go-sql-driver/mysql |
+| Query layer | sqlc (type-safe SQL generation, ~100 query files) |
+| Migrations | golang-migrate (17 migrations) |
+| Sessions | Redis via go-redis |
+| Logging | lumberjack (rolling logger) |
+| Graceful shutdown | manners |
+
+## Frontend
+
+| Component | Technology |
+|-----------|-----------|
+| Framework | SvelteKit 5 (runes mode) |
+| Styling | Tailwind CSS 4 |
+| Calendar | FullCalendar 6 |
+| Adapter | @sveltejs/adapter-static (SPA fallback) |
+| Build | Vite |
+
+## Quick Start
+
+```bash
+# Backend
+make binary && ./freemed
+
+# Frontend dev server
+make frontend-deps frontend-dev
+
+# Full stack with Docker
+make docker-build docker-up
+```
+
+## API Coverage
+
+127+ API endpoints across 45 modules. See `.hermes/plans/` for feature parity analysis.
+
+### Core
+`config`, `dashboard`, `search`, `users`, `facilities`, `providers`, `acl`, `tools`
+
+### Patient
+`patients`, `patient` (info, addresses, tags, history, diagnoses, photo-id, phones, allergies, vitals, medications, immunizations, coverages)
+
+### Clinical
+`encounters`, `progress-notes`, `labs`, `drug-samples`, `episodes-of-care`, `growth-charts`, `workflow-status`, `clinical-orders`
+
+### Scheduler
+`scheduler` (appointments, recurring, next-available, blocks, groups, templates)
+
+### Billing
+`procedures`, `payments` (ledger, copays, deductibles), `claims`, `authorizations`, `aging`, `remitt`, `superbills`, `action-items`, `superbill-templates`
+
+### Messaging
+`messages` (tags, bulk ops), `notifications` (task inbox, timestamps)
+
+### Documents
+`documents` (unfiled, unread), `scanned-documents`
+
+### Other
+`annotations`, `letters`, `correspondence`, `referrals`, `events`, `holidays`, `callin`, `reporting`, `rx-refill`, `sms-providers`, `provider-specialties`, `emr/data-store`, `support` (picklists)
+
+## Architectural Changes from FreeMED 0.9.x
+
+- **sqlc + database/sql** replaces GORM (compile-time SQL validation)
+- **bcrypt** password hashing with automatic MD5 legacy upgrade
+- **JWT token blacklist** (Redis-backed jti) — logout invalidates tokens
+- **RBAC middleware** (`RequireRole`) replaces hardcoded ACL checks
+- **SvelteKit 5 SPA** replaces GWT + jQuery/Knockout/Bootstrap frontend
+- **golang-migrate** replaces GORM AutoMigrate for versioned schema changes
+- **Redis sessions** replace MySQL-backed sessions
+- Environment variable config overrides (`FREEMED_DB_HOST`, etc.) for Docker
 
 ## Caveats
 
- * MySQL's `ONLY_FULL_GROUP_BY` needs to be disabled -- at least until the queries have been rewritten to no longer require it. This can be temporarily accomplished with `SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`, but should have the actual MySQL server configuration adjusted for it in production systems.
+- MySQL's `ONLY_FULL_GROUP_BY` needs to be disabled for legacy queries
+- `billing/` module requires external `remitt-server` and `ratago` dependencies
+- Code compatible with FreeMED 0.9.x database schemas
 
-## Architectural changes from FreeMED 0.9.x
+## Other Resources
 
- * **Redis Sessions**. Sessions are stored in Redis, to decrease load on the MySQL server. (TODO: Move to Redis cluster for full redundancy)
- * **Authentication**. Switched from cookies to renewable ``Bearer`` Authorization headers.
- * **UI Architecture**. Switched from GWT pre-generated specific javascript to simple jQuery frontend with Bootstrap using RESTful API.
-
-## Other CC/Opensource Resources
-
- * Background image : [CC BY-SA 2.0](https://commons.wikimedia.org/wiki/File:Laptop_and_stethoscope_\(6123892769\).jpg)
-
+- Background image: [CC BY-SA 2.0](https://commons.wikimedia.org/wiki/File:Laptop_and_stethoscope_(6123892769).jpg)
