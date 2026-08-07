@@ -7,7 +7,61 @@ package dbgen
 
 import (
 	"context"
+	"time"
 )
+
+const latestTimestamp = `-- name: LatestTimestamp :one
+SELECT MAX(stamp) AS ts FROM systemnotification
+`
+
+// LatestTimestamp returns the latest notification timestamp
+func (q *Queries) LatestTimestamp(ctx context.Context) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, latestTimestamp)
+	var ts interface{}
+	err := row.Scan(&ts)
+	return ts, err
+}
+
+const notificationsFromTimestamp = `-- name: NotificationsFromTimestamp :many
+SELECT id, created_at, updated_at, deleted_at, stamp, nuser, ntext, naction, nmodule, npatient FROM systemnotification
+WHERE stamp > ?
+ORDER BY stamp DESC
+`
+
+// NotificationsFromTimestamp returns notifications since a given timestamp
+func (q *Queries) NotificationsFromTimestamp(ctx context.Context, since time.Time) ([]Systemnotification, error) {
+	rows, err := q.db.QueryContext(ctx, notificationsFromTimestamp, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Systemnotification
+	for rows.Next() {
+		var i Systemnotification
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Stamp,
+			&i.Nuser,
+			&i.Ntext,
+			&i.Naction,
+			&i.Nmodule,
+			&i.Npatient,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const patientNotifications = `-- name: PatientNotifications :many
 SELECT id, created_at, updated_at, deleted_at, stamp, nuser, ntext, naction, nmodule, npatient FROM systemnotification
@@ -18,6 +72,114 @@ ORDER BY stamp DESC
 // PatientNotifications returns notifications for a specific patient
 func (q *Queries) PatientNotifications(ctx context.Context, patientID int64) ([]Systemnotification, error) {
 	rows, err := q.db.QueryContext(ctx, patientNotifications, patientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Systemnotification
+	for rows.Next() {
+		var i Systemnotification
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Stamp,
+			&i.Nuser,
+			&i.Ntext,
+			&i.Naction,
+			&i.Nmodule,
+			&i.Npatient,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const systemTaskInboxCount = `-- name: SystemTaskInboxCount :one
+SELECT COUNT(*) FROM systemnotification
+WHERE nuser = ?
+`
+
+// SystemTaskInboxCount returns the count of task notifications for a user
+func (q *Queries) SystemTaskInboxCount(ctx context.Context, userID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, systemTaskInboxCount, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const systemTaskPatientInbox = `-- name: SystemTaskPatientInbox :many
+SELECT id, created_at, updated_at, deleted_at, stamp, nuser, ntext, naction, nmodule, npatient FROM systemnotification
+WHERE npatient = ?
+ORDER BY stamp DESC
+`
+
+// SystemTaskPatientInbox returns task notifications for a specific patient
+func (q *Queries) SystemTaskPatientInbox(ctx context.Context, patientID int64) ([]Systemnotification, error) {
+	rows, err := q.db.QueryContext(ctx, systemTaskPatientInbox, patientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Systemnotification
+	for rows.Next() {
+		var i Systemnotification
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Stamp,
+			&i.Nuser,
+			&i.Ntext,
+			&i.Naction,
+			&i.Nmodule,
+			&i.Npatient,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const systemTaskPatientInboxCount = `-- name: SystemTaskPatientInboxCount :one
+SELECT COUNT(*) FROM systemnotification
+WHERE npatient = ?
+`
+
+// SystemTaskPatientInboxCount returns the count of task notifications for a patient
+func (q *Queries) SystemTaskPatientInboxCount(ctx context.Context, patientID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, systemTaskPatientInboxCount, patientID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const systemTaskUserInbox = `-- name: SystemTaskUserInbox :many
+SELECT id, created_at, updated_at, deleted_at, stamp, nuser, ntext, naction, nmodule, npatient FROM systemnotification
+WHERE nuser = ?
+ORDER BY stamp DESC
+`
+
+// SystemTaskUserInbox returns task notifications for a user
+func (q *Queries) SystemTaskUserInbox(ctx context.Context, userID int64) ([]Systemnotification, error) {
+	rows, err := q.db.QueryContext(ctx, systemTaskUserInbox, userID)
 	if err != nil {
 		return nil, err
 	}

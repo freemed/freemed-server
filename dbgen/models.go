@@ -1020,6 +1020,20 @@ type Referral struct {
 	Active            string       `json:"active"`
 }
 
+type Rxrefillrequest struct {
+	ID        int64          `json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt sql.NullTime   `json:"deleted_at"`
+	User      int64          `json:"user"`
+	Patient   int64          `json:"patient"`
+	Provider  int64          `json:"provider"`
+	Rxorig    sql.NullString `json:"rxorig"`
+	Note      string         `json:"note"`
+	Approved  sql.NullTime   `json:"approved"`
+	Locked    int64          `json:"locked"`
+}
+
 type ScannedDoc struct {
 	ID           int64        `json:"id"`
 	CreatedAt    time.Time    `json:"created_at"`

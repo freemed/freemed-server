@@ -1266,3 +1266,16 @@ CREATE TABLE `patient_reporting` (
   UNIQUE KEY `uq_report_uuid_locale` (`report_uuid`, `report_locale`),
   KEY `idx_report_name_locale` (`report_name`, `report_locale`)
 );
+CREATE TABLE `rxrefillrequest` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `provider` BIGINT NOT NULL DEFAULT 0,
+  `rxorig` TEXT,
+  `note` VARCHAR(250) NOT NULL DEFAULT '',
+  `approved` DATETIME,
+  `locked` BIGINT NOT NULL DEFAULT 0
+);
