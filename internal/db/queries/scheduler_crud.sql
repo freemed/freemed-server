@@ -66,3 +66,18 @@ SELECT s.*, cg.groupname
 FROM scheduler s
 LEFT JOIN calgroup cg ON s.calgroupid = cg.id
 WHERE s.caltype = 'group' AND s.calgroupid = sqlc.arg(calgroupid);
+
+-- name: CreateRecurringAppointment :exec
+INSERT INTO scheduler (
+  caldateof, calhour, calminute, calduration, caltype,
+  calphysician, calpatient, calstatus, calprenote,
+  calcreated, user,
+  created_at, updated_at
+)
+SELECT
+  sqlc.arg(caldateof), calhour, calminute, calduration, caltype,
+  calphysician, calpatient, 'scheduled', calprenote,
+  NOW(), sqlc.arg(user),
+  NOW(), NOW()
+FROM scheduler
+WHERE id = sqlc.arg(source_id);

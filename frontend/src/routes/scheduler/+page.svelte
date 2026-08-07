@@ -71,6 +71,15 @@
 		note: '',
 	});
 
+	// Provider filter
+	let selectedProvider = $state(0);
+
+	// Group appointment state
+	let showNewGroup = $state(false);
+	let groupPatientIds = $state<number[]>([]);
+	let groupFormSubmitting = $state(false);
+	let groupForm = $state({ date: '', hour: 9, minute: 0, duration: 30, note: '' });
+
 	// Copy appointment state
 	let copyDate = $state('');
 	let copyHour = $state(9);
@@ -133,6 +142,46 @@
 		} finally {
 			newFormSubmitting = false;
 		}
+	}
+
+	async function createGroupAppointment() {
+		if (groupPatientIds.length === 0) {
+			(window as any).toast?.error('Add at least one patient.');
+			return;
+		}
+		groupFormSubmitting = true;
+		try {
+			await api.post('/scheduler/group', {
+				patient_ids: groupPatientIds,
+				date: groupForm.date,
+				hour: groupForm.hour,
+				minute: groupForm.minute,
+				duration: groupForm.duration,
+				note: groupForm.note
+			});
+			(window as any).toast?.success('Group appointment created.');
+			showNewGroup = false;
+			groupPatientIds = [];
+			groupForm = { date: '', hour: 9, minute: 0, duration: 30, note: '' };
+			refreshCalendar();
+		} catch (e: any) {
+			(window as any).toast?.error(e.message || 'Failed to create group.');
+		} finally {
+			groupFormSubmitting = false;
+		}
+	}
+
+	function addGroupPatient() {
+		const input = document.getElementById('group-patient-input') as HTMLInputElement;
+		const id = parseInt(input?.value || '0');
+		if (id > 0 && !groupPatientIds.includes(id)) {
+			groupPatientIds = [...groupPatientIds, id];
+			input.value = '';
+		}
+	}
+
+	function removeGroupPatient(id: number) {
+		groupPatientIds = groupPatientIds.filter(p => p !== id);
 	}
 
 	function resetNewForm() {
