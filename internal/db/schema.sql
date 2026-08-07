@@ -1053,3 +1053,83 @@ CREATE TABLE `referrals` (
   `active` VARCHAR(255) NOT NULL DEFAULT ''
 );
 
+CREATE TABLE `scanned_docs` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `filename` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `page_count` BIGINT NOT NULL DEFAULT 0,
+  `document_date` DATETIME,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT 'active'
+);
+
+CREATE TABLE `letters` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `letter_type` VARCHAR(255) NOT NULL DEFAULT '',
+  `recipient` VARCHAR(255) NOT NULL DEFAULT '',
+  `subject` VARCHAR(255) NOT NULL DEFAULT '',
+  `body` TEXT,
+  `date_sent` DATETIME,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT '',
+  FOREIGN KEY (`patient`) REFERENCES `patient`(`id`)
+);
+
+CREATE TABLE `patient_correspondence` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `correspondence_type` VARCHAR(255) NOT NULL DEFAULT '',
+  `direction` VARCHAR(255) NOT NULL DEFAULT '',
+  `contact_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `contact_method` VARCHAR(255) NOT NULL DEFAULT '',
+  `summary` TEXT,
+  `date` DATETIME,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT '',
+  FOREIGN KEY (`patient`) REFERENCES `patient`(`id`)
+);
+
+CREATE TABLE `clinical_orders` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `order_type` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `status` VARCHAR(255) NOT NULL DEFAULT '',
+  `date_ordered` DATETIME,
+  `ordering_provider` BIGINT NOT NULL DEFAULT 0,
+  `notes` TEXT,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT '',
+  FOREIGN KEY (`patient`) REFERENCES `patient`(`id`)
+);
+
+CREATE TABLE `episode_of_care` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `start_date` DATETIME NOT NULL,
+  `end_date` DATETIME,
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `status` VARCHAR(255) NOT NULL DEFAULT '',
+  `provider` BIGINT NOT NULL DEFAULT 0,
+  `notes` VARCHAR(255) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+

@@ -207,6 +207,22 @@ type Clearinghouse struct {
 	User            int64        `json:"user"`
 }
 
+type ClinicalOrder struct {
+	ID               int64          `json:"id"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+	DeletedAt        sql.NullTime   `json:"deleted_at"`
+	Patient          int64          `json:"patient"`
+	OrderType        string         `json:"order_type"`
+	Description      string         `json:"description"`
+	Status           string         `json:"status"`
+	DateOrdered      sql.NullTime   `json:"date_ordered"`
+	OrderingProvider int64          `json:"ordering_provider"`
+	Notes            sql.NullString `json:"notes"`
+	User             int64          `json:"user"`
+	Active           string         `json:"active"`
+}
+
 type Config struct {
 	ID        int64          `json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
@@ -325,6 +341,22 @@ type Enctype struct {
 	UpdatedAt time.Time    `json:"updated_at"`
 	DeletedAt sql.NullTime `json:"deleted_at"`
 	Enclosure string       `json:"enclosure"`
+}
+
+type EpisodeOfCare struct {
+	ID          int64        `json:"id"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	DeletedAt   sql.NullTime `json:"deleted_at"`
+	Patient     int64        `json:"patient"`
+	StartDate   time.Time    `json:"start_date"`
+	EndDate     sql.NullTime `json:"end_date"`
+	Description string       `json:"description"`
+	Status      string       `json:"status"`
+	Provider    int64        `json:"provider"`
+	Notes       string       `json:"notes"`
+	User        int64        `json:"user"`
+	Active      string       `json:"active"`
 }
 
 type Facility struct {
@@ -460,6 +492,21 @@ type Intservtype struct {
 	Intservtype string       `json:"intservtype"`
 }
 
+type Letter struct {
+	ID         int64          `json:"id"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  sql.NullTime   `json:"deleted_at"`
+	Patient    int64          `json:"patient"`
+	LetterType string         `json:"letter_type"`
+	Recipient  string         `json:"recipient"`
+	Subject    string         `json:"subject"`
+	Body       sql.NullString `json:"body"`
+	DateSent   sql.NullTime   `json:"date_sent"`
+	User       int64          `json:"user"`
+	Active     string         `json:"active"`
+}
+
 type Loinc struct {
 	ID                      int64        `json:"id"`
 	CreatedAt               time.Time    `json:"created_at"`
@@ -585,6 +632,22 @@ type PatientAddress struct {
 	Postal    sql.NullString `json:"postal"`
 	Zip       sql.NullString `json:"zip"`
 	Active    bool           `json:"active"`
+}
+
+type PatientCorrespondence struct {
+	ID                 int64          `json:"id"`
+	CreatedAt          time.Time      `json:"created_at"`
+	UpdatedAt          time.Time      `json:"updated_at"`
+	DeletedAt          sql.NullTime   `json:"deleted_at"`
+	Patient            int64          `json:"patient"`
+	CorrespondenceType string         `json:"correspondence_type"`
+	Direction          string         `json:"direction"`
+	ContactName        string         `json:"contact_name"`
+	ContactMethod      string         `json:"contact_method"`
+	Summary            sql.NullString `json:"summary"`
+	Date               sql.NullTime   `json:"date"`
+	User               int64          `json:"user"`
+	Active             string         `json:"active"`
 }
 
 type PatientCoverage struct {
@@ -891,6 +954,20 @@ type Referral struct {
 	Notes             string       `json:"notes"`
 	User              int64        `json:"user"`
 	Active            string       `json:"active"`
+}
+
+type ScannedDoc struct {
+	ID           int64        `json:"id"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	DeletedAt    sql.NullTime `json:"deleted_at"`
+	Patient      int64        `json:"patient"`
+	Filename     string       `json:"filename"`
+	Description  string       `json:"description"`
+	PageCount    int64        `json:"page_count"`
+	DocumentDate sql.NullTime `json:"document_date"`
+	User         int64        `json:"user"`
+	Active       string       `json:"active"`
 }
 
 type Scheduler struct {

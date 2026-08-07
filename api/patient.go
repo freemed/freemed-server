@@ -43,7 +43,16 @@ func init() {
 			r.DELETE("/:id/tags/:tagId", patientTagsExpire)
 			r.GET("/:id/drug-samples", patientDrugSamplesList)
 			r.POST("/:id/drug-samples", patientDrugSampleCreate)
+			r.GET("/:id/episodes-of-care", patientEOCsList)
+			r.POST("/:id/episodes-of-care", patientEOCCreate)
 			r.GET("/:id/history", patientHistory)
+			r.GET("/:id/letters", patientLettersList)
+			r.POST("/:id/letters", patientLettersCreate)
+			r.GET("/:id/correspondence", patientCorrespondenceList)
+			r.POST("/:id/correspondence", patientCorrespondenceCreate)
+			r.GET("/:id/clinical-orders", patientClinicalOrdersList)
+			r.POST("/:id/clinical-orders", patientClinicalOrdersCreate)
+			r.GET("/:id/scanned-documents", patientScannedDocsList)
 			},
 	}
 }
