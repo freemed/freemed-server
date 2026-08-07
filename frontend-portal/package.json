@@ -23,5 +23,8 @@
 	"dependencies": {
 		"bootstrap": "^5.3.3",
 		"zod": "^3.25.76"
+	},
+	"overrides": {
+		"cookie": "^0.7.2"
 	}
 }
