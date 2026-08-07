@@ -1,8 +1,1 @@
-coverage:
-  status:
-    project:
-      default:
-        target: 80%
-        threshold: 1%
-comment:
-  require_changes: true
+token: b18bcce6-20ad-40b4-ab29-3b256cef57ce
