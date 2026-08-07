@@ -1038,6 +1038,22 @@ type Schedulerstatustype struct {
 	Sage      int64        `json:"sage"`
 }
 
+type Superbill struct {
+	ID           int64        `json:"id"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	DeletedAt    sql.NullTime `json:"deleted_at"`
+	Patient      int64        `json:"patient"`
+	DateFrom     time.Time    `json:"date_from"`
+	DateTo       time.Time    `json:"date_to"`
+	Provider     int64        `json:"provider"`
+	Status       string       `json:"status"`
+	TotalCharges float64      `json:"total_charges"`
+	DateCreated  time.Time    `json:"date_created"`
+	User         int64        `json:"user"`
+	Active       string       `json:"active"`
+}
+
 type Systemnotification struct {
 	ID        int64        `json:"id"`
 	CreatedAt time.Time    `json:"created_at"`

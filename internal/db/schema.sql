@@ -1133,3 +1133,18 @@ CREATE TABLE `episode_of_care` (
   `active` VARCHAR(255) NOT NULL DEFAULT ''
 );
 
+CREATE TABLE `superbill` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `date_from` DATETIME NOT NULL,
+  `date_to` DATETIME NOT NULL,
+  `provider` BIGINT NOT NULL DEFAULT 0,
+  `status` VARCHAR(255) NOT NULL DEFAULT '',
+  `total_charges` DOUBLE NOT NULL DEFAULT 0,
+  `date_created` DATETIME NOT NULL,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);

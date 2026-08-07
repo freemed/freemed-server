@@ -16,7 +16,8 @@
 		{ href: '/patients', label: 'Patients', icon: '👤' },
 		{ href: '/scheduler', label: 'Scheduler', icon: '📅' },
 		{ href: '/messages', label: 'Messages', icon: '✉️' },
-		{ href: '/preferences', label: 'Preferences', icon: '⚙️' },
+		{ href: '/billing', label: 'Billing', icon: '💲' },
+		{ href: '/admin', label: 'Admin', icon: '🔧' },
 	];
 
 	let mobileOpen = $state(false);

@@ -77,6 +77,43 @@ func (q *Queries) CheckUserPassword(ctx context.Context, arg CheckUserPasswordPa
 	return i, err
 }
 
+const createUser = `-- name: CreateUser :execresult
+INSERT INTO user (username, userpassword, userfname, userlname, userdescrip, usertype)
+VALUES (
+  ?, ?, ?,
+  ?, ?, ?
+)
+`
+
+type CreateUserParams struct {
+	Username     string         `json:"username"`
+	Userpassword string         `json:"userpassword"`
+	Userfname    sql.NullString `json:"userfname"`
+	Userlname    sql.NullString `json:"userlname"`
+	Userdescrip  sql.NullString `json:"userdescrip"`
+	Usertype     sql.NullString `json:"usertype"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createUser,
+		arg.Username,
+		arg.Userpassword,
+		arg.Userfname,
+		arg.Userlname,
+		arg.Userdescrip,
+		arg.Usertype,
+	)
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM user WHERE id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	return err
+}
+
 const getUserById = `-- name: GetUserById :one
 SELECT id, created_at, updated_at, deleted_at, username, userpassword, usertype, userrealphy, userfname, usermname, userlname, userdescrip, userlevel, userfac, userphy, userphygrp, usermanageopt, useremail, usersms, usersmsprovider, usertitle FROM user WHERE id = ?
 `
@@ -197,4 +234,50 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUser = `-- name: UpdateUser :exec
+UPDATE user SET
+  username = ?,
+  userfname = ?,
+  userlname = ?,
+  userdescrip = ?,
+  usertype = ?
+WHERE id = ?
+`
+
+type UpdateUserParams struct {
+	Username    string         `json:"username"`
+	Userfname   sql.NullString `json:"userfname"`
+	Userlname   sql.NullString `json:"userlname"`
+	Userdescrip sql.NullString `json:"userdescrip"`
+	Usertype    sql.NullString `json:"usertype"`
+	ID          int64          `json:"id"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
+	_, err := q.db.ExecContext(ctx, updateUser,
+		arg.Username,
+		arg.Userfname,
+		arg.Userlname,
+		arg.Userdescrip,
+		arg.Usertype,
+		arg.ID,
+	)
+	return err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :exec
+UPDATE user SET userpassword = ?
+WHERE id = ?
+`
+
+type UpdateUserPasswordParams struct {
+	Userpassword string `json:"userpassword"`
+	ID           int64  `json:"id"`
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.Userpassword, arg.ID)
+	return err
 }

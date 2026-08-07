@@ -96,6 +96,91 @@ func (q *Queries) PatientClaims(ctx context.Context, patientID int64) ([]Patient
 	return items, nil
 }
 
+const pendingClaims = `-- name: PendingClaims :many
+SELECT
+  cl.id,
+  cl.cltimestamp,
+  cl.cluser,
+  cl.clprocedure,
+  cl.clpayrec,
+  cl.claction,
+  cl.clcomment,
+  cl.clformat,
+  cl.cltarget,
+  cl.cltargetopt,
+  cl.clbillkey,
+  cl.created_at,
+  cl.updated_at,
+  cl.deleted_at,
+  pr.proccpt AS cpt_code,
+  u.username
+FROM claimlog cl
+LEFT JOIN procrec pr ON cl.clprocedure = pr.id
+LEFT JOIN user u ON cl.cluser = u.id
+WHERE cl.claction = 'pending'
+ORDER BY cl.cltimestamp DESC
+`
+
+type PendingClaimsRow struct {
+	ID          int64          `json:"id"`
+	Cltimestamp time.Time      `json:"cltimestamp"`
+	Cluser      int64          `json:"cluser"`
+	Clprocedure int64          `json:"clprocedure"`
+	Clpayrec    int64          `json:"clpayrec"`
+	Claction    string         `json:"claction"`
+	Clcomment   string         `json:"clcomment"`
+	Clformat    string         `json:"clformat"`
+	Cltarget    string         `json:"cltarget"`
+	Cltargetopt string         `json:"cltargetopt"`
+	Clbillkey   int64          `json:"clbillkey"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   sql.NullTime   `json:"deleted_at"`
+	CptCode     sql.NullInt64  `json:"cpt_code"`
+	Username    sql.NullString `json:"username"`
+}
+
+// List pending claim log entries (claction = 'pending')
+func (q *Queries) PendingClaims(ctx context.Context) ([]PendingClaimsRow, error) {
+	rows, err := q.db.QueryContext(ctx, pendingClaims)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PendingClaimsRow
+	for rows.Next() {
+		var i PendingClaimsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Cltimestamp,
+			&i.Cluser,
+			&i.Clprocedure,
+			&i.Clpayrec,
+			&i.Claction,
+			&i.Clcomment,
+			&i.Clformat,
+			&i.Cltarget,
+			&i.Cltargetopt,
+			&i.Clbillkey,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.CptCode,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const recentClaims = `-- name: RecentClaims :many
 SELECT
   cl.id,
@@ -179,4 +264,22 @@ func (q *Queries) RecentClaims(ctx context.Context) ([]RecentClaimsRow, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateClaimStatus = `-- name: UpdateClaimStatus :exec
+UPDATE claimlog
+SET claction = ?,
+    updated_at = NOW()
+WHERE id = ?
+`
+
+type UpdateClaimStatusParams struct {
+	Status string `json:"status"`
+	ID     int64  `json:"id"`
+}
+
+// Update claim status (claction field)
+func (q *Queries) UpdateClaimStatus(ctx context.Context, arg UpdateClaimStatusParams) error {
+	_, err := q.db.ExecContext(ctx, updateClaimStatus, arg.Status, arg.ID)
+	return err
 }
