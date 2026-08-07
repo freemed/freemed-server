@@ -6,7 +6,9 @@ SELECT
   pr.payrecamt AS amount,
   pr.payrectype AS type,
   pr.payrecdescrip AS description,
-  pr.payrecproc AS procedure_id
+  pr.payrecproc AS procedure_id,
+  pr.payrecsource AS source,
+  pr.payrecnum AS reference_number
 FROM payrec pr
 WHERE pr.payrecpatient = sqlc.arg(patient_id)
   AND pr.active = 'active'

@@ -272,7 +272,9 @@ SELECT
   pr.payrecamt AS amount,
   pr.payrectype AS type,
   pr.payrecdescrip AS description,
-  pr.payrecproc AS procedure_id
+  pr.payrecproc AS procedure_id,
+  pr.payrecsource AS source,
+  pr.payrecnum AS reference_number
 FROM payrec pr
 WHERE pr.payrecpatient = ?
   AND pr.active = 'active'
@@ -280,12 +282,14 @@ ORDER BY pr.payrecdtadd DESC
 `
 
 type PatientPaymentsRow struct {
-	ID          int64        `json:"id"`
-	Date        sql.NullTime `json:"date"`
-	Amount      float64      `json:"amount"`
-	Type        int64        `json:"type"`
-	Description string       `json:"description"`
-	ProcedureID int64        `json:"procedure_id"`
+	ID              int64          `json:"id"`
+	Date            sql.NullTime   `json:"date"`
+	Amount          float64        `json:"amount"`
+	Type            int64          `json:"type"`
+	Description     string         `json:"description"`
+	ProcedureID     int64          `json:"procedure_id"`
+	Source          int64          `json:"source"`
+	ReferenceNumber sql.NullString `json:"reference_number"`
 }
 
 // Patient payments: list all payments for a patient
@@ -305,6 +309,8 @@ func (q *Queries) PatientPayments(ctx context.Context, patientID int64) ([]Patie
 			&i.Type,
 			&i.Description,
 			&i.ProcedureID,
+			&i.Source,
+			&i.ReferenceNumber,
 		); err != nil {
 			return nil, err
 		}

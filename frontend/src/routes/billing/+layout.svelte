@@ -10,6 +10,7 @@
 			<a href="/billing/ar" class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors">AR Aging</a>
 			<a href="/billing/remitt" class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors">Remitt</a>
 			<a href="/billing/superbills" class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors">Superbills</a>
+			<a href="/billing/claimlog" class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors">Claim Log</a>
 		</nav>
 	</div>
 	{@render children()}

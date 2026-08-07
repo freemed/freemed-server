@@ -16,6 +16,8 @@ SELECT
   cl.updated_at,
   cl.deleted_at,
   pr.proccpt AS cpt_code,
+  pr.procdiag1 AS diagnosis_code,
+  pr.proccharges AS charges,
   u.username
 FROM claimlog cl
 LEFT JOIN procrec pr ON cl.clprocedure = pr.id

@@ -7,8 +7,12 @@
 		<h3 class="text-lg font-semibold text-gray-900 mb-1">User Management</h3>
 		<p class="text-sm text-gray-500">Create, edit, and manage user accounts and permissions</p>
 	</a>
+	<a href="/admin/user-groups" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+		<h3 class="text-lg font-semibold text-gray-900 mb-1">User Groups</h3>
+		<p class="text-sm text-gray-500">Assign users to groups and manage memberships</p>
+	</a>
 	<a href="/admin/acl" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
 		<h3 class="text-lg font-semibold text-gray-900 mb-1">ACL Management</h3>
-		<p class="text-sm text-gray-500">Manage groups, permissions, and user-group assignments</p>
+		<p class="text-sm text-gray-500">Manage groups, permissions, and group-permission mappings</p>
 	</a>
 </div>

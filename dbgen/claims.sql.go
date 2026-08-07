@@ -28,6 +28,8 @@ SELECT
   cl.updated_at,
   cl.deleted_at,
   pr.proccpt AS cpt_code,
+  pr.procdiag1 AS diagnosis_code,
+  pr.proccharges AS charges,
   u.username
 FROM claimlog cl
 LEFT JOIN procrec pr ON cl.clprocedure = pr.id
@@ -37,22 +39,24 @@ ORDER BY cl.cltimestamp DESC
 `
 
 type PatientClaimsRow struct {
-	ID          int64          `json:"id"`
-	Cltimestamp time.Time      `json:"cltimestamp"`
-	Cluser      int64          `json:"cluser"`
-	Clprocedure int64          `json:"clprocedure"`
-	Clpayrec    int64          `json:"clpayrec"`
-	Claction    string         `json:"claction"`
-	Clcomment   string         `json:"clcomment"`
-	Clformat    string         `json:"clformat"`
-	Cltarget    string         `json:"cltarget"`
-	Cltargetopt string         `json:"cltargetopt"`
-	Clbillkey   int64          `json:"clbillkey"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	DeletedAt   sql.NullTime   `json:"deleted_at"`
-	CptCode     sql.NullInt64  `json:"cpt_code"`
-	Username    sql.NullString `json:"username"`
+	ID            int64           `json:"id"`
+	Cltimestamp   time.Time       `json:"cltimestamp"`
+	Cluser        int64           `json:"cluser"`
+	Clprocedure   int64           `json:"clprocedure"`
+	Clpayrec      int64           `json:"clpayrec"`
+	Claction      string          `json:"claction"`
+	Clcomment     string          `json:"clcomment"`
+	Clformat      string          `json:"clformat"`
+	Cltarget      string          `json:"cltarget"`
+	Cltargetopt   string          `json:"cltargetopt"`
+	Clbillkey     int64           `json:"clbillkey"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+	DeletedAt     sql.NullTime    `json:"deleted_at"`
+	CptCode       sql.NullInt64   `json:"cpt_code"`
+	DiagnosisCode sql.NullInt64   `json:"diagnosis_code"`
+	Charges       sql.NullFloat64 `json:"charges"`
+	Username      sql.NullString  `json:"username"`
 }
 
 // List claim log entries for a specific patient
@@ -81,6 +85,8 @@ func (q *Queries) PatientClaims(ctx context.Context, patientID int64) ([]Patient
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.CptCode,
+			&i.DiagnosisCode,
+			&i.Charges,
 			&i.Username,
 		); err != nil {
 			return nil, err

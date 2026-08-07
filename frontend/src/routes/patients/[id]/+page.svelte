@@ -60,10 +60,6 @@ import DiagnosisList from '$lib/components/DiagnosisList.svelte';
 		}
 	}
 
-	function goToProgressNotes() {
-		goto('/patients/' + patientId + '/progress-notes');
-	}
-
 	function formatDate(dateStr: string): string {
 		if (!dateStr) return '';
 		try {
@@ -224,37 +220,178 @@ import DiagnosisList from '$lib/components/DiagnosisList.svelte';
 			</div>
 		</div>
 
-		<!-- Quick Actions -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-			<div class="px-6 py-4 border-b border-gray-100">
-				<h2 class="text-lg font-semibold text-gray-900">Actions</h2>
+		<!-- Navigation -->
+		<div class="space-y-6 mb-6">
+
+			<!-- CLINICAL -->
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+				<div class="px-6 py-3 border-b border-gray-100">
+					<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Clinical</h3>
+				</div>
+				<div class="px-6 py-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+					<a href="/patients/{patientId}/problems"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Problems
+					</a>
+					<a href="/patients/{patientId}/surgical-history"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Surgical History
+					</a>
+					<a href="/patients/{patientId}/episodes-of-care"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Episodes of Care
+					</a>
+					<a href="/patients/{patientId}/growth-charts"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Growth Charts
+					</a>
+					<a href="/patients/{patientId}/labs"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Labs
+					</a>
+					<a href="/patients/{patientId}/vitals"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Vitals
+					</a>
+					<a href="/patients/{patientId}/allergies"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Allergies
+					</a>
+					<a href="/patients/{patientId}/encounters"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Encounters
+					</a>
+					<a href="/patients/{patientId}/progress-notes"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Progress Notes
+					</a>
+				</div>
 			</div>
-			<div class="px-6 py-4 flex flex-wrap gap-3">
-				<button
-					onclick={goToProgressNotes}
-					class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-				>
-					Progress Notes
-				</button>
-				<button
-					onclick={() => goto('/patients/' + patientId + '/encounters')}
-					class="px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-				>
-					Encounters
-				</button>
-				<button
-					onclick={() => goto('/patients/' + patientId + '/documents')}
-					class="px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-				>
-					Documents
-				</button>
-				<button
-					onclick={() => goto('/patients/' + patientId + '/allergies')}
-					class="px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-				>
-					Allergies
-				</button>
+
+			<!-- MEDICATIONS -->
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+				<div class="px-6 py-3 border-b border-gray-100">
+					<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Medications</h3>
+				</div>
+				<div class="px-6 py-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+					<a href="/patients/{patientId}/medications"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors text-center">
+						Medications
+					</a>
+					<a href="/patients/{patientId}/immunizations"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors text-center">
+						Immunizations
+					</a>
+					<a href="/patients/{patientId}/drug-samples"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors text-center">
+						Drug Samples
+					</a>
+					<a href="/patients/{patientId}/clinical-orders"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors text-center">
+						Clinical Orders
+					</a>
+					<a href="/patients/{patientId}/referrals"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors text-center">
+						Referrals
+					</a>
+				</div>
 			</div>
+
+			<!-- DOCUMENTS -->
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+				<div class="px-6 py-3 border-b border-gray-100">
+					<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Documents</h3>
+				</div>
+				<div class="px-6 py-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+					<a href="/patients/{patientId}/documents"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition-colors text-center">
+						Documents
+					</a>
+					<a href="/patients/{patientId}/letters"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition-colors text-center">
+						Letters
+					</a>
+					<a href="/patients/{patientId}/correspondence"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition-colors text-center">
+						Correspondence
+					</a>
+					<a href="/patients/{patientId}/certifications"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition-colors text-center">
+						Certifications
+					</a>
+					<a href="/patients/{patientId}/annotations"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition-colors text-center">
+						Annotations
+					</a>
+				</div>
+			</div>
+
+			<!-- FINANCIAL -->
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+				<div class="px-6 py-3 border-b border-gray-100">
+					<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Financial</h3>
+				</div>
+				<div class="px-6 py-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+					<a href="/patients/{patientId}/ledger"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-colors text-center">
+						Ledger
+					</a>
+					<a href="/patients/{patientId}/payments"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-colors text-center">
+						Payments
+					</a>
+					<a href="/patients/{patientId}/claims"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-colors text-center">
+						Claims
+					</a>
+					<a href="/patients/{patientId}/coverage-info"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-colors text-center">
+						Coverage Info
+					</a>
+					<a href="/patients/{patientId}/financial"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-colors text-center">
+						Financial
+					</a>
+					<a href="/patients/{patientId}/procedures"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-colors text-center">
+						Procedures
+					</a>
+					<a href="/patients/{patientId}/authorizations"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-colors text-center">
+						Authorizations
+					</a>
+				</div>
+			</div>
+
+			<!-- ADMINISTRATIVE -->
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+				<div class="px-6 py-3 border-b border-gray-100">
+					<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Administrative</h3>
+				</div>
+				<div class="px-6 py-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+					<a href="/patients/{patientId}/addresses"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 transition-colors text-center">
+						Addresses
+					</a>
+					<a href="/patients/{patientId}/phones"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 transition-colors text-center">
+						Phones
+					</a>
+					<a href="/patients/{patientId}/photo-id"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 transition-colors text-center">
+						Photo ID
+					</a>
+					<a href="/patients/{patientId}/signatures"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 transition-colors text-center">
+						Signatures
+					</a>
+					<a href="/patients/{patientId}/tags"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700 transition-colors text-center">
+						Tags
+					</a>
+				</div>
+			</div>
+
 		</div>
 	{:else if !error}
 		<div class="text-center py-16">
