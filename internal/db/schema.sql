@@ -1279,3 +1279,102 @@ CREATE TABLE `rxrefillrequest` (
   `approved` DATETIME,
   `locked` BIGINT NOT NULL DEFAULT 0
 );
+CREATE TABLE `smsprovider` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `email_domain` VARCHAR(255) NOT NULL DEFAULT '',
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+
+CREATE TABLE `superbill_template` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `template_data` LONGBLOB,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+
+CREATE TABLE `specialties` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `display_value` VARCHAR(255) NOT NULL DEFAULT '',
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+CREATE TABLE `labs` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `lab_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `lab_date` DATETIME NOT NULL,
+  `result` VARCHAR(255) NOT NULL DEFAULT '',
+  `unit` VARCHAR(255) NOT NULL DEFAULT '',
+  `reference_range` VARCHAR(255) NOT NULL DEFAULT '',
+  `status` VARCHAR(255) NOT NULL DEFAULT '',
+  `notes` TEXT,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+CREATE TABLE `tools` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `tool_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `tool_description` TEXT,
+  `tool_class` VARCHAR(255) NOT NULL DEFAULT '',
+  `tool_parameters` TEXT,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+
+CREATE TABLE `events` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `event_date` DATETIME NOT NULL,
+  `event_type` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `module` VARCHAR(255) NOT NULL DEFAULT '',
+  `reference_id` BIGINT NOT NULL DEFAULT 0,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+
+CREATE TABLE `growthcharts` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `record_date` DATETIME NOT NULL,
+  `age_months` DECIMAL(10,2),
+  `height_cm` DECIMAL(10,2),
+  `weight_kg` DECIMAL(10,2),
+  `head_circumference_cm` DECIMAL(10,2),
+  `bmi` DECIMAL(10,2),
+  `notes` VARCHAR(255) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
+
+CREATE TABLE `holiday` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `holiday_date` DATETIME NOT NULL,
+  `holiday_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);

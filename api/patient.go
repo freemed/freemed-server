@@ -62,6 +62,11 @@ func init() {
 			r.POST("/:id/photo-id", patientPhotoIDCreate)
 			r.GET("/:id/annotations", patientAnnotationsList)
 			r.POST("/:id/annotations", patientAnnotationCreate)
+			r.GET("/:id/growth-charts", patientGrowthCharts)
+			r.GET("/:id/labs", patientLabsList)
+			r.POST("/:id/labs", patientLabsCreate)
+			r.GET("/:id/workflow-status", patientWorkflowStatusList)
+			r.POST("/:id/workflow-status", patientWorkflowStatusCreate)
 			},
 	}
 }

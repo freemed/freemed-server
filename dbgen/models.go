@@ -368,6 +368,21 @@ type EpisodeOfCare struct {
 	Active      string       `json:"active"`
 }
 
+type Event struct {
+	ID          int64        `json:"id"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	DeletedAt   sql.NullTime `json:"deleted_at"`
+	Patient     int64        `json:"patient"`
+	EventDate   time.Time    `json:"event_date"`
+	EventType   string       `json:"event_type"`
+	Description string       `json:"description"`
+	Module      string       `json:"module"`
+	ReferenceID int64        `json:"reference_id"`
+	User        int64        `json:"user"`
+	Active      string       `json:"active"`
+}
+
 type Facility struct {
 	ID           int64          `json:"id"`
 	CreatedAt    time.Time      `json:"created_at"`
@@ -400,6 +415,34 @@ type GroupPermission struct {
 	DeletedAt    sql.NullTime `json:"deleted_at"`
 	GroupID      int64        `json:"group_id"`
 	PermissionID int64        `json:"permission_id"`
+}
+
+type Growthchart struct {
+	ID                  int64          `json:"id"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
+	DeletedAt           sql.NullTime   `json:"deleted_at"`
+	Patient             int64          `json:"patient"`
+	RecordDate          time.Time      `json:"record_date"`
+	AgeMonths           sql.NullString `json:"age_months"`
+	HeightCm            sql.NullString `json:"height_cm"`
+	WeightKg            sql.NullString `json:"weight_kg"`
+	HeadCircumferenceCm sql.NullString `json:"head_circumference_cm"`
+	Bmi                 sql.NullString `json:"bmi"`
+	Notes               string         `json:"notes"`
+	User                int64          `json:"user"`
+	Active              string         `json:"active"`
+}
+
+type Holiday struct {
+	ID          int64        `json:"id"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	DeletedAt   sql.NullTime `json:"deleted_at"`
+	HolidayDate time.Time    `json:"holiday_date"`
+	HolidayName string       `json:"holiday_name"`
+	Description string       `json:"description"`
+	Active      string       `json:"active"`
 }
 
 type I18nlanguage struct {
@@ -508,6 +551,23 @@ type Intservtype struct {
 	UpdatedAt   time.Time    `json:"updated_at"`
 	DeletedAt   sql.NullTime `json:"deleted_at"`
 	Intservtype string       `json:"intservtype"`
+}
+
+type Lab struct {
+	ID             int64          `json:"id"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      sql.NullTime   `json:"deleted_at"`
+	Patient        int64          `json:"patient"`
+	LabName        string         `json:"lab_name"`
+	LabDate        time.Time      `json:"lab_date"`
+	Result         string         `json:"result"`
+	Unit           string         `json:"unit"`
+	ReferenceRange string         `json:"reference_range"`
+	Status         string         `json:"status"`
+	Notes          sql.NullString `json:"notes"`
+	User           int64          `json:"user"`
+	Active         string         `json:"active"`
 }
 
 type Letter struct {
@@ -1116,6 +1176,26 @@ type Schedulerstatustype struct {
 	Sage      int64        `json:"sage"`
 }
 
+type Smsprovider struct {
+	ID          int64        `json:"id"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	DeletedAt   sql.NullTime `json:"deleted_at"`
+	Name        string       `json:"name"`
+	EmailDomain string       `json:"email_domain"`
+	Active      string       `json:"active"`
+}
+
+type Specialty struct {
+	ID           int64        `json:"id"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	DeletedAt    sql.NullTime `json:"deleted_at"`
+	Name         string       `json:"name"`
+	DisplayValue string       `json:"display_value"`
+	Active       string       `json:"active"`
+}
+
 type Superbill struct {
 	ID           int64        `json:"id"`
 	CreatedAt    time.Time    `json:"created_at"`
@@ -1132,6 +1212,16 @@ type Superbill struct {
 	Active       string       `json:"active"`
 }
 
+type SuperbillTemplate struct {
+	ID           int64          `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    sql.NullTime   `json:"deleted_at"`
+	Name         string         `json:"name"`
+	TemplateData sql.NullString `json:"template_data"`
+	Active       string         `json:"active"`
+}
+
 type Systemnotification struct {
 	ID        int64        `json:"id"`
 	CreatedAt time.Time    `json:"created_at"`
@@ -1143,6 +1233,18 @@ type Systemnotification struct {
 	Naction   string       `json:"naction"`
 	Nmodule   string       `json:"nmodule"`
 	Npatient  int64        `json:"npatient"`
+}
+
+type Tool struct {
+	ID              int64          `json:"id"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
+	DeletedAt       sql.NullTime   `json:"deleted_at"`
+	ToolName        string         `json:"tool_name"`
+	ToolDescription sql.NullString `json:"tool_description"`
+	ToolClass       string         `json:"tool_class"`
+	ToolParameters  sql.NullString `json:"tool_parameters"`
+	Active          string         `json:"active"`
 }
 
 type UnfiledDoc struct {

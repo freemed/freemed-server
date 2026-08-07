@@ -104,3 +104,40 @@ func schedulerDeleteBlockedSlot(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"deleted": true})
 }
+
+// schedulerListBlockedSlotsByDate handles GET /api/scheduler/blocks/by-date/:date
+func schedulerListBlockedSlotsByDate(c *gin.Context) {
+	date, err := common.ParseDate(c.Param("date"))
+	if err != nil {
+		log.Printf("schedulerListBlockedSlotsByDate: bad date: %v", err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	rows, err := model.Queries.ListBlockedSlotsByDate(c.Request.Context(), date)
+	if err != nil {
+		log.Printf("schedulerListBlockedSlotsByDate: ERROR: %s", err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, rows)
+}
+
+// getBlockedSlot handles GET /api/scheduler/blocks/detail/:id
+func getBlockedSlot(c *gin.Context) {
+	id := common.ParseInt(c.Param("id"))
+	if id < 1 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	row, err := model.Queries.GetBlockedSlot(c.Request.Context(), id)
+	if err != nil {
+		log.Printf("getBlockedSlot(%d): ERROR: %s", id, err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, row)
+}

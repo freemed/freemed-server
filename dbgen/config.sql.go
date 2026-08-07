@@ -110,3 +110,17 @@ func (q *Queries) UpdateConfig(ctx context.Context, arg UpdateConfigParams) erro
 	_, err := q.db.ExecContext(ctx, updateConfig, arg.CValue, arg.ID)
 	return err
 }
+
+const updateConfigByOption = `-- name: UpdateConfigByOption :exec
+UPDATE config SET c_value = ? WHERE c_option = ?
+`
+
+type UpdateConfigByOptionParams struct {
+	CValue  sql.NullString `json:"c_value"`
+	COption string         `json:"c_option"`
+}
+
+func (q *Queries) UpdateConfigByOption(ctx context.Context, arg UpdateConfigByOptionParams) error {
+	_, err := q.db.ExecContext(ctx, updateConfigByOption, arg.CValue, arg.COption)
+	return err
+}

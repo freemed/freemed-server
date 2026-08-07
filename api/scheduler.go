@@ -30,6 +30,8 @@ func init() {
 			r.GET("/groups", listCalGroups)
 			r.GET("/groups/:id", getCalGroup)
 			r.GET("/blocks", schedulerListBlockedSlots)
+			r.GET("/blocks/by-date/:date", schedulerListBlockedSlotsByDate)
+			r.GET("/blocks/detail/:id", getBlockedSlot)
 			r.POST("/blocks", schedulerCreateBlockedSlot)
 			r.DELETE("/blocks/:id", schedulerDeleteBlockedSlot)
 			r.POST("/recurring", schedulerCreateRecurringAppointments)

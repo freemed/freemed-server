@@ -3,6 +3,14 @@ SELECT * FROM schedulerblockslots
 WHERE sbsdate = sqlc.arg(sbsdate) AND sbsprovider = sqlc.arg(sbsprovider)
 ORDER BY sbshour, sbsminute;
 
+-- name: ListBlockedSlotsByDate :many
+SELECT * FROM schedulerblockslots
+WHERE sbsdate = sqlc.arg(sbsdate)
+ORDER BY sbshour, sbsminute;
+
+-- name: GetBlockedSlot :one
+SELECT * FROM schedulerblockslots WHERE id = sqlc.arg(id) LIMIT 1;
+
 -- name: CreateBlockedSlot :execresult
 INSERT INTO schedulerblockslots (
   sbsdate, sbshour, sbsminute, sbsduration, sbsprovider,

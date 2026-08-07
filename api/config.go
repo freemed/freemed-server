@@ -20,6 +20,12 @@ func init() {
 			r.PUT("/:id", common.RequireRole("admin"), configUpdate)
 		},
 	}
+	common.ApiMap["preferences"] = common.ApiMapping{
+		Authenticated: true,
+		RouterFunction: func(r *gin.RouterGroup) {
+			r.PUT("/", preferencesBatchUpdate)
+		},
+	}
 }
 
 func configGetAll(r *gin.Context) {
@@ -75,4 +81,32 @@ func configGetSections(r *gin.Context) {
 		return
 	}
 	r.JSON(http.StatusOK, sections)
+}
+
+// preferencesBatchUpdate handles PUT /api/preferences
+// Accepts a JSON object of {key: value, ...} and batch-updates config rows
+func preferencesBatchUpdate(r *gin.Context) {
+	var prefs map[string]string
+	if err := r.BindJSON(&prefs); err != nil {
+		r.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	for key, value := range prefs {
+		var val sql.NullString
+		if value != "" {
+			val = sql.NullString{String: value, Valid: true}
+		}
+		err := model.Queries.UpdateConfigByOption(r.Request.Context(), dbgen.UpdateConfigByOptionParams{
+			COption: key,
+			CValue:  val,
+		})
+		if err != nil {
+			log.Printf("preferencesBatchUpdate: error updating %s: %v", key, err)
+			r.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	}
+
+	r.JSON(http.StatusOK, true)
 }

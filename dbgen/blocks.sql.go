@@ -55,6 +55,29 @@ func (q *Queries) DeleteBlockedSlot(ctx context.Context, id int64) error {
 	return err
 }
 
+const getBlockedSlot = `-- name: GetBlockedSlot :one
+SELECT id, created_at, updated_at, deleted_at, sbsdate, sbshour, sbsminute, sbsduration, sbsprovider, sbsreason, user FROM schedulerblockslots WHERE id = ? LIMIT 1
+`
+
+func (q *Queries) GetBlockedSlot(ctx context.Context, id int64) (Schedulerblockslot, error) {
+	row := q.db.QueryRowContext(ctx, getBlockedSlot, id)
+	var i Schedulerblockslot
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.Sbsdate,
+		&i.Sbshour,
+		&i.Sbsminute,
+		&i.Sbsduration,
+		&i.Sbsprovider,
+		&i.Sbsreason,
+		&i.User,
+	)
+	return i, err
+}
+
 const listBlockedSlots = `-- name: ListBlockedSlots :many
 SELECT id, created_at, updated_at, deleted_at, sbsdate, sbshour, sbsminute, sbsduration, sbsprovider, sbsreason, user FROM schedulerblockslots
 WHERE sbsdate = ? AND sbsprovider = ?
@@ -68,6 +91,47 @@ type ListBlockedSlotsParams struct {
 
 func (q *Queries) ListBlockedSlots(ctx context.Context, arg ListBlockedSlotsParams) ([]Schedulerblockslot, error) {
 	rows, err := q.db.QueryContext(ctx, listBlockedSlots, arg.Sbsdate, arg.Sbsprovider)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Schedulerblockslot
+	for rows.Next() {
+		var i Schedulerblockslot
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Sbsdate,
+			&i.Sbshour,
+			&i.Sbsminute,
+			&i.Sbsduration,
+			&i.Sbsprovider,
+			&i.Sbsreason,
+			&i.User,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listBlockedSlotsByDate = `-- name: ListBlockedSlotsByDate :many
+SELECT id, created_at, updated_at, deleted_at, sbsdate, sbshour, sbsminute, sbsduration, sbsprovider, sbsreason, user FROM schedulerblockslots
+WHERE sbsdate = ?
+ORDER BY sbshour, sbsminute
+`
+
+func (q *Queries) ListBlockedSlotsByDate(ctx context.Context, sbsdate time.Time) ([]Schedulerblockslot, error) {
+	rows, err := q.db.QueryContext(ctx, listBlockedSlotsByDate, sbsdate)
 	if err != nil {
 		return nil, err
 	}

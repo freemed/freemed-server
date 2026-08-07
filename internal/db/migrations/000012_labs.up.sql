@@ -1,0 +1,16 @@
+CREATE TABLE `labs` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `lab_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `lab_date` DATETIME NOT NULL,
+  `result` VARCHAR(255) NOT NULL DEFAULT '',
+  `unit` VARCHAR(255) NOT NULL DEFAULT '',
+  `reference_range` VARCHAR(255) NOT NULL DEFAULT '',
+  `status` VARCHAR(255) NOT NULL DEFAULT '',
+  `notes` TEXT,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT ''
+);
