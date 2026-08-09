@@ -22,3 +22,6 @@ frontend-portal/playwright-report
 *.log
 ### Backups
 backups/
+
+# Hermes agent plans and metadata (do not commit)
+.hermes/

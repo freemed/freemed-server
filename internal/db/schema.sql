@@ -923,6 +923,10 @@ CREATE TABLE `pharmacy` (
   `updated_at` DATETIME NOT NULL,
   `deleted_at` DATETIME,
   `phname` VARCHAR(255) NOT NULL DEFAULT '',
+  `ncpdp_id` VARCHAR(10) NOT NULL DEFAULT '',
+  `service_level` VARCHAR(20) NOT NULL DEFAULT '',
+  `fax_number` VARCHAR(20) NOT NULL DEFAULT '',
+  `email` VARCHAR(255) NOT NULL DEFAULT '',
   `phcity` VARCHAR(255),
   `phstate` VARCHAR(255)
 );
@@ -1518,4 +1522,134 @@ CREATE TABLE `portal_audit_log` (
   `ip_address` VARCHAR(45) NOT NULL DEFAULT '',
   `user_agent` VARCHAR(512) NOT NULL DEFAULT '',
   `success` TINYINT(1) NOT NULL DEFAULT 1
+);
+
+CREATE TABLE `fhir_client` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `client_id` VARCHAR(255) NOT NULL DEFAULT '',
+  `client_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `redirect_uris` TEXT NOT NULL,
+  `public_key` TEXT,
+  `grant_types` VARCHAR(255) NOT NULL DEFAULT 'authorization_code',
+  `scopes` VARCHAR(255) NOT NULL DEFAULT 'launch patient/*.read',
+  `is_confidential` TINYINT(1) NOT NULL DEFAULT 0,
+  `active` TINYINT(1) NOT NULL DEFAULT 1
+);
+
+CREATE TABLE `fhir_auth_code` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `code` VARCHAR(255) NOT NULL DEFAULT '',
+  `client_id` VARCHAR(255) NOT NULL DEFAULT '',
+  `user_id` BIGINT NOT NULL DEFAULT 0,
+  `patient_id` BIGINT NOT NULL DEFAULT 0,
+  `scopes` VARCHAR(255) NOT NULL DEFAULT '',
+  `redirect_uri` VARCHAR(255) NOT NULL DEFAULT '',
+  `expires_at` DATETIME NOT NULL,
+  `used` TINYINT(1) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE `fhir_access_token` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `token_hash` VARCHAR(255) NOT NULL DEFAULT '',
+  `client_id` VARCHAR(255) NOT NULL DEFAULT '',
+  `user_id` BIGINT NOT NULL DEFAULT 0,
+  `patient_id` BIGINT NOT NULL DEFAULT 0,
+  `scopes` VARCHAR(255) NOT NULL DEFAULT '',
+  `expires_at` DATETIME NOT NULL
+);
+
+CREATE TABLE `record_lock` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `table_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `record_id` BIGINT NOT NULL DEFAULT 0,
+  `user_id` BIGINT NOT NULL DEFAULT 0,
+  `locked_at` DATETIME NOT NULL,
+  `expires_at` DATETIME NOT NULL
+);
+
+CREATE TABLE `room` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `facility_id` BIGINT NOT NULL DEFAULT 0,
+  `room_type` VARCHAR(255) NOT NULL DEFAULT '',
+  `active` VARCHAR(255) NOT NULL DEFAULT 'active'
+);
+
+CREATE TABLE `rxnorm` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `rxcui` VARCHAR(255) NOT NULL DEFAULT '',
+  `drug_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `drug_class` VARCHAR(255) NOT NULL DEFAULT ''
+);
+
+CREATE TABLE `audit_log` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `action` VARCHAR(255) NOT NULL DEFAULT '',
+  `user_id` BIGINT NOT NULL DEFAULT 0,
+  `patient_id` BIGINT NOT NULL DEFAULT 0,
+  `resource_type` VARCHAR(255) NOT NULL DEFAULT '',
+  `resource_id` BIGINT NOT NULL DEFAULT 0,
+  `ip_address` VARCHAR(45) NOT NULL DEFAULT '',
+  `user_agent` VARCHAR(512) NOT NULL DEFAULT '',
+  `details` TEXT,
+  `success` TINYINT(1) NOT NULL DEFAULT 1
+);
+
+CREATE TABLE `social_history` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `smoking_status` VARCHAR(50) NOT NULL DEFAULT '',
+  `smoking_detail` VARCHAR(255) NOT NULL DEFAULT '',
+  `alcohol_use` VARCHAR(50) NOT NULL DEFAULT '',
+  `alcohol_detail` VARCHAR(255) NOT NULL DEFAULT '',
+  `drug_use` VARCHAR(50) NOT NULL DEFAULT '',
+  `drug_detail` VARCHAR(255) NOT NULL DEFAULT '',
+  `exercise_frequency` VARCHAR(50) NOT NULL DEFAULT '',
+  `occupation` VARCHAR(255) NOT NULL DEFAULT '',
+  `living_situation` VARCHAR(50) NOT NULL DEFAULT '',
+  `food_insecurity` TINYINT(1) NOT NULL DEFAULT 0,
+  `transportation_access` TINYINT(1) NOT NULL DEFAULT 0,
+  `notes` TEXT,
+  `recorded_date` DATETIME NOT NULL,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT 'active',
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME
+);
+CREATE TABLE `family_history` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `relationship` VARCHAR(255) NOT NULL DEFAULT '',
+  `condition_name` VARCHAR(255) NOT NULL DEFAULT '',
+  `icd10_code` VARCHAR(20) NOT NULL DEFAULT '',
+  `onset_age` INT NOT NULL DEFAULT 0,
+  `deceased` TINYINT(1) NOT NULL DEFAULT 0,
+  `notes` TEXT,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT 'active',
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME
 );

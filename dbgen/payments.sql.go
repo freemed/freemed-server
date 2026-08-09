@@ -70,6 +70,55 @@ func (q *Queries) CountPatientLedger(ctx context.Context, arg CountPatientLedger
 	return total, err
 }
 
+const createPaymentRecord = `-- name: CreatePaymentRecord :execresult
+INSERT INTO payrec (
+  created_at, updated_at,
+  payrecdtadd,
+  payrecpatient,
+  payrecproc,
+  payrectype,
+  payrecamt,
+  payrecdescrip,
+  payrecnum,
+  active,
+  user
+) VALUES (
+  NOW(), NOW(),
+  NOW(),
+  ?,
+  ?,
+  ?,
+  ?,
+  ?,
+  ?,
+  'active',
+  ?
+)
+`
+
+type CreatePaymentRecordParams struct {
+	PatientID       int64          `json:"patient_id"`
+	ProcedureID     int64          `json:"procedure_id"`
+	Payrectype      int64          `json:"payrectype"`
+	Amount          float64        `json:"amount"`
+	Description     string         `json:"description"`
+	ReferenceNumber sql.NullString `json:"reference_number"`
+	UserID          int64          `json:"user_id"`
+}
+
+// CreatePaymentRecord: insert a payment into payrec (ERA auto-post)
+func (q *Queries) CreatePaymentRecord(ctx context.Context, arg CreatePaymentRecordParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createPaymentRecord,
+		arg.PatientID,
+		arg.ProcedureID,
+		arg.Payrectype,
+		arg.Amount,
+		arg.Description,
+		arg.ReferenceNumber,
+		arg.UserID,
+	)
+}
+
 const getCoverageCopayInfo = `-- name: GetCoverageCopayInfo :one
 SELECT
   pc.id,

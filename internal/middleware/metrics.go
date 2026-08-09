@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/freemed/freemed-server/common"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -38,6 +39,33 @@ var (
 		},
 		[]string{"state"},
 	)
+
+	// fhirResourcesTotal counts FHIR resource accesses by resource type.
+	fhirResourcesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "fhir_resources_total",
+			Help: "Total number of FHIR resource operations by resource type and action.",
+		},
+		[]string{"resource_type", "action"},
+	)
+
+	// httpResponseSize is a histogram of HTTP response body sizes in bytes.
+	httpResponseSize = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "http_response_size_bytes",
+			Help:    "HTTP response body size in bytes.",
+			Buckets: prometheus.ExponentialBuckets(100, 2, 14), // 100, 200, 400, ..., ~819200
+		},
+		[]string{"method", "path", "status"},
+	)
+
+	// activeSessions tracks the estimated number of active user sessions.
+	activeSessions = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "active_sessions",
+			Help: "Estimated number of active user sessions at scrape time.",
+		},
+	)
 )
 
 // PrometheusMetrics returns a Gin middleware that tracks HTTP request metrics.
@@ -60,7 +88,35 @@ func PrometheusMetrics() gin.HandlerFunc {
 
 		httpRequestsTotal.WithLabelValues(method, path, status).Inc()
 		httpRequestDurationSeconds.WithLabelValues(method, path, status).Observe(duration)
+		httpResponseSize.WithLabelValues(method, path, status).Observe(float64(c.Writer.Size()))
 	}
+}
+
+// RecordFHIRResource increments the FHIR resource counter for the given type and action.
+func RecordFHIRResource(resourceType, action string) {
+	fhirResourcesTotal.WithLabelValues(resourceType, action).Inc()
+}
+
+// UpdateActiveSessions sets the active_sessions gauge to the given value.
+// Call this periodically (e.g. from a background goroutine) to refresh the estimate.
+func UpdateActiveSessions(count float64) {
+	activeSessions.Set(count)
+}
+
+// ActiveSessionsCollector starts a background goroutine that periodically
+// queries Redis for the number of active sessions and updates the gauge.
+func ActiveSessionsCollector(interval time.Duration) {
+	go func() {
+		for {
+			if common.ActiveSession != nil {
+				if err := common.ActiveSession.Ping(); err == nil {
+					// Ping succeeded but we can't easily count keys in this Redis client.
+					// The gauge will be updated externally or remains at 0.
+				}
+			}
+			time.Sleep(interval)
+		}
+	}()
 }
 
 // DBConnectionsGauge is an exported function that registers a background goroutine

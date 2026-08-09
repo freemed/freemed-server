@@ -11,6 +11,44 @@ import (
 	"time"
 )
 
+const findProcByVoucher = `-- name: FindProcByVoucher :one
+SELECT
+  pr.id,
+  pr.procpatient AS patient_id,
+  pr.procvoucher AS voucher,
+  pr.proccharges AS charge,
+  pr.procbalcurrent AS balance,
+  pr.procdt AS date_of_service
+FROM procrec pr
+WHERE pr.procvoucher = ?
+  AND pr.active = 'active'
+LIMIT 1
+`
+
+type FindProcByVoucherRow struct {
+	ID            int64          `json:"id"`
+	PatientID     int64          `json:"patient_id"`
+	Voucher       sql.NullString `json:"voucher"`
+	Charge        float64        `json:"charge"`
+	Balance       float64        `json:"balance"`
+	DateOfService time.Time      `json:"date_of_service"`
+}
+
+// Find procedure by voucher number (used for ERA 835 claim matching)
+func (q *Queries) FindProcByVoucher(ctx context.Context, voucher sql.NullString) (FindProcByVoucherRow, error) {
+	row := q.db.QueryRowContext(ctx, findProcByVoucher, voucher)
+	var i FindProcByVoucherRow
+	err := row.Scan(
+		&i.ID,
+		&i.PatientID,
+		&i.Voucher,
+		&i.Charge,
+		&i.Balance,
+		&i.DateOfService,
+	)
+	return i, err
+}
+
 const getProcedure = `-- name: GetProcedure :one
 SELECT
   pr.id,

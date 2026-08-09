@@ -16,6 +16,7 @@ func init() {
 			r.GET("/", common.RequireRole("admin"), listTools)
 			r.GET("/:id", common.RequireRole("admin"), getTool)
 			r.POST("/:id/execute", common.RequireRole("admin"), executeTool)
+			r.GET("/verify-backup", common.RequireRole("admin"), verifyBackup)
 		},
 	}
 }

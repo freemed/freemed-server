@@ -52,6 +52,22 @@ type Appttemplate struct {
 	Atcolor     string         `json:"atcolor"`
 }
 
+type AuditLog struct {
+	ID           int64          `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    sql.NullTime   `json:"deleted_at"`
+	Action       string         `json:"action"`
+	UserID       int64          `json:"user_id"`
+	PatientID    int64          `json:"patient_id"`
+	ResourceType string         `json:"resource_type"`
+	ResourceID   int64          `json:"resource_id"`
+	IpAddress    string         `json:"ip_address"`
+	UserAgent    string         `json:"user_agent"`
+	Details      sql.NullString `json:"details"`
+	Success      bool           `json:"success"`
+}
+
 type Authorization struct {
 	ID               int64        `json:"id"`
 	CreatedAt        time.Time    `json:"created_at"`
@@ -443,6 +459,65 @@ type Facility struct {
 	Psrpos       int64          `json:"psrpos"`
 	Psrx12id     sql.NullString `json:"psrx12id"`
 	Psrx12idtype sql.NullString `json:"psrx12idtype"`
+}
+
+type FamilyHistory struct {
+	ID            int64          `json:"id"`
+	Patient       int64          `json:"patient"`
+	Relationship  string         `json:"relationship"`
+	ConditionName string         `json:"condition_name"`
+	Icd10Code     string         `json:"icd10_code"`
+	OnsetAge      int32          `json:"onset_age"`
+	Deceased      bool           `json:"deceased"`
+	Notes         sql.NullString `json:"notes"`
+	User          int64          `json:"user"`
+	Active        string         `json:"active"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     sql.NullTime   `json:"deleted_at"`
+}
+
+type FhirAccessToken struct {
+	ID        int64        `json:"id"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+	TokenHash string       `json:"token_hash"`
+	ClientID  string       `json:"client_id"`
+	UserID    int64        `json:"user_id"`
+	PatientID int64        `json:"patient_id"`
+	Scopes    string       `json:"scopes"`
+	ExpiresAt time.Time    `json:"expires_at"`
+}
+
+type FhirAuthCode struct {
+	ID          int64        `json:"id"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	DeletedAt   sql.NullTime `json:"deleted_at"`
+	Code        string       `json:"code"`
+	ClientID    string       `json:"client_id"`
+	UserID      int64        `json:"user_id"`
+	PatientID   int64        `json:"patient_id"`
+	Scopes      string       `json:"scopes"`
+	RedirectUri string       `json:"redirect_uri"`
+	ExpiresAt   time.Time    `json:"expires_at"`
+	Used        bool         `json:"used"`
+}
+
+type FhirClient struct {
+	ID             int64          `json:"id"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      sql.NullTime   `json:"deleted_at"`
+	ClientID       string         `json:"client_id"`
+	ClientName     string         `json:"client_name"`
+	RedirectUris   string         `json:"redirect_uris"`
+	PublicKey      sql.NullString `json:"public_key"`
+	GrantTypes     string         `json:"grant_types"`
+	Scopes         string         `json:"scopes"`
+	IsConfidential bool           `json:"is_confidential"`
+	Active         bool           `json:"active"`
 }
 
 type FinancialDemographic struct {
@@ -917,13 +992,17 @@ type Pd struct {
 }
 
 type Pharmacy struct {
-	ID        int64          `json:"id"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt sql.NullTime   `json:"deleted_at"`
-	Phname    string         `json:"phname"`
-	Phcity    sql.NullString `json:"phcity"`
-	Phstate   sql.NullString `json:"phstate"`
+	ID           int64          `json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    sql.NullTime   `json:"deleted_at"`
+	Phname       string         `json:"phname"`
+	NcpdpID      string         `json:"ncpdp_id"`
+	ServiceLevel string         `json:"service_level"`
+	FaxNumber    string         `json:"fax_number"`
+	Email        string         `json:"email"`
+	Phcity       sql.NullString `json:"phcity"`
+	Phstate      sql.NullString `json:"phstate"`
 }
 
 type Phone struct {
@@ -1162,6 +1241,18 @@ type Procrec struct {
 	Active            string         `json:"active"`
 }
 
+type RecordLock struct {
+	ID        int64        `json:"id"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+	TableName string       `json:"table_name"`
+	RecordID  int64        `json:"record_id"`
+	UserID    int64        `json:"user_id"`
+	LockedAt  time.Time    `json:"locked_at"`
+	ExpiresAt time.Time    `json:"expires_at"`
+}
+
 type Referral struct {
 	ID                int64        `json:"id"`
 	CreatedAt         time.Time    `json:"created_at"`
@@ -1193,6 +1284,27 @@ type Reminder struct {
 	Priority    int32          `json:"priority"`
 	Status      string         `json:"status"`
 	CompletedAt sql.NullTime   `json:"completed_at"`
+}
+
+type Room struct {
+	ID         int64        `json:"id"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
+	DeletedAt  sql.NullTime `json:"deleted_at"`
+	Name       string       `json:"name"`
+	FacilityID int64        `json:"facility_id"`
+	RoomType   string       `json:"room_type"`
+	Active     string       `json:"active"`
+}
+
+type Rxnorm struct {
+	ID        int64        `json:"id"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+	Rxcui     string       `json:"rxcui"`
+	DrugName  string       `json:"drug_name"`
+	DrugClass string       `json:"drug_class"`
 }
 
 type Rxrefillrequest struct {
@@ -1317,6 +1429,29 @@ type Smsprovider struct {
 	Name        string       `json:"name"`
 	EmailDomain string       `json:"email_domain"`
 	Active      string       `json:"active"`
+}
+
+type SocialHistory struct {
+	ID                   int64          `json:"id"`
+	Patient              int64          `json:"patient"`
+	SmokingStatus        string         `json:"smoking_status"`
+	SmokingDetail        string         `json:"smoking_detail"`
+	AlcoholUse           string         `json:"alcohol_use"`
+	AlcoholDetail        string         `json:"alcohol_detail"`
+	DrugUse              string         `json:"drug_use"`
+	DrugDetail           string         `json:"drug_detail"`
+	ExerciseFrequency    string         `json:"exercise_frequency"`
+	Occupation           string         `json:"occupation"`
+	LivingSituation      string         `json:"living_situation"`
+	FoodInsecurity       bool           `json:"food_insecurity"`
+	TransportationAccess bool           `json:"transportation_access"`
+	Notes                sql.NullString `json:"notes"`
+	RecordedDate         time.Time      `json:"recorded_date"`
+	User                 int64          `json:"user"`
+	Active               string         `json:"active"`
+	CreatedAt            time.Time      `json:"created_at"`
+	UpdatedAt            time.Time      `json:"updated_at"`
+	DeletedAt            sql.NullTime   `json:"deleted_at"`
 }
 
 type Specialty struct {

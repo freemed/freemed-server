@@ -170,6 +170,9 @@ func main() {
 	// All authorized pieces live in /api
 	a := m.Group("/api")
 
+	// Slow query logging for all API routes (500ms threshold)
+	a.Use(middleware.SlowQueryLog(500))
+
 	// JWT pieces
 	auth := m.Group("/auth")
 	auth.GET("/csrf", middleware.GenerateCSRF)
@@ -192,6 +195,16 @@ func main() {
 	// Portal appointment request with scheduling hours validation
 	portal.POST("/appointments/request", portalMw.MiddlewareFunc(), api.PortalAppointmentRequest)
 
+	// SMART on FHIR metadata (unauthenticated)
+	m.GET("/.well-known/smart-configuration", api.SmartConfiguration)
+
+	// OAuth2 endpoints (unauthenticated)
+	oauth2 := m.Group("/oauth2")
+	oauth2.GET("/authorize", api.OAuth2Authorize)
+	oauth2.POST("/authorize", api.OAuth2Authorize)
+	oauth2.POST("/token", api.OAuth2Token)
+	oauth2.POST("/introspect", api.OAuth2Introspect)
+
 	// Iterate through initializing API maps
 	for k, v := range common.ApiMap {
 		f := make([]string, 0)
@@ -203,6 +216,8 @@ func main() {
 		g := a.Group("/" + k)
 		if v.Authenticated {
 			g.Use(getAuthMiddleware().MiddlewareFunc())
+			// Audit-log all authenticated API accesses
+			g.Use(middleware.AuditLog("access", k))
 		}
 		v.RouterFunction(g)
 	}

@@ -82,3 +82,17 @@ FROM procrec pr
 LEFT JOIN cpt c ON c.id = pr.proccpt
 LEFT JOIN physician ph ON ph.id = pr.procphysician
 WHERE pr.id = sqlc.arg(id);
+
+-- Find procedure by voucher number (used for ERA 835 claim matching)
+-- name: FindProcByVoucher :one
+SELECT
+  pr.id,
+  pr.procpatient AS patient_id,
+  pr.procvoucher AS voucher,
+  pr.proccharges AS charge,
+  pr.procbalcurrent AS balance,
+  pr.procdt AS date_of_service
+FROM procrec pr
+WHERE pr.procvoucher = sqlc.arg(voucher)
+  AND pr.active = 'active'
+LIMIT 1;

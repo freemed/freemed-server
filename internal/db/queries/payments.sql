@@ -157,3 +157,29 @@ FROM patient_coverage pc
 WHERE pc.patient = sqlc.arg(patient_id)
   AND pc.active = 'active'
 LIMIT 1;
+
+-- CreatePaymentRecord: insert a payment into payrec (ERA auto-post)
+-- name: CreatePaymentRecord :execresult
+INSERT INTO payrec (
+  created_at, updated_at,
+  payrecdtadd,
+  payrecpatient,
+  payrecproc,
+  payrectype,
+  payrecamt,
+  payrecdescrip,
+  payrecnum,
+  active,
+  user
+) VALUES (
+  NOW(), NOW(),
+  NOW(),
+  sqlc.arg(patient_id),
+  sqlc.arg(procedure_id),
+  sqlc.arg(payrectype),
+  sqlc.arg(amount),
+  sqlc.arg(description),
+  sqlc.arg(reference_number),
+  'active',
+  sqlc.arg(user_id)
+);

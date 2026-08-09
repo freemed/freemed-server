@@ -265,6 +265,14 @@ import DiagnosisList from '$lib/components/DiagnosisList.svelte';
 						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
 						Progress Notes
 					</a>
+					<a href="/patients/{patientId}/family-history"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Family History
+					</a>
+					<a href="/patients/{patientId}/social-history"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors text-center">
+						Social History
+					</a>
 				</div>
 			</div>
 
@@ -359,6 +367,10 @@ import DiagnosisList from '$lib/components/DiagnosisList.svelte';
 					<a href="/patients/{patientId}/authorizations"
 						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-colors text-center">
 						Authorizations
+					</a>
+					<a href="/patients/{patientId}/eligibility"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-colors text-center">
+						Eligibility
 					</a>
 				</div>
 			</div>

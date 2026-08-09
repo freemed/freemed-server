@@ -1,0 +1,22 @@
+CREATE TABLE `social_history` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `patient` BIGINT NOT NULL DEFAULT 0,
+  `smoking_status` VARCHAR(50) NOT NULL DEFAULT '',
+  `smoking_detail` VARCHAR(255) NOT NULL DEFAULT '',
+  `alcohol_use` VARCHAR(50) NOT NULL DEFAULT '',
+  `alcohol_detail` VARCHAR(255) NOT NULL DEFAULT '',
+  `drug_use` VARCHAR(50) NOT NULL DEFAULT '',
+  `drug_detail` VARCHAR(255) NOT NULL DEFAULT '',
+  `exercise_frequency` VARCHAR(50) NOT NULL DEFAULT '',
+  `occupation` VARCHAR(255) NOT NULL DEFAULT '',
+  `living_situation` VARCHAR(50) NOT NULL DEFAULT '',
+  `food_insecurity` TINYINT(1) NOT NULL DEFAULT 0,
+  `transportation_access` TINYINT(1) NOT NULL DEFAULT 0,
+  `notes` TEXT,
+  `recorded_date` DATETIME NOT NULL,
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `active` VARCHAR(255) NOT NULL DEFAULT 'active',
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME
+);

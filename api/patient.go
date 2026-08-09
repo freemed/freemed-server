@@ -79,6 +79,14 @@ func init() {
 			r.POST("/:id/financial", patientFinancialDemographicsCreate)
 			r.GET("/:id/signatures", patientSignaturesList)
 			r.POST("/:id/signatures", patientSignaturesCreate)
+			r.GET("/:id/social-history", patientSocialHistoryList)
+			r.GET("/:id/social-history/latest", patientSocialHistoryLatest)
+			r.POST("/:id/social-history", patientSocialHistoryCreate)
+			r.DELETE("/:id/social-history/:itemId", patientSocialHistoryRemove)
+			r.GET("/:id/family-history", patientFamilyHistoryList)
+			r.POST("/:id/family-history", patientFamilyHistoryCreate)
+			r.PUT("/:id/family-history/:itemId", patientFamilyHistoryUpdate)
+			r.DELETE("/:id/family-history/:itemId", patientFamilyHistoryRemove)
 			},
 	}
 }

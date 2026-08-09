@@ -10,6 +10,7 @@
 			<a href="/admin/user-groups" class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100">User Groups</a>
 			<a href="/admin/form-templates" class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100">Form Templates</a>
 			<a href="/admin/user-preferences" class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100">Preferences</a>
+			<a href="/admin/smart-apps" class="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100">SMART Apps</a>
 		</nav>
 	</div>
 	{@render children()}

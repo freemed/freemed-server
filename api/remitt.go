@@ -6,6 +6,7 @@ import (
 
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/model"
+	"github.com/freemed/freemed-server/pkg/billing"
 	"github.com/gin-gonic/gin"
 )
 
@@ -139,20 +140,55 @@ func rebillList(c *gin.Context) {
 	c.JSON(http.StatusOK, rows)
 }
 
-// processClaims is a placeholder for external claim transport
+// processClaims assembles unbilled procedures into X12 837 Professional claims
+// and returns the encoded EDI text for transmission.
 func processClaims(c *gin.Context) {
-	// TODO: Implement claim processing via external transport
+	type processInput struct {
+		ProcedureIDs []int64 `json:"procedure_ids" binding:"required"`
+		FacilityID   int64   `json:"facility_id" binding:"required"`
+	}
+	var in processInput
+	if err := c.BindJSON(&in); err != nil {
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	x12Text, err := billing.AssembleAndEncodeProfessionalClaim(model.SqlDb, in.ProcedureIDs, in.FacilityID)
+	if err != nil {
+		log.Printf("processClaims: %v", err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status":  "not_implemented",
-		"message": "Claim processing transport not yet implemented",
+		"status":     "ok",
+		"claim_count": 1,
+		"x12_837":    x12Text,
 	})
 }
 
-// processStatement is a placeholder for external statement generation
+// processStatement assembles unbilled procedures into CMS-1500 claim data
+// for paper claim or patient statement generation.
 func processStatement(c *gin.Context) {
-	// TODO: Implement statement generation via external transport
+	type statementInput struct {
+		ProcedureIDs []int64 `json:"procedure_ids" binding:"required"`
+		FacilityID   int64   `json:"facility_id" binding:"required"`
+	}
+	var in statementInput
+	if err := c.BindJSON(&in); err != nil {
+		common.ErrorResponseFromError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	data, err := billing.AssembleCMS1500(model.SqlDb, in.ProcedureIDs, in.FacilityID)
+	if err != nil {
+		log.Printf("processStatement: %v", err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status":  "not_implemented",
-		"message": "Statement generation transport not yet implemented",
+		"status":    "ok",
+		"form_data": data,
 	})
 }
