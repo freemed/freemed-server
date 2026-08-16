@@ -98,9 +98,13 @@
 - [x] Forms module — form templates (form-templates API)
 - [x] Forms module — form instances (form_results)
 - [x] Signatures API (digital signature capture)
-- [ ] DicomModule (radiology — significant effort)
+- [x] DicomModule (storage, Part-10 parsing, QIDO-RS/WADO-RS)
 - [x] Tickler data layer (reminders CRUD)
 - [x] Tickler background firing job
+
+### FOLLOW-UP (deferred)
+- [ ] DICOM Modality Worklist (MWL C-FIND SCP)
+- [ ] Embedded DICOM web viewer (OHIF/cornerstone)
 
 ### LOW: Frontend
 - [x] Patient sub-screens for clinical modules (SvelteKit pages)
