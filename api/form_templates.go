@@ -15,9 +15,9 @@ func init() {
 	common.ApiMap["form-templates"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.GET("/", common.RequireRole("admin"), listFormTemplates)
-			r.GET("/:id", common.RequireRole("admin"), getFormTemplate)
-			r.GET("/:id/controls", common.RequireRole("admin"), formTemplateControls)
+			r.GET("/", listFormTemplates)
+			r.GET("/:id", getFormTemplate)
+			r.GET("/:id/controls", formTemplateControls)
 			r.POST("/", common.RequireRole("admin"), createFormTemplate)
 			r.PUT("/:id", common.RequireRole("admin"), updateFormTemplate)
 			r.DELETE("/:id", common.RequireRole("admin"), deleteFormTemplate)
