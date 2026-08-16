@@ -1691,3 +1691,26 @@ CREATE TABLE `form_record` (
   `fr_name` VARCHAR(255) NOT NULL DEFAULT '',
   `fr_value` TEXT
 );
+CREATE TABLE `dicom` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME,
+  `d_md5` VARCHAR(32) NOT NULL DEFAULT '',
+  `d_patient` BIGINT NOT NULL DEFAULT 0,
+  `d_study_description` VARCHAR(255),
+  `d_filename` VARCHAR(255),
+  `d_study_date` DATE,
+  `d_institution_name` VARCHAR(255),
+  `d_institution_address` VARCHAR(255),
+  `d_study_uid` VARCHAR(255),
+  `d_series_uid` VARCHAR(255),
+  `d_sop_uid` VARCHAR(255),
+  `d_referring_provider` VARCHAR(255),
+  `d_modality` VARCHAR(16),
+  `d_patient_id` VARCHAR(255),
+  `d_xml_data` LONGTEXT,
+  `storage_status` VARCHAR(50) NOT NULL DEFAULT '',
+  `user` BIGINT NOT NULL DEFAULT 0,
+  `d_data` LONGBLOB
+);

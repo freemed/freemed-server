@@ -341,6 +341,30 @@ type CurrentProblem struct {
 	Active    string       `json:"active"`
 }
 
+type Dicom struct {
+	ID                  int64          `json:"id"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
+	DeletedAt           sql.NullTime   `json:"deleted_at"`
+	DMd5                string         `json:"d_md5"`
+	DPatient            int64          `json:"d_patient"`
+	DStudyDescription   sql.NullString `json:"d_study_description"`
+	DFilename           sql.NullString `json:"d_filename"`
+	DStudyDate          sql.NullTime   `json:"d_study_date"`
+	DInstitutionName    sql.NullString `json:"d_institution_name"`
+	DInstitutionAddress sql.NullString `json:"d_institution_address"`
+	DStudyUid           sql.NullString `json:"d_study_uid"`
+	DSeriesUid          sql.NullString `json:"d_series_uid"`
+	DSopUid             sql.NullString `json:"d_sop_uid"`
+	DReferringProvider  sql.NullString `json:"d_referring_provider"`
+	DModality           sql.NullString `json:"d_modality"`
+	DPatientID          sql.NullString `json:"d_patient_id"`
+	DXmlData            sql.NullString `json:"d_xml_data"`
+	StorageStatus       string         `json:"storage_status"`
+	User                int64          `json:"user"`
+	DData               sql.NullString `json:"d_data"`
+}
+
 type DocumentsTc struct {
 	ID          int64        `json:"id"`
 	CreatedAt   time.Time    `json:"created_at"`

@@ -315,6 +315,10 @@ import DiagnosisList from '$lib/components/DiagnosisList.svelte';
 						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition-colors text-center">
 						Documents
 					</a>
+					<a href="/patients/{patientId}/dicom"
+						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition-colors text-center">
+						DICOM Imaging
+					</a>
 					<a href="/patients/{patientId}/letters"
 						class="px-3 py-2 text-sm text-gray-700 rounded-lg border border-gray-200 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition-colors text-center">
 						Letters

@@ -96,7 +96,7 @@
 
 ### MEDIUM: Modules
 - [x] Forms module — form templates (form-templates API)
-- [ ] Forms module — form instances (form_results)
+- [x] Forms module — form instances (form_results)
 - [x] Signatures API (digital signature capture)
 - [ ] DicomModule (radiology — significant effort)
 - [x] Tickler data layer (reminders CRUD)
