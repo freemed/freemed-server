@@ -91,7 +91,12 @@ func ParseDate(s string) (t time.Time, e error) {
 	formats := []string{
 		"2006-01-02",
 		"01/02/2006",
-		// TODO: FIXME: IMPLEMENT: More commmon formats
+		"2006-01-02 15:04:05",
+		"01/02/2006 15:04:05",
+		"20060102",
+		"01-02-2006",
+		"Jan 2, 2006",
+		"January 2, 2006",
 	}
 	if s == "" {
 		return time.Now(), fmt.Errorf("Unable to parse null date")

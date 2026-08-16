@@ -87,6 +87,11 @@ func init() {
 			r.POST("/:id/family-history", patientFamilyHistoryCreate)
 			r.PUT("/:id/family-history/:itemId", patientFamilyHistoryUpdate)
 			r.DELETE("/:id/family-history/:itemId", patientFamilyHistoryRemove)
+			r.GET("/:id/forms", formResultsList)
+			r.POST("/:id/forms", formResultsCreate)
+			r.GET("/:id/forms/:itemId", formResultsGet)
+			r.PUT("/:id/forms/:itemId", formResultsUpdate)
+			r.DELETE("/:id/forms/:itemId", formResultsRemove)
 			},
 	}
 }

@@ -4,7 +4,7 @@ const TABLE_PHARMACY = "pharmacy"
 
 type PharmacyModel struct {
 	Id       int64  `json:"id"`
-	Pharmacy string `json:"pharmacy"` // FIXME: schema uses 'pharmacy' as both table and column name
+	Pharmacy string `json:"pharmacy"` // DB column is phname
 }
 
 func (PharmacyModel) TableName() string {
@@ -14,6 +14,6 @@ func (PharmacyModel) TableName() string {
 func init() {
 	DbSupportPicklists = append(DbSupportPicklists, DbSupportPicklist{
 		ModuleName: "pharmacy",
-		Query:      "SELECT pharmacy AS v, id AS k FROM " + TABLE_PHARMACY + " WHERE pharmacy LIKE CONCAT('%', :query, '%') ORDER BY pharmacy",
+		Query:      "SELECT phname AS v, id AS k FROM " + TABLE_PHARMACY + " WHERE phname LIKE CONCAT('%', :query, '%') ORDER BY phname",
 	})
 }

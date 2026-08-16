@@ -47,3 +47,11 @@ WHERE npatient = sqlc.arg(patient_id);
 SELECT * FROM systemnotification
 WHERE nuser = sqlc.arg(user_id)
 ORDER BY stamp DESC;
+
+-- name: CreateNotification :execresult
+INSERT INTO systemnotification (
+  created_at, updated_at, stamp, nuser, ntext, naction, nmodule, npatient
+) VALUES (
+  NOW(), NOW(), NOW(), sqlc.arg(user_id), sqlc.arg(text),
+  sqlc.arg(action), sqlc.arg(module), sqlc.arg(patient_id)
+);

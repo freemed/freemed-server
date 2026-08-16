@@ -52,7 +52,9 @@ func dataStoreGet(r *gin.Context) {
 		return
 	}
 
-	// TODO: FIXME: Need to properly determine mimetype
-	r.Data(http.StatusOK, "application/x-binary", []byte(c.Contents.String))
-	return
+	// Sniff the content type from the stored bytes (the pds table has no
+	// explicit mime column, so detection is heuristic).
+	contents := []byte(c.Contents.String)
+	contentType := http.DetectContentType(contents)
+	r.Data(http.StatusOK, contentType, contents)
 }

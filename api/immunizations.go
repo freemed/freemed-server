@@ -63,6 +63,12 @@ func patientImmunizationsCreate(r *gin.Context) {
 		return
 	}
 
+	session, err := common.GetSession(r)
+	if err != nil {
+		common.ErrorResponseFromError(r, http.StatusUnauthorized, err)
+		return
+	}
+
 	result, err := model.Queries.CreateImmunization(r.Request.Context(), dbgen.CreateImmunizationParams{
 		Dateof:        dateof,
 		PatientID:     patientID,
@@ -76,7 +82,7 @@ func patientImmunizationsCreate(r *gin.Context) {
 		PreviousDoses: in.PreviousDoses,
 		Recovered:     in.Recovered,
 		Notes:         toNullString(&in.Notes),
-		UserID:        0, // TODO: populate from session
+		UserID:        session.UserId,
 	})
 	if err != nil {
 		log.Print(err.Error())

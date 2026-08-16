@@ -59,6 +59,15 @@ type AppConfig struct {
 		End      int `yaml:"end" xml:"end"`
 		Interval int `yaml:"interval" xml:"interval"`
 	} `yaml:"scheduler"`
+	Sms struct {
+		XMLName  xml.Name          `yaml:"-" xml:"sms"`
+		Provider string            `yaml:"provider" xml:"provider"`
+		Settings map[string]string `yaml:"settings" xml:"-"`
+	} `yaml:"sms"`
+	Tickler struct {
+		XMLName  xml.Name `yaml:"-" xml:"tickler"`
+		Interval int      `yaml:"interval" xml:"interval"`
+	} `yaml:"tickler"`
 	LogFormat string `yaml:"log-format" xml:"log-format"`
 }
 
@@ -84,6 +93,8 @@ func (c *AppConfig) SetDefaults() {
 	c.Paths.Logs = "logs"
 	c.Session.Expiry = 10
 	c.Session.Key = defaultSessionKey
+	c.Sms.Provider = "noop"
+	c.Tickler.Interval = 15
 	c.LogFormat = "text"
 }
 
@@ -141,6 +152,14 @@ func (c *AppConfig) applyEnvOverrides() {
 	}
 	if v := os.Getenv("FREEMED_LOG_FORMAT"); v != "" {
 		c.LogFormat = v
+	}
+	if v := os.Getenv("FREEMED_SMS_PROVIDER"); v != "" {
+		c.Sms.Provider = v
+	}
+	if v := os.Getenv("FREEMED_TICKLER_INTERVAL"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			c.Tickler.Interval = n
+		}
 	}
 }
 

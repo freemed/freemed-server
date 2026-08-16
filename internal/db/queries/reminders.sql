@@ -37,3 +37,11 @@ UPDATE reminders
 SET updated_at = NOW(), deleted_at = NOW()
 WHERE id = sqlc.arg(reminder_id)
   AND deleted_at IS NULL;
+
+-- name: ListDueReminders :many
+SELECT * FROM reminders
+WHERE status = 'pending'
+  AND due_date IS NOT NULL
+  AND due_date <= NOW()
+  AND deleted_at IS NULL
+ORDER BY due_date ASC;

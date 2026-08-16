@@ -7,8 +7,36 @@ package dbgen
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
+
+const createNotification = `-- name: CreateNotification :execresult
+INSERT INTO systemnotification (
+  created_at, updated_at, stamp, nuser, ntext, naction, nmodule, npatient
+) VALUES (
+  NOW(), NOW(), NOW(), ?, ?,
+  ?, ?, ?
+)
+`
+
+type CreateNotificationParams struct {
+	UserID    int64  `json:"user_id"`
+	Text      string `json:"text"`
+	Action    string `json:"action"`
+	Module    string `json:"module"`
+	PatientID int64  `json:"patient_id"`
+}
+
+func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotificationParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createNotification,
+		arg.UserID,
+		arg.Text,
+		arg.Action,
+		arg.Module,
+		arg.PatientID,
+	)
+}
 
 const latestTimestamp = `-- name: LatestTimestamp :one
 SELECT MAX(stamp) AS ts FROM systemnotification

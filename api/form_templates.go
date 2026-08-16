@@ -17,6 +17,7 @@ func init() {
 		RouterFunction: func(r *gin.RouterGroup) {
 			r.GET("/", common.RequireRole("admin"), listFormTemplates)
 			r.GET("/:id", common.RequireRole("admin"), getFormTemplate)
+		r.GET("/:id/controls", common.RequireRole("admin"), formTemplateControls)
 			r.POST("/", common.RequireRole("admin"), createFormTemplate)
 			r.PUT("/:id", common.RequireRole("admin"), updateFormTemplate)
 			r.DELETE("/:id", common.RequireRole("admin"), deleteFormTemplate)

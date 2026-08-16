@@ -180,7 +180,8 @@ func authorizeRequest(c *gin.Context, data interface{}) bool {
 		}
 	}
 
-	// For now, any authenticated user with a valid (non-blacklisted) token is authorized.
-	// TODO: Add role-based checks per route.
+	// Per-route authorization is enforced via common.RequireRole() middleware on
+	// admin-only endpoints (users, acl, config, tools, claimlog). This Authorizator
+	// only validates token blacklist status and basic auth.
 	return true
 }

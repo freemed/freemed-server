@@ -21,6 +21,7 @@ import (
 	dbpkg "github.com/freemed/freemed-server/internal/db"
 	"github.com/freemed/freemed-server/model"
 	"github.com/freemed/freemed-server/dbgen"
+	"github.com/freemed/freemed-server/pkg/tickler"
 	"github.com/freemed/freemed-server/internal/middleware"
 	"github.com/gin-gonic/contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -126,6 +127,11 @@ func main() {
 
 	// Initialize sqlc Queries wrapper
 	model.Queries = dbgen.New(sqlDB)
+
+	// Background tickler: fire due reminders as in-app notifications.
+	ticklerCtx, ticklerCancel := context.WithCancel(context.Background())
+	defer ticklerCancel()
+	go tickler.Runner{Interval: time.Duration(config.Config.Tickler.Interval) * time.Minute}.Start(ticklerCtx)
 
 	log.Print("Initializing session backend")
 	common.ActiveSession = &common.SessionConnector{
@@ -256,6 +262,9 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Print("Shutting down servers...")
+
+	// Stop the background tickler.
+	ticklerCancel()
 
 	// Give outstanding requests 5 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

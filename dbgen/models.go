@@ -542,6 +542,30 @@ type FinancialDemographic struct {
 	Active          string         `json:"active"`
 }
 
+type FormRecord struct {
+	ID        int64          `json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt sql.NullTime   `json:"deleted_at"`
+	FrID      int64          `json:"fr_id"`
+	FrUuid    string         `json:"fr_uuid"`
+	FrName    string         `json:"fr_name"`
+	FrValue   sql.NullString `json:"fr_value"`
+}
+
+type FormResult struct {
+	ID          int64        `json:"id"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+	DeletedAt   sql.NullTime `json:"deleted_at"`
+	FrPatient   int64        `json:"fr_patient"`
+	FrTimestamp time.Time    `json:"fr_timestamp"`
+	FrTemplate  string       `json:"fr_template"`
+	FrFormname  string       `json:"fr_formname"`
+	User        int64        `json:"user"`
+	Active      string       `json:"active"`
+}
+
 type FormTemplate struct {
 	ID           int64          `json:"id"`
 	CreatedAt    time.Time      `json:"created_at"`
@@ -1401,6 +1425,23 @@ type Schedulerstatustype struct {
 	Sdescrip  string       `json:"sdescrip"`
 	Scolor    string       `json:"scolor"`
 	Sage      int64        `json:"sage"`
+}
+
+type Schedulingrule struct {
+	ID         int64          `json:"id"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  sql.NullTime   `json:"deleted_at"`
+	User       int64          `json:"user"`
+	Provider   sql.NullString `json:"provider"`
+	Reason     sql.NullString `json:"reason"`
+	Dowbegin   sql.NullInt32  `json:"dowbegin"`
+	Dowend     sql.NullInt32  `json:"dowend"`
+	Datebegin  sql.NullTime   `json:"datebegin"`
+	Dateend    sql.NullTime   `json:"dateend"`
+	Timebegin  sql.NullString `json:"timebegin"`
+	Timeend    sql.NullString `json:"timeend"`
+	Newpatient sql.NullBool   `json:"newpatient"`
 }
 
 type Signature struct {

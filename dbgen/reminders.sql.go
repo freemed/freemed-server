@@ -53,6 +53,51 @@ func (q *Queries) DeleteReminder(ctx context.Context, reminderID int64) error {
 	return err
 }
 
+const listDueReminders = `-- name: ListDueReminders :many
+SELECT id, created_at, updated_at, deleted_at, user, patient, title, description, due_date, priority, status, completed_at FROM reminders
+WHERE status = 'pending'
+  AND due_date IS NOT NULL
+  AND due_date <= NOW()
+  AND deleted_at IS NULL
+ORDER BY due_date ASC
+`
+
+func (q *Queries) ListDueReminders(ctx context.Context) ([]Reminder, error) {
+	rows, err := q.db.QueryContext(ctx, listDueReminders)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Reminder
+	for rows.Next() {
+		var i Reminder
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.User,
+			&i.Patient,
+			&i.Title,
+			&i.Description,
+			&i.DueDate,
+			&i.Priority,
+			&i.Status,
+			&i.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listRemindersByPatient = `-- name: ListRemindersByPatient :many
 SELECT id, created_at, updated_at, deleted_at, user, patient, title, description, due_date, priority, status, completed_at FROM reminders
 WHERE patient = ?

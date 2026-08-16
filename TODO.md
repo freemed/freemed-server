@@ -95,15 +95,17 @@
 - [x] UserPreferences endpoint (model/user.go exists)
 
 ### MEDIUM: Modules
-- [ ] Forms module (clinical form templates)
-- [ ] Signatures API (digital signature capture)
+- [x] Forms module — form templates (form-templates API)
+- [ ] Forms module — form instances (form_results)
+- [x] Signatures API (digital signature capture)
 - [ ] DicomModule (radiology — significant effort)
-- [ ] Tickler API (reminders — needs background job infrastructure)
+- [x] Tickler data layer (reminders CRUD)
+- [x] Tickler background firing job
 
 ### LOW: Frontend
-- [ ] Patient sub-screens for clinical modules (SvelteKit pages)
-- [ ] Native Go billing claims creation (Agata7 replacement — design task)
-- [ ] SchedulingRules module
+- [x] Patient sub-screens for clinical modules (SvelteKit pages)
+- [x] Native Go billing claims creation (Agata7 replacement — design task)
+- [x] SchedulingRules module
 
 ### OBSOLETE
 - [x] CDRWBackup, FaxStatus, UpdatesModule

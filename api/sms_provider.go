@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/config"
 	"github.com/freemed/freemed-server/model"
+	"github.com/freemed/freemed-server/pkg/sms"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,15 +45,24 @@ func sendSms(c *gin.Context) {
 	}
 
 	// Verify the provider exists
-	_, err := model.Queries.GetSmsProvider(c.Request.Context(), in.ProviderID)
-	if err != nil {
+	if _, err := model.Queries.GetSmsProvider(c.Request.Context(), in.ProviderID); err != nil {
 		log.Print(err.Error())
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
-	// TODO: Integrate with actual SMS sending service
-	// For now, return accepted
+	// Dispatch through the configured SMS provider (noop unless a real
+	// provider is configured via config.yml sms.provider).
+	sender := sms.New(sms.Config{
+		Provider: config.Config.Sms.Provider,
+		Settings: config.Config.Sms.Settings,
+	})
+	if err := sender.Send(c.Request.Context(), in.To, in.Message); err != nil {
+		log.Printf("sendSms: %v", err)
+		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
+		return
+	}
+
 	c.JSON(http.StatusAccepted, gin.H{
 		"status":  "queued",
 		"to":      in.To,
