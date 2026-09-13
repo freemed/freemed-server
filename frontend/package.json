@@ -29,6 +29,9 @@
 		"@fullcalendar/daygrid": "^6.1.21",
 		"@fullcalendar/interaction": "^6.1.21",
 		"@fullcalendar/timegrid": "^6.1.21",
+		"cornerstone-core": "^2.6.1",
+		"cornerstone-wado-image-loader": "^4.13.2",
+		"dicom-parser": "^1.8.21",
 		"svelte-select": "^5.8.3",
 		"sveltekit-superforms": "^2.30.2",
 		"zod": "^3.25.76"

@@ -23,6 +23,24 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 	return res.json();
 }
 
+/**
+ * Fetches a non-JSON resource (e.g. raw `application/dicom` bytes) with the same
+ * httpOnly JWT cookie and the same 401 -> logout behaviour as `request`.
+ */
+async function requestBinary(path: string): Promise<ArrayBuffer> {
+	if (!browser) throw new Error('API calls only available in browser');
+
+	const res = await fetch(`${API_BASE}${path}`);
+	if (res.status === 401) {
+		logout();
+		throw new Error('Session expired');
+	}
+	if (!res.ok) {
+		throw new Error(`API error ${res.status}: could not retrieve binary resource`);
+	}
+	return res.arrayBuffer();
+}
+
 export const api = {
 	get: <T = unknown>(path: string) => request<T>(path),
 	post: <T = unknown>(path: string, data: unknown) =>
@@ -30,4 +48,9 @@ export const api = {
 	put: <T = unknown>(path: string, data: unknown) =>
 		request<T>(path, { method: 'PUT', body: JSON.stringify(data) }),
 	del: <T = unknown>(path: string) => request<T>(path, { method: 'DELETE' }),
+	/**
+	 * Raw (non-JSON) retrieval, e.g. `application/dicom` bytes from the WADO-RS
+	 * instance endpoint. Same cookie/401 handling as the JSON calls above.
+	 */
+	getBinary: (path: string) => requestBinary(path),
 };

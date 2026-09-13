@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { api } from '$lib/api';
+	import DicomViewer from '$lib/components/DicomViewer.svelte';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 
 	interface DicomItem {
 		id: number;
@@ -25,6 +29,7 @@
 	let error = $state('');
 	let uploading = $state(false);
 	let selectedFile = $state<File | null>(null);
+	let selected = $state<DicomItem | null>(null);
 
 	$effect(() => {
 		if (patientId) loadItems(patientId);
@@ -87,9 +92,24 @@
 		}
 	}
 
+	/** WADO-RS instance retrieval needs all three UIDs; the list endpoint returns
+	 *  empty strings when metadata could not be parsed at upload time. */
+	function hasUids(item: DicomItem): boolean {
+		return !!(item.study_uid && item.series_uid && item.sop_uid);
+	}
+
+	/** Raw-bytes fallback that only needs the local row id. */
+	function rawPath(item: DicomItem): string {
+		return `/api/patient/${patientId}/dicom/${item.id}`;
+	}
+
 	function viewDicom(item: DicomItem) {
-		const url = `/api/dicom/studies/${encodeURIComponent(item.study_uid)}/series/${encodeURIComponent(item.series_uid)}/instances/${encodeURIComponent(item.sop_uid)}`;
-		window.open(url, '_blank');
+		if (!hasUids(item)) return;
+		selected = item;
+	}
+
+	function closeViewer() {
+		selected = null;
 	}
 
 	function formatDate(dateStr: string): string {
@@ -125,8 +145,8 @@
 	</div>
 
 	{#if error}
-		<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
-			{error}
+		<div class="mb-6">
+			<ErrorBanner message={error} onRetry={patientId ? () => loadItems(patientId) : undefined} />
 		</div>
 	{/if}
 
@@ -169,13 +189,15 @@
 	</div>
 
 	{#if loading}
-		<div class="flex justify-center py-12">
-			<div class="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+			<LoadingSpinner message="Loading DICOM studies…" />
 		</div>
 	{:else if items.length === 0}
-		<div class="text-center py-12 text-gray-500 bg-white rounded-lg shadow-sm border border-gray-200">
-			<p class="text-lg">No DICOM studies</p>
-			<p class="text-sm mt-1">No imaging has been stored for this patient yet.</p>
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+			<EmptyState
+				title="No DICOM studies"
+				message="No imaging has been stored for this patient yet."
+			/>
 		</div>
 	{:else}
 		<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
@@ -191,7 +213,7 @@
 					</tr>
 				</thead>
 				<tbody class="bg-white divide-y divide-gray-200">
-					{#each items as item}
+					{#each items as item (item.id)}
 						<tr class="hover:bg-gray-50">
 							<td class="px-4 py-3 text-sm text-gray-900 font-semibold">
 								{item.modality || '—'}
@@ -209,13 +231,30 @@
 								{item.study_uid || '—'}
 							</td>
 							<td class="px-4 py-3 text-sm whitespace-nowrap">
-								<button
-									type="button"
-									onclick={() => viewDicom(item)}
-									class="text-blue-600 hover:text-blue-800 font-medium mr-3"
+								{#if hasUids(item)}
+									<button
+										type="button"
+										onclick={() => viewDicom(item)}
+										class="text-blue-600 hover:text-blue-800 font-medium mr-3"
+									>
+										View
+									</button>
+								{:else}
+									<button
+										type="button"
+										disabled
+										title="No Study / Series / SOP Instance UID is stored for this object, so it cannot be addressed through the WADO-RS instance endpoint."
+										class="text-gray-400 font-medium mr-3 cursor-not-allowed"
+									>
+										View
+									</button>
+								{/if}
+								<a
+									href={rawPath(item)}
+									class="text-gray-600 hover:text-gray-800 font-medium mr-3"
 								>
-									View / Download
-								</button>
+									Download
+								</a>
 								<button
 									type="button"
 									onclick={() => deleteDicom(item.id)}
@@ -223,6 +262,13 @@
 								>
 									Remove
 								</button>
+								{#if !hasUids(item)}
+									<p class="text-xs text-gray-400 mt-1 max-w-[240px] whitespace-normal">
+										Preview unavailable: this object has no Study / Series / SOP Instance UID
+										(its header could not be parsed at upload), so it cannot be fetched from
+										WADO-RS. The raw file can still be downloaded.
+									</p>
+								{/if}
 							</td>
 						</tr>
 					{/each}
@@ -231,3 +277,17 @@
 		</div>
 	{/if}
 </div>
+
+{#if selected}
+	{#key selected.id}
+		<DicomViewer
+			patientId={patientId}
+			studyUid={selected.study_uid}
+			seriesUid={selected.series_uid}
+			sopUid={selected.sop_uid}
+			label={selected.study_description || selected.filename || `Instance ${selected.id}`}
+			rawPath={rawPath(selected)}
+			onClose={closeViewer}
+		/>
+	{/key}
+{/if}
