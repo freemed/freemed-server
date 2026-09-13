@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -13,6 +14,14 @@ import (
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
 )
+
+// messagesDeleteRows is a query seam. It exists so the delete handler can be
+// tested — the M5 regression is "can another user's message be deleted?", which
+// must be answered without a live database. Same pattern as api/dicom.go's
+// dicomGetRow seam.
+var messagesDeleteRows = func(ctx context.Context, arg dbgen.DeleteMessagesForUserParams) (sql.Result, error) {
+	return model.Queries.DeleteMessagesForUser(ctx, arg)
+}
 
 func init() {
 	common.ApiMap["messages"] = common.ApiMapping{
@@ -67,26 +76,64 @@ func messagesView(r *gin.Context) {
 		patient = 0
 	}
 
-	offset := common.ParseInt(r.DefaultQuery("offset", "0"))
-	limit := common.ParseInt(r.DefaultQuery("limit", "50"))
+	offset, limit := pageParams(r)
 
-	var messages interface{}
+	ctx := r.Request.Context()
+
+	// Every branch uses the paginated query plus its companion COUNT. The
+	// non-paginated variants loaded the user's entire message history into
+	// memory and then sliced it, so the row count — not the page size — was the
+	// real bound (M7).
+	var (
+		messages interface{}
+		total    int64
+	)
 	if patient != 0 {
 		if unreadOnly {
-			messages, err = model.Queries.MessagesViewUnreadForPatient(r.Request.Context(), dbgen.MessagesViewUnreadForPatientParams{
+			messages, err = model.Queries.MessagesViewUnreadForPatientPaginated(ctx, dbgen.MessagesViewUnreadForPatientPaginatedParams{
 				PatientID: patient,
 				UserID:    session.UserId,
+				Limit:     limit,
+				Offset:    offset,
 			})
+			if err == nil {
+				total, err = model.Queries.CountMessagesUnreadForPatient(ctx, dbgen.CountMessagesUnreadForPatientParams{
+					PatientID: patient,
+					UserID:    session.UserId,
+				})
+			}
 		} else {
-			messages, err = model.Queries.MessagesViewForPatient(r.Request.Context(), dbgen.MessagesViewForPatientParams{
+			messages, err = model.Queries.MessagesViewForPatientPaginated(ctx, dbgen.MessagesViewForPatientPaginatedParams{
 				PatientID: patient,
 				UserID:    session.UserId,
+				Limit:     limit,
+				Offset:    offset,
 			})
+			if err == nil {
+				total, err = model.Queries.CountMessagesForPatient(ctx, dbgen.CountMessagesForPatientParams{
+					PatientID: patient,
+					UserID:    session.UserId,
+				})
+			}
 		}
 	} else if unreadOnly {
-		messages, err = model.Queries.MessagesViewUnreadForUser(r.Request.Context(), session.UserId)
+		messages, err = model.Queries.MessagesViewUnreadForUserPaginated(ctx, dbgen.MessagesViewUnreadForUserPaginatedParams{
+			UserID: session.UserId,
+			Limit:  limit,
+			Offset: offset,
+		})
+		if err == nil {
+			total, err = model.Queries.CountMessagesUnreadForUser(ctx, session.UserId)
+		}
 	} else {
-		messages, err = model.Queries.MessagesViewForUser(r.Request.Context(), session.UserId)
+		messages, err = model.Queries.MessagesViewForUserPaginated(ctx, dbgen.MessagesViewForUserPaginatedParams{
+			UserID: session.UserId,
+			Limit:  limit,
+			Offset: offset,
+		})
+		if err == nil {
+			total, err = model.Queries.CountMessagesForUser(ctx, session.UserId)
+		}
 	}
 
 	if err != nil {
@@ -95,48 +142,38 @@ func messagesView(r *gin.Context) {
 		return
 	}
 
-	// Apply pagination via slice operations
-	all := messagesToSlice(messages)
-	total := int64(len(all))
-	start := offset
-	if start > total {
-		start = total
-	}
-	end := start + limit
-	if end > total {
-		end = total
-	}
-
 	r.JSON(http.StatusOK, gin.H{
-		"data":   all[start:end],
+		"data":   messagesToSlice(messages),
 		"total":  total,
 		"offset": offset,
 		"limit":  limit,
 	})
 }
 
-// messagesToSlice converts sqlc message result types to []interface{} for pagination.
+// messagesToSlice normalizes a sqlc message result set into a []interface{} so
+// an empty page serializes as [] rather than null, and so the response has the
+// same shape for all four message filters.
 func messagesToSlice(messages interface{}) []interface{} {
 	switch v := messages.(type) {
-	case []dbgen.MessagesViewForUserRow:
+	case []dbgen.MessagesViewForUserPaginatedRow:
 		out := make([]interface{}, len(v))
 		for i, row := range v {
 			out[i] = row
 		}
 		return out
-	case []dbgen.MessagesViewUnreadForUserRow:
+	case []dbgen.MessagesViewUnreadForUserPaginatedRow:
 		out := make([]interface{}, len(v))
 		for i, row := range v {
 			out[i] = row
 		}
 		return out
-	case []dbgen.MessagesViewForPatientRow:
+	case []dbgen.MessagesViewForPatientPaginatedRow:
 		out := make([]interface{}, len(v))
 		for i, row := range v {
 			out[i] = row
 		}
 		return out
-	case []dbgen.MessagesViewUnreadForPatientRow:
+	case []dbgen.MessagesViewUnreadForPatientPaginatedRow:
 		out := make([]interface{}, len(v))
 		for i, row := range v {
 			out[i] = row
@@ -258,21 +295,58 @@ type messagesDeleteRequest struct {
 	IDs []int64 `json:"ids" binding:"required"`
 }
 
-// messagesDelete performs a bulk delete of messages by IDs
+// messagesDelete performs a bulk delete of the caller's own messages.
+//
+// The ids arrive in the request body and are NOT trusted to belong to the
+// caller: the delete is scoped to the session user in SQL
+// (`DELETE FROM messages WHERE msgfor = ? AND id IN (...)`), so a non-owned id
+// is simply not matched. messageGet in this file already enforced the same
+// `msg.Msgfor == session.UserId` rule for single-message reads.
+//
+// Semantics: non-owned (and non-existent) ids are silently skipped rather than
+// rejected. A per-id 403 would turn the endpoint into an existence oracle for
+// other users' message ids, and a mixed batch would fail wholesale, leaving the
+// UI unable to delete the ids the caller does own. The response therefore
+// reports the number of rows actually deleted rather than `true`, so a caller
+// that asked to delete 5 and got `deleted: 2` can see that 3 were not theirs.
 func messagesDelete(r *gin.Context) {
+	session, err := common.GetSession(r)
+	if err != nil {
+		log.Print(err.Error())
+		common.ErrorResponseFromError(r, http.StatusUnauthorized, err)
+		return
+	}
+
 	var req messagesDeleteRequest
 	if err := r.BindJSON(&req); err != nil {
 		common.ErrorResponseFromError(r, http.StatusBadRequest, err)
 		return
 	}
 	if len(req.IDs) == 0 {
-		r.AbortWithStatus(http.StatusBadRequest)
+		common.ErrorResponse(r, http.StatusBadRequest, "no message ids supplied")
 		return
 	}
-	if err := model.Queries.DeleteMessages(r.Request.Context(), req.IDs); err != nil {
+
+	result, err := messagesDeleteRows(r.Request.Context(), dbgen.DeleteMessagesForUserParams{
+		UserID: session.UserId,
+		Ids:    req.IDs,
+	})
+	if err != nil {
 		log.Print(err.Error())
 		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
-	r.JSON(http.StatusOK, true)
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		log.Print(err.Error())
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
+		return
+	}
+
+	r.JSON(http.StatusOK, gin.H{
+		"status":    "deleted",
+		"deleted":   affected,
+		"requested": int64(len(req.IDs)),
+	})
 }

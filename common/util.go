@@ -37,6 +37,22 @@ func JSONEncode(o interface{}) []byte {
 	return b
 }
 
+// ClampPagination normalizes untrusted offset/limit request values. A negative
+// offset or limit previously reached a slice expression and panicked the
+// handler (`?offset=-5` -> "slice bounds out of range [-5:]"; `?limit=-1` ->
+// "[:-1]"), and a negative limit passed to MySQL produced a driver error. The
+// upper bound is deliberately not restricted so existing large-limit callers
+// keep working; callers that need a hard cap must impose their own.
+func ClampPagination(offset, limit int64) (int64, int64) {
+	if offset < 0 {
+		offset = 0
+	}
+	if limit < 1 {
+		limit = 50
+	}
+	return offset, limit
+}
+
 // GetSession returns the SessionModel associated with the current session from JWT_PAYLOAD
 func GetSession(c *gin.Context) (SessionModel, error) {
 	claims := jwt.ExtractClaims(c)
@@ -47,8 +63,20 @@ func GetSession(c *gin.Context) (SessionModel, error) {
 	if !ok {
 		return SessionModel{}, errors.New("claim not found")
 	}
+	// The claim is decoded from JSON, so it may arrive as anything the signer
+	// chose (string, bool, list, null). A bare type assertion panics — and
+	// therefore 500s every handler that calls GetSession.
 	sm := SessionModel{}
-	sm.UserId = int64(userid.(float64))
+	switch v := userid.(type) {
+	case float64:
+		sm.UserId = int64(v)
+	case int64:
+		sm.UserId = v
+	case int:
+		sm.UserId = int64(v)
+	default:
+		return SessionModel{}, fmt.Errorf("invalid id claim type %T", userid)
+	}
 	sm.SessionId = jwt.GetToken(c)
 	return sm, nil
 }

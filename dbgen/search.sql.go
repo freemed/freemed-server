@@ -58,8 +58,14 @@ SELECT
   'message' AS result_type
 FROM messages
 WHERE msgsubject LIKE CONCAT('%', ?, '%')
+  AND (msgfor = ? OR msgby = ?)
 LIMIT 5
 `
+
+type SearchMessagesParams struct {
+	Query  interface{} `json:"query"`
+	UserID int64       `json:"user_id"`
+}
 
 type SearchMessagesRow struct {
 	ID         int64  `json:"id"`
@@ -67,9 +73,13 @@ type SearchMessagesRow struct {
 	ResultType string `json:"result_type"`
 }
 
-// Global search: messages by subject
-func (q *Queries) SearchMessages(ctx context.Context, query interface{}) ([]SearchMessagesRow, error) {
-	rows, err := q.db.QueryContext(ctx, searchMessages, query)
+// Global search: messages by subject, scoped to the session user.
+// Without the msgfor/msgby predicate every message subject in the system was
+// returned to any authenticated caller. Both arms are still the caller's own
+// data: msgfor is the recipient (the same rule MessagesViewForUser uses) and
+// msgby is the author.
+func (q *Queries) SearchMessages(ctx context.Context, arg SearchMessagesParams) ([]SearchMessagesRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchMessages, arg.Query, arg.UserID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}

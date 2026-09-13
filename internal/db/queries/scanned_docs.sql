@@ -3,7 +3,8 @@ SELECT * FROM scanned_docs
 WHERE patient = sqlc.arg(patient_id)
   AND active = 'active'
   AND deleted_at IS NULL
-ORDER BY document_date DESC;
+ORDER BY document_date DESC
+LIMIT ? OFFSET ?;
 
 -- name: GetScannedDoc :one
 SELECT * FROM scanned_docs

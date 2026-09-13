@@ -41,10 +41,17 @@ WHERE patient = ?
   AND active = 'active'
   AND deleted_at IS NULL
 ORDER BY document_date DESC
+LIMIT ? OFFSET ?
 `
 
-func (q *Queries) ListScannedDocs(ctx context.Context, patientID int64) ([]ScannedDoc, error) {
-	rows, err := q.db.QueryContext(ctx, listScannedDocs, patientID)
+type ListScannedDocsParams struct {
+	PatientID int64 `json:"patient_id"`
+	Limit     int32 `json:"limit"`
+	Offset    int32 `json:"offset"`
+}
+
+func (q *Queries) ListScannedDocs(ctx context.Context, arg ListScannedDocsParams) ([]ScannedDoc, error) {
+	rows, err := q.db.QueryContext(ctx, listScannedDocs, arg.PatientID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

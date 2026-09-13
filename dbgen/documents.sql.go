@@ -60,13 +60,19 @@ SELECT id, created_at, updated_at, deleted_at, filename, page_count, file_type, 
 WHERE active = 'active'
   AND deleted_at IS NULL
 ORDER BY received_date DESC
+LIMIT ? OFFSET ?
 `
+
+type ListUnfiledDocsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
 
 // ============================================================================
 // Unfiled Documents
 // ============================================================================
-func (q *Queries) ListUnfiledDocs(ctx context.Context) ([]UnfiledDoc, error) {
-	rows, err := q.db.QueryContext(ctx, listUnfiledDocs)
+func (q *Queries) ListUnfiledDocs(ctx context.Context, arg ListUnfiledDocsParams) ([]UnfiledDoc, error) {
+	rows, err := q.db.QueryContext(ctx, listUnfiledDocs, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -108,13 +114,19 @@ SELECT id, created_at, updated_at, deleted_at, document_type, patient, filename,
 WHERE active = 'active'
   AND deleted_at IS NULL
 ORDER BY sent_date DESC
+LIMIT ? OFFSET ?
 `
+
+type ListUnreadDocsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
 
 // ============================================================================
 // Unread Documents
 // ============================================================================
-func (q *Queries) ListUnreadDocs(ctx context.Context) ([]UnreadDoc, error) {
-	rows, err := q.db.QueryContext(ctx, listUnreadDocs)
+func (q *Queries) ListUnreadDocs(ctx context.Context, arg ListUnreadDocsParams) ([]UnreadDoc, error) {
+	rows, err := q.db.QueryContext(ctx, listUnreadDocs, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

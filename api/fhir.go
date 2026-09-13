@@ -16,31 +16,51 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// fhirAuthFunc is the middleware that authenticates a FHIR request (bearer
+// token or staff session cookie). It is a package variable so tests can
+// substitute a stub that injects a credential context without a live signing
+// key or a populated fhir_access_token table.
+var fhirAuthFunc = FHIRAuth
+
 func init() {
 	common.ApiMap["fhir"] = common.ApiMapping{
-		Authenticated: false, // FHIR middleware handles auth
-		RouterFunction: func(r *gin.RouterGroup) {
-			r.Use(FHIRAuth())
-			r.GET("/metadata", fhirCapabilityStatement)
-			r.GET("/Patient/:id", fhirPatientGet)
-			r.GET("/Observation", fhirObservationList)
-			r.GET("/Condition", fhirConditionList)
-			r.GET("/Condition/:id", fhirConditionGet)
-			r.GET("/AllergyIntolerance", fhirAllergyList)
-			r.GET("/AllergyIntolerance/:id", fhirAllergyGet)
-			r.GET("/MedicationRequest", fhirMedicationRequestList)
-			r.GET("/MedicationRequest/:id", fhirMedicationRequestGet)
-			r.GET("/Immunization", fhirImmunizationList)
-			r.GET("/Immunization/:id", fhirImmunizationGet)
-			r.GET("/Procedure", fhirProcedureList)
-			r.GET("/Procedure/:id", fhirProcedureGet)
-			r.GET("/Encounter", fhirEncounterList)
-			r.GET("/Encounter/:id", fhirEncounterGet)
-			r.GET("/FamilyMemberHistory", fhirFamilyMemberHistoryList)
-			r.GET("/FamilyMemberHistory/:id", fhirFamilyMemberHistoryGet)
-			r.GET("/Patient/:id/$document", fhirPatientDocument)
-		},
+		Authenticated:  false, // FHIR middleware handles auth
+		RouterFunction: fhirRegisterRoutes,
 	}
+}
+
+// fhirRegisterRoutes wires the FHIR read API.
+//
+// The registration order is load-bearing: /metadata is registered BEFORE the
+// read-scope guard is attached to the group, so the guard is not part of its
+// handler chain. It is the single documented exemption — a CapabilityStatement
+// exposes no patient data. Every route registered after
+// r.Use(fhirRequireReadScope()) is behind the guard;
+// TestFhirRoutesAreScopeGuarded enumerates the registered routes and fails if a
+// new route is added before the guard.
+func fhirRegisterRoutes(r *gin.RouterGroup) {
+	r.Use(fhirAuthFunc())
+
+	r.GET("/metadata", fhirCapabilityStatement)
+
+	r.Use(fhirRequireReadScope())
+	r.GET("/Patient/:id", fhirPatientGet)
+	r.GET("/Observation", fhirObservationList)
+	r.GET("/Condition", fhirConditionList)
+	r.GET("/Condition/:id", fhirConditionGet)
+	r.GET("/AllergyIntolerance", fhirAllergyList)
+	r.GET("/AllergyIntolerance/:id", fhirAllergyGet)
+	r.GET("/MedicationRequest", fhirMedicationRequestList)
+	r.GET("/MedicationRequest/:id", fhirMedicationRequestGet)
+	r.GET("/Immunization", fhirImmunizationList)
+	r.GET("/Immunization/:id", fhirImmunizationGet)
+	r.GET("/Procedure", fhirProcedureList)
+	r.GET("/Procedure/:id", fhirProcedureGet)
+	r.GET("/Encounter", fhirEncounterList)
+	r.GET("/Encounter/:id", fhirEncounterGet)
+	r.GET("/FamilyMemberHistory", fhirFamilyMemberHistoryList)
+	r.GET("/FamilyMemberHistory/:id", fhirFamilyMemberHistoryGet)
+	r.GET("/Patient/:id/$document", fhirPatientDocument)
 }
 
 // fhirContentType sets the FHIR JSON MIME type on the response.
@@ -148,6 +168,11 @@ type fhirObservationComponent struct {
 // CapabilityStatement (GET /api/fhir/metadata)
 // ============================================================================
 
+// fhirCapabilityStatement serves GET /api/fhir/metadata.
+//
+// This is the single FHIR route that is NOT behind the read-scope guard: a
+// CapabilityStatement is public metadata and exposes no patient data. It is
+// registered before fhirRequireReadScope() is attached to the route group.
 func fhirCapabilityStatement(c *gin.Context) {
 	fhirContentType(c)
 	issuer := fmt.Sprintf("http://%s", c.Request.Host)
@@ -314,6 +339,14 @@ func fhirPatientGet(c *gin.Context) {
 		return
 	}
 
+	// A delegated SMART token is confined to its launch patient: the :id in
+	// the URL must be that patient. Staff sessions carry no compartment and
+	// pass through. This is the fix for "a token scoped to patient 42 could
+	// read Patient/43".
+	if !fhirRequireOwnedResource(c, patientID) {
+		return
+	}
+
 	row, err := model.Queries.FhirPatientById(c.Request.Context(), patientID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -472,17 +505,25 @@ func fhirObservationList(c *gin.Context) {
 	patientParam := c.Query("patient")
 	categoryParam := c.Query("category")
 
+	// Resolve the effective patient filter BEFORE touching the database.
+	// A delegated SMART token is confined to its launch patient: a request
+	// that names a different patient is rejected with 403, and a request that
+	// names no patient is answered for the launch patient only. This endpoint
+	// used to return EVERY patient's vitals when ?patient was omitted.
+	requestedPatient, ok := fhirRequestedPatient(c, patientParam)
+	if !ok {
+		return
+	}
+	patientID, allowed := fhirRequirePatient(c, requestedPatient)
+	if !allowed {
+		return
+	}
+
 	// Social history Observations
 	if categoryParam == "social-history" {
-		if patientParam == "" {
+		if patientID == 0 {
 			fhirError(c, http.StatusBadRequest, "error", "required",
 				"patient parameter is required for social-history observations")
-			return
-		}
-		patientID := common.ParseInt(patientParam)
-		if patientID == 0 {
-			fhirError(c, http.StatusBadRequest, "error", "value",
-				"Invalid patient parameter")
 			return
 		}
 
@@ -514,7 +555,7 @@ func fhirObservationList(c *gin.Context) {
 			Link: []fhirBundleLink{
 				{
 					Relation: "self",
-					URL:      "http://" + c.Request.Host + "/api/fhir/Observation?patient=" + patientParam + "&category=social-history",
+					URL:      "http://" + c.Request.Host + "/api/fhir/Observation?patient=" + strconv.FormatInt(patientID, 10) + "&category=social-history",
 				},
 			},
 		}
@@ -524,16 +565,14 @@ func fhirObservationList(c *gin.Context) {
 		return
 	}
 
-	// Vital signs Observations (default)
+	// Vital signs Observations (default). patientID is non-zero for every
+	// delegated SMART token (it is the launch patient) and for a staff request
+	// that named a patient; only a staff request with no ?patient falls through
+	// to the (staff-only) all-patients query.
 	var rows []dbgen.FhirVitalsByPatientRow
 	var err error
 
-	if patientParam != "" {
-		patientID := common.ParseInt(patientParam)
-		if patientID == 0 {
-			fhirError(c, http.StatusBadRequest, "error", "value", "Invalid patient parameter")
-			return
-		}
+	if patientID > 0 {
 		rows, err = model.Queries.FhirVitalsByPatient(c.Request.Context(), patientID)
 	} else {
 		allRows, err2 := model.Queries.FhirVitalsAll(c.Request.Context(), dbgen.FhirVitalsAllParams{
@@ -596,8 +635,8 @@ func fhirObservationList(c *gin.Context) {
 
 	// Build self link
 	baseURL := "http://" + c.Request.Host + "/api/fhir/Observation"
-	if patientParam != "" {
-		baseURL += "?patient=" + patientParam
+	if patientID > 0 {
+		baseURL += "?patient=" + strconv.FormatInt(patientID, 10)
 	}
 	bundle.Link = []fhirBundleLink{
 		{Relation: "self", URL: baseURL},
@@ -985,15 +1024,21 @@ type fhirCondition struct {
 
 func fhirConditionList(c *gin.Context) {
 	patientParam := c.Query("patient")
-	if patientParam == "" {
-		fhirError(c, http.StatusBadRequest, "error", "required",
-			"patient parameter is required")
+
+	// Confine a delegated SMART token to its launch patient: a request naming
+	// a different patient is rejected, and one naming none filters on the
+	// launch patient rather than the requested/none value.
+	requestedPatient, ok := fhirRequestedPatient(c, patientParam)
+	if !ok {
 		return
 	}
-	patientID := common.ParseInt(patientParam)
+	patientID, allowed := fhirRequirePatient(c, requestedPatient)
+	if !allowed {
+		return
+	}
 	if patientID == 0 {
-		fhirError(c, http.StatusBadRequest, "error", "value",
-			"Invalid patient parameter")
+		fhirError(c, http.StatusBadRequest, "error", "required",
+			"patient parameter is required")
 		return
 	}
 
@@ -1029,7 +1074,7 @@ func fhirConditionList(c *gin.Context) {
 		Link: []fhirBundleLink{
 			{
 				Relation: "self",
-				URL:      "http://" + c.Request.Host + "/api/fhir/Condition?patient=" + patientParam,
+				URL:      "http://" + c.Request.Host + "/api/fhir/Condition?patient=" + strconv.FormatInt(patientID, 10),
 			},
 		},
 	}
@@ -1063,6 +1108,12 @@ func fhirConditionGet(c *gin.Context) {
 		log.Printf("fhirConditionGet: %v", err)
 		fhirError(c, http.StatusInternalServerError, "error", "exception",
 			"Internal server error")
+		return
+	}
+
+	// Compartment check on the fetched resource's own patient: a delegated
+	// SMART token may only read resources belonging to its launch patient.
+	if !fhirRequireOwnedResource(c, row.ConditionPatient) {
 		return
 	}
 
@@ -1161,15 +1212,21 @@ type fhirAllergyIntolerance struct {
 
 func fhirAllergyList(c *gin.Context) {
 	patientParam := c.Query("patient")
-	if patientParam == "" {
-		fhirError(c, http.StatusBadRequest, "error", "required",
-			"patient parameter is required")
+
+	// Confine a delegated SMART token to its launch patient: a request naming
+	// a different patient is rejected, and one naming none filters on the
+	// launch patient rather than the requested/none value.
+	requestedPatient, ok := fhirRequestedPatient(c, patientParam)
+	if !ok {
 		return
 	}
-	patientID := common.ParseInt(patientParam)
+	patientID, allowed := fhirRequirePatient(c, requestedPatient)
+	if !allowed {
+		return
+	}
 	if patientID == 0 {
-		fhirError(c, http.StatusBadRequest, "error", "value",
-			"Invalid patient parameter")
+		fhirError(c, http.StatusBadRequest, "error", "required",
+			"patient parameter is required")
 		return
 	}
 
@@ -1204,7 +1261,7 @@ func fhirAllergyList(c *gin.Context) {
 		Link: []fhirBundleLink{
 			{
 				Relation: "self",
-				URL:      "http://" + c.Request.Host + "/api/fhir/AllergyIntolerance?patient=" + patientParam,
+				URL:      "http://" + c.Request.Host + "/api/fhir/AllergyIntolerance?patient=" + strconv.FormatInt(patientID, 10),
 			},
 		},
 	}
@@ -1237,6 +1294,12 @@ func fhirAllergyGet(c *gin.Context) {
 		log.Printf("fhirAllergyGet: %v", err)
 		fhirError(c, http.StatusInternalServerError, "error", "exception",
 			"Internal server error")
+		return
+	}
+
+	// Compartment check on the fetched resource's own patient: a delegated
+	// SMART token may only read resources belonging to its launch patient.
+	if !fhirRequireOwnedResource(c, row.Patient) {
 		return
 	}
 
@@ -1323,15 +1386,21 @@ type fhirMedicationRequest struct {
 
 func fhirMedicationRequestList(c *gin.Context) {
 	patientParam := c.Query("patient")
-	if patientParam == "" {
-		fhirError(c, http.StatusBadRequest, "error", "required",
-			"patient parameter is required")
+
+	// Confine a delegated SMART token to its launch patient: a request naming
+	// a different patient is rejected, and one naming none filters on the
+	// launch patient rather than the requested/none value.
+	requestedPatient, ok := fhirRequestedPatient(c, patientParam)
+	if !ok {
 		return
 	}
-	patientID := common.ParseInt(patientParam)
+	patientID, allowed := fhirRequirePatient(c, requestedPatient)
+	if !allowed {
+		return
+	}
 	if patientID == 0 {
-		fhirError(c, http.StatusBadRequest, "error", "value",
-			"Invalid patient parameter")
+		fhirError(c, http.StatusBadRequest, "error", "required",
+			"patient parameter is required")
 		return
 	}
 
@@ -1366,7 +1435,7 @@ func fhirMedicationRequestList(c *gin.Context) {
 		Link: []fhirBundleLink{
 			{
 				Relation: "self",
-				URL:      "http://" + c.Request.Host + "/api/fhir/MedicationRequest?patient=" + patientParam,
+				URL:      "http://" + c.Request.Host + "/api/fhir/MedicationRequest?patient=" + strconv.FormatInt(patientID, 10),
 			},
 		},
 	}
@@ -1399,6 +1468,12 @@ func fhirMedicationRequestGet(c *gin.Context) {
 		log.Printf("fhirMedicationRequestGet: %v", err)
 		fhirError(c, http.StatusInternalServerError, "error", "exception",
 			"Internal server error")
+		return
+	}
+
+	// Compartment check on the fetched resource's own patient: a delegated
+	// SMART token may only read resources belonging to its launch patient.
+	if !fhirRequireOwnedResource(c, row.Patient) {
 		return
 	}
 
@@ -1503,15 +1578,21 @@ type fhirImmunization struct {
 
 func fhirImmunizationList(c *gin.Context) {
 	patientParam := c.Query("patient")
-	if patientParam == "" {
-		fhirError(c, http.StatusBadRequest, "error", "required",
-			"patient parameter is required")
+
+	// Confine a delegated SMART token to its launch patient: a request naming
+	// a different patient is rejected, and one naming none filters on the
+	// launch patient rather than the requested/none value.
+	requestedPatient, ok := fhirRequestedPatient(c, patientParam)
+	if !ok {
 		return
 	}
-	patientID := common.ParseInt(patientParam)
+	patientID, allowed := fhirRequirePatient(c, requestedPatient)
+	if !allowed {
+		return
+	}
 	if patientID == 0 {
-		fhirError(c, http.StatusBadRequest, "error", "value",
-			"Invalid patient parameter")
+		fhirError(c, http.StatusBadRequest, "error", "required",
+			"patient parameter is required")
 		return
 	}
 
@@ -1546,7 +1627,7 @@ func fhirImmunizationList(c *gin.Context) {
 		Link: []fhirBundleLink{
 			{
 				Relation: "self",
-				URL:      "http://" + c.Request.Host + "/api/fhir/Immunization?patient=" + patientParam,
+				URL:      "http://" + c.Request.Host + "/api/fhir/Immunization?patient=" + strconv.FormatInt(patientID, 10),
 			},
 		},
 	}
@@ -1579,6 +1660,12 @@ func fhirImmunizationGet(c *gin.Context) {
 		log.Printf("fhirImmunizationGet: %v", err)
 		fhirError(c, http.StatusInternalServerError, "error", "exception",
 			"Internal server error")
+		return
+	}
+
+	// Compartment check on the fetched resource's own patient: a delegated
+	// SMART token may only read resources belonging to its launch patient.
+	if !fhirRequireOwnedResource(c, row.Patient) {
 		return
 	}
 
@@ -1681,15 +1768,21 @@ type fhirProcedure struct {
 
 func fhirProcedureList(c *gin.Context) {
 	patientParam := c.Query("patient")
-	if patientParam == "" {
-		fhirError(c, http.StatusBadRequest, "error", "required",
-			"patient parameter is required")
+
+	// Confine a delegated SMART token to its launch patient: a request naming
+	// a different patient is rejected, and one naming none filters on the
+	// launch patient rather than the requested/none value.
+	requestedPatient, ok := fhirRequestedPatient(c, patientParam)
+	if !ok {
 		return
 	}
-	patientID := common.ParseInt(patientParam)
+	patientID, allowed := fhirRequirePatient(c, requestedPatient)
+	if !allowed {
+		return
+	}
 	if patientID == 0 {
-		fhirError(c, http.StatusBadRequest, "error", "value",
-			"Invalid patient parameter")
+		fhirError(c, http.StatusBadRequest, "error", "required",
+			"patient parameter is required")
 		return
 	}
 
@@ -1724,7 +1817,7 @@ func fhirProcedureList(c *gin.Context) {
 		Link: []fhirBundleLink{
 			{
 				Relation: "self",
-				URL:      "http://" + c.Request.Host + "/api/fhir/Procedure?patient=" + patientParam,
+				URL:      "http://" + c.Request.Host + "/api/fhir/Procedure?patient=" + strconv.FormatInt(patientID, 10),
 			},
 		},
 	}
@@ -1757,6 +1850,12 @@ func fhirProcedureGet(c *gin.Context) {
 		log.Printf("fhirProcedureGet: %v", err)
 		fhirError(c, http.StatusInternalServerError, "error", "exception",
 			"Internal server error")
+		return
+	}
+
+	// Compartment check on the fetched resource's own patient: a delegated
+	// SMART token may only read resources belonging to its launch patient.
+	if !fhirRequireOwnedResource(c, row.Patient) {
 		return
 	}
 
@@ -1832,15 +1931,21 @@ type fhirEncounter struct {
 
 func fhirEncounterList(c *gin.Context) {
 	patientParam := c.Query("patient")
-	if patientParam == "" {
-		fhirError(c, http.StatusBadRequest, "error", "required",
-			"patient parameter is required")
+
+	// Confine a delegated SMART token to its launch patient: a request naming
+	// a different patient is rejected, and one naming none filters on the
+	// launch patient rather than the requested/none value.
+	requestedPatient, ok := fhirRequestedPatient(c, patientParam)
+	if !ok {
 		return
 	}
-	patientID := common.ParseInt(patientParam)
+	patientID, allowed := fhirRequirePatient(c, requestedPatient)
+	if !allowed {
+		return
+	}
 	if patientID == 0 {
-		fhirError(c, http.StatusBadRequest, "error", "value",
-			"Invalid patient parameter")
+		fhirError(c, http.StatusBadRequest, "error", "required",
+			"patient parameter is required")
 		return
 	}
 
@@ -1875,7 +1980,7 @@ func fhirEncounterList(c *gin.Context) {
 		Link: []fhirBundleLink{
 			{
 				Relation: "self",
-				URL:      "http://" + c.Request.Host + "/api/fhir/Encounter?patient=" + patientParam,
+				URL:      "http://" + c.Request.Host + "/api/fhir/Encounter?patient=" + strconv.FormatInt(patientID, 10),
 			},
 		},
 	}
@@ -1908,6 +2013,12 @@ func fhirEncounterGet(c *gin.Context) {
 		log.Printf("fhirEncounterGet: %v", err)
 		fhirError(c, http.StatusInternalServerError, "error", "exception",
 			"Internal server error")
+		return
+	}
+
+	// Compartment check on the fetched resource's own patient: a delegated
+	// SMART token may only read resources belonging to its launch patient.
+	if !fhirRequireOwnedResource(c, row.Patient) {
 		return
 	}
 
@@ -2050,15 +2161,21 @@ func mapRelationshipToSNOMED(relationship string) fhirCoding {
 
 func fhirFamilyMemberHistoryList(c *gin.Context) {
 	patientParam := c.Query("patient")
-	if patientParam == "" {
-		fhirError(c, http.StatusBadRequest, "error", "required",
-			"patient parameter is required")
+
+	// Confine a delegated SMART token to its launch patient: a request naming
+	// a different patient is rejected, and one naming none filters on the
+	// launch patient rather than the requested/none value.
+	requestedPatient, ok := fhirRequestedPatient(c, patientParam)
+	if !ok {
 		return
 	}
-	patientID := common.ParseInt(patientParam)
+	patientID, allowed := fhirRequirePatient(c, requestedPatient)
+	if !allowed {
+		return
+	}
 	if patientID == 0 {
-		fhirError(c, http.StatusBadRequest, "error", "value",
-			"Invalid patient parameter")
+		fhirError(c, http.StatusBadRequest, "error", "required",
+			"patient parameter is required")
 		return
 	}
 
@@ -2093,7 +2210,7 @@ func fhirFamilyMemberHistoryList(c *gin.Context) {
 		Link: []fhirBundleLink{
 			{
 				Relation: "self",
-				URL:      "http://" + c.Request.Host + "/api/fhir/FamilyMemberHistory?patient=" + patientParam,
+				URL:      "http://" + c.Request.Host + "/api/fhir/FamilyMemberHistory?patient=" + strconv.FormatInt(patientID, 10),
 			},
 		},
 	}
@@ -2126,6 +2243,12 @@ func fhirFamilyMemberHistoryGet(c *gin.Context) {
 		log.Printf("fhirFamilyMemberHistoryGet: %v", err)
 		fhirError(c, http.StatusInternalServerError, "error", "exception",
 			"Internal server error")
+		return
+	}
+
+	// Compartment check on the fetched resource's own patient: a delegated
+	// SMART token may only read resources belonging to its launch patient.
+	if !fhirRequireOwnedResource(c, row.Patient) {
 		return
 	}
 
@@ -2209,6 +2332,12 @@ func fhirPatientDocument(c *gin.Context) {
 	patientID := common.ParseInt(id)
 	if patientID == 0 {
 		fhirError(c, http.StatusBadRequest, "error", "value", "Invalid patient ID")
+		return
+	}
+
+	// $document returns the patient's whole chart, so it is compartment
+	// checked exactly like a Patient read.
+	if !fhirRequireOwnedResource(c, patientID) {
 		return
 	}
 

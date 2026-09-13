@@ -181,7 +181,14 @@ FROM dicom
 WHERE d_patient = ?
   AND deleted_at IS NULL
 ORDER BY created_at DESC
+LIMIT ? OFFSET ?
 `
+
+type ListDicomByPatientParams struct {
+	PatientID int64 `json:"patient_id"`
+	Limit     int32 `json:"limit"`
+	Offset    int32 `json:"offset"`
+}
 
 type ListDicomByPatientRow struct {
 	ID                  int64          `json:"id"`
@@ -204,8 +211,11 @@ type ListDicomByPatientRow struct {
 	User                int64          `json:"user"`
 }
 
-func (q *Queries) ListDicomByPatient(ctx context.Context, patientID int64) ([]ListDicomByPatientRow, error) {
-	rows, err := q.db.QueryContext(ctx, listDicomByPatient, patientID)
+// Pagination note: LIMIT/OFFSET must use plain `?` placeholders. sqlc.arg()
+// does not work inside LIMIT/OFFSET in this project's sqlc version; plain `?`
+// generates the Limit/Offset struct fields the same way ListPatients does.
+func (q *Queries) ListDicomByPatient(ctx context.Context, arg ListDicomByPatientParams) ([]ListDicomByPatientRow, error) {
+	rows, err := q.db.QueryContext(ctx, listDicomByPatient, arg.PatientID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -251,15 +261,20 @@ SELECT d_study_uid, d_study_date, d_study_description, d_patient_id,
        d_patient, d_modality
 FROM dicom
 WHERE deleted_at IS NULL
+  AND d_patient = ?
   AND (? IS NULL OR d_patient_id = ?)
   AND (? IS NULL OR d_study_uid = ?)
 GROUP BY d_study_uid, d_study_date, d_study_description, d_patient_id, d_patient, d_modality
 ORDER BY d_study_date DESC
+LIMIT ? OFFSET ?
 `
 
 type ListDicomStudiesParams struct {
+	Patient   int64          `json:"patient"`
 	PatientID sql.NullString `json:"patient_id"`
 	StudyUid  sql.NullString `json:"study_uid"`
+	Limit     int32          `json:"limit"`
+	Offset    int32          `json:"offset"`
 }
 
 type ListDicomStudiesRow struct {
@@ -271,12 +286,20 @@ type ListDicomStudiesRow struct {
 	DModality         sql.NullString `json:"d_modality"`
 }
 
+// Patient scoping is mandatory, not optional: the QIDO-RS handler serves
+// /api/dicom/patient/:id/studies and must never see another patient's rows.
+// The property is enforced here (d_patient = ?) rather than in Go so no future
+// caller can forget it. `patient_id` remains the separate, client-supplied
+// DICOM PatientID (0010,0020) attribute filter and is ANDed on top.
 func (q *Queries) ListDicomStudies(ctx context.Context, arg ListDicomStudiesParams) ([]ListDicomStudiesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listDicomStudies,
+		arg.Patient,
 		arg.PatientID,
 		arg.PatientID,
 		arg.StudyUid,
 		arg.StudyUid,
+		arg.Limit,
+		arg.Offset,
 	)
 	if err != nil {
 		return nil, err

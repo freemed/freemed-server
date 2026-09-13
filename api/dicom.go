@@ -1,10 +1,12 @@
 package api
 
 import (
+	"context"
 	"crypto/md5"
 	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -20,12 +22,19 @@ import (
 // DICOMweb endpoints (QIDO-RS search + WADO-RS retrieve). The patient
 // sub-resource routes (list/upload/get/remove) are registered in
 // api/patient.go.
+//
+// Both DICOMweb routes carry an explicit patient context in the path
+// (`/api/dicom/patient/:id/...`). Without it any authenticated user could
+// enumerate every patient's studies (QIDO) and pull any SOP instance by UID
+// (WADO) — see finding M10 in the security audit. The bare `/studies` routes
+// were removed rather than deprecated, so they now fall through to the JSON
+// 404 handler and cannot be used to bypass the scoping.
 func init() {
 	common.ApiMap["dicom"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.GET("/studies", dicomQidoStudies)
-			r.GET("/studies/:studyUID/series/:seriesUID/instances/:sopUID", dicomWadoRetrieve)
+			r.GET("/patient/:id/studies", dicomQidoStudies)
+			r.GET("/patient/:id/studies/:studyUID/series/:seriesUID/instances/:sopUID", dicomWadoRetrieve)
 		},
 	}
 }
@@ -71,6 +80,12 @@ type dicomUploadInput struct {
 }
 
 // dicomList handles GET /api/patient/:id/dicom
+//
+// The response stays a bare array (the route has no envelope) because
+// frontend/src/routes/patients/[id]/dicom/+page.svelte types it as
+// `DicomItem[]` and would break on an envelope. The bound is therefore applied
+// server-side only: ?offset=/?limit= are honoured and clamped, default 50, hard
+// maximum 200.
 func dicomList(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -78,8 +93,14 @@ func dicomList(c *gin.Context) {
 		return
 	}
 
+	offset, limit := pageParams(c)
+
 	patientID := common.ParseInt(id)
-	rows, err := model.Queries.ListDicomByPatient(c.Request.Context(), patientID)
+	rows, err := model.Queries.ListDicomByPatient(c.Request.Context(), dbgen.ListDicomByPatientParams{
+		PatientID: patientID,
+		Limit:     limit,
+		Offset:    offset,
+	})
 	if err != nil {
 		log.Print(err.Error())
 		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
@@ -210,23 +231,70 @@ func dicomUpload(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"id": newID})
 }
 
-// dicomGet handles GET /api/patient/:id/dicom/:itemId — raw DICOM bytes.
-func dicomGet(c *gin.Context) {
-	id := c.Param("itemId")
-	if id == "" {
+// DICOM ownership guard.
+//
+// The storage queries (internal/db/queries/dicom.sql) are scoped by the object
+// id alone — GetDicom/DeleteDicom are `WHERE id = ?`. The patient sub-resource
+// routes (/api/patient/:id/dicom/:itemId) therefore MUST verify the fetched row
+// belongs to the patient named in the path. Without this check any authenticated
+// user could read — and soft-delete — any patient's study simply by walking item
+// ids (`GET /api/patient/5/dicom/1` returned a study owned by patient 2, and
+// `DELETE` through a different patient id removed it). api/form_results.go uses
+// this same fetch-then-compare pattern; keeping the query text unchanged keeps
+// this fix free of sqlc regeneration.
+var (
+	dicomGetRow = func(ctx context.Context, id int64) (dbgen.Dicom, error) {
+		return model.Queries.GetDicom(ctx, id)
+	}
+	dicomDeleteRow = func(ctx context.Context, id int64) error {
+		return model.Queries.DeleteDicom(ctx, id)
+	}
+	// Seams for the DICOMweb handlers, so their patient scoping can be asserted
+	// without a live database (same rationale as dicomGetRow above).
+	dicomListStudies = func(ctx context.Context, arg dbgen.ListDicomStudiesParams) ([]dbgen.ListDicomStudiesRow, error) {
+		return model.Queries.ListDicomStudies(ctx, arg)
+	}
+	dicomGetBySop = func(ctx context.Context, arg dbgen.GetDicomBySopParams) (dbgen.Dicom, error) {
+		return model.Queries.GetDicomBySop(ctx, arg)
+	}
+)
+
+// loadOwnedDicom parses :id and :itemId from the request path, fetches the DICOM
+// object and returns it only when it belongs to the path patient. It writes the
+// error response itself and returns ok=false on any failure, so a caller that
+// receives ok=false must return immediately without touching the object.
+func loadOwnedDicom(c *gin.Context, patientID, itemID int64) (dbgen.Dicom, bool) {
+	if patientID == 0 || itemID == 0 {
 		common.ErrorResponse(c, http.StatusBadRequest, "bad request")
-		return
+		return dbgen.Dicom{}, false
 	}
 
-	itemID := common.ParseInt(id)
-	row, err := model.Queries.GetDicom(c.Request.Context(), itemID)
+	row, err := dicomGetRow(c.Request.Context(), itemID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			common.ErrorResponse(c, http.StatusNotFound, "DICOM object not found")
-			return
+			return dbgen.Dicom{}, false
 		}
 		log.Print(err.Error())
 		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
+		return dbgen.Dicom{}, false
+	}
+	// Cross-patient guard: a mismatch is reported as 404 (not 403) so the
+	// endpoint does not confirm the existence of another patient's object.
+	if row.DPatient != patientID {
+		common.ErrorResponse(c, http.StatusNotFound, "DICOM object not found")
+		return dbgen.Dicom{}, false
+	}
+	return row, true
+}
+
+// dicomGet handles GET /api/patient/:id/dicom/:itemId — raw DICOM bytes.
+func dicomGet(c *gin.Context) {
+	patientID := common.ParseInt(c.Param("id"))
+	itemID := common.ParseInt(c.Param("itemId"))
+
+	row, ok := loadOwnedDicom(c, patientID, itemID)
+	if !ok {
 		return
 	}
 
@@ -235,13 +303,14 @@ func dicomGet(c *gin.Context) {
 
 // dicomRemove handles DELETE /api/patient/:id/dicom/:itemId — soft delete.
 func dicomRemove(c *gin.Context) {
+	patientID := common.ParseInt(c.Param("id"))
 	itemID := common.ParseInt(c.Param("itemId"))
-	if itemID == 0 {
-		common.ErrorResponse(c, http.StatusBadRequest, "bad request")
+
+	if _, ok := loadOwnedDicom(c, patientID, itemID); !ok {
 		return
 	}
 
-	if err := model.Queries.DeleteDicom(c.Request.Context(), itemID); err != nil {
+	if err := dicomDeleteRow(c.Request.Context(), itemID); err != nil {
 		log.Print(err.Error())
 		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
 		return
@@ -250,21 +319,45 @@ func dicomRemove(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "deleted"})
 }
 
-// dicomQidoStudies handles GET /api/dicom/studies — QIDO-RS study search.
-// Supports ?PatientID= and ?StudyInstanceUID= filters.
+// dicomQidoStudies handles GET /api/dicom/patient/:id/studies — QIDO-RS study
+// search, scoped to the patient named in the path. Supports ?PatientID= and
+// ?StudyInstanceUID= filters (the DICOM attributes, ANDed with the path scope).
+//
+// QIDO-RS defines ?limit= and ?offset= and the response is a bare array of
+// DICOM JSON model objects, so both the array shape and the parameter names are
+// kept for conformance — this is the one M7 endpoint where switching to the
+// house envelope would break a standard interface (DICOMweb clients such as
+// dicomweb-client). The list is bounded in SQL (LIMIT ? OFFSET ?) and the
+// parameters are clamped by pageParams.
+//
+// The patient scope is a path segment and is passed to SQL, which filters on
+// d_patient. There is no way to widen it from the request: an empty or
+// non-numeric :id is rejected, and a study belonging to another patient simply
+// is not in the result set (there is no existence signal to leak).
 func dicomQidoStudies(c *gin.Context) {
-	var patientID sql.NullString
+	patientID := common.ParseInt(c.Param("id"))
+	if patientID == 0 {
+		common.ErrorResponse(c, http.StatusBadRequest, "bad request")
+		return
+	}
+
+	var dicomPatientID sql.NullString
 	if v := c.Query("PatientID"); v != "" {
-		patientID = sql.NullString{String: v, Valid: true}
+		dicomPatientID = sql.NullString{String: v, Valid: true}
 	}
 	var studyUID sql.NullString
 	if v := c.Query("StudyInstanceUID"); v != "" {
 		studyUID = sql.NullString{String: v, Valid: true}
 	}
 
-	rows, err := model.Queries.ListDicomStudies(c.Request.Context(), dbgen.ListDicomStudiesParams{
-		PatientID: patientID,
+	offset, limit := pageParams(c)
+
+	rows, err := dicomListStudies(c.Request.Context(), dbgen.ListDicomStudiesParams{
+		Patient:   patientID,
+		PatientID: dicomPatientID,
 		StudyUid:  studyUID,
+		Limit:     limit,
+		Offset:    offset,
 	})
 	if err != nil {
 		log.Print(err.Error())
@@ -286,29 +379,43 @@ func dicomQidoStudies(c *gin.Context) {
 }
 
 // dicomWadoRetrieve handles GET
-// /api/dicom/studies/:studyUID/series/:seriesUID/instances/:sopUID — WADO-RS
-// instance retrieval returning raw DICOM bytes.
+// /api/dicom/patient/:id/studies/:studyUID/series/:seriesUID/instances/:sopUID —
+// WADO-RS instance retrieval returning raw DICOM bytes, scoped to the patient
+// named in the path.
+//
+// The lookup is by UID triple, so the row must additionally be checked against
+// the path patient — the same fetch-then-compare guard (and the same 404, never
+// 403) that loadOwnedDicom applies to the id-addressed sub-resource routes. A
+// mismatch and a genuinely absent instance are indistinguishable, so the
+// response does not confirm that another patient's SOP instance exists.
 func dicomWadoRetrieve(c *gin.Context) {
+	patientID := common.ParseInt(c.Param("id"))
 	studyUID := c.Param("studyUID")
 	seriesUID := c.Param("seriesUID")
 	sopUID := c.Param("sopUID")
-	if studyUID == "" || seriesUID == "" || sopUID == "" {
+	if patientID == 0 || studyUID == "" || seriesUID == "" || sopUID == "" {
 		common.ErrorResponse(c, http.StatusBadRequest, "bad request")
 		return
 	}
 
-	row, err := model.Queries.GetDicomBySop(c.Request.Context(), dbgen.GetDicomBySopParams{
+	row, err := dicomGetBySop(c.Request.Context(), dbgen.GetDicomBySopParams{
 		StudyUid:  sql.NullString{String: studyUID, Valid: true},
 		SeriesUid: sql.NullString{String: seriesUID, Valid: true},
 		SopUid:    sql.NullString{String: sopUID, Valid: true},
 	})
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			common.ErrorResponse(c, http.StatusNotFound, "SOP instance not found")
 			return
 		}
 		log.Print(err.Error())
 		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	// Cross-patient guard: identical response to "no such instance".
+	if row.DPatient != patientID {
+		common.ErrorResponse(c, http.StatusNotFound, "SOP instance not found")
 		return
 	}
 

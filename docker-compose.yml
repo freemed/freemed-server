@@ -40,7 +40,11 @@ services:
       FREEMED_DB_PASS: freemed
       FREEMED_DB_NAME: freemed
       FREEMED_REDIS_HOST: redis:6379
-      FREEMED_SESSION_KEY: ${FREEMED_SESSION_KEY:-changeme-in-production}
+      # Required: the server will not start with a weak/default signing key
+      # (>= 32 bytes, not the built-in default). Generate with:
+      #   openssl rand -base64 48
+      # Put it in a .env file next to this compose file (see .env.example).
+      FREEMED_SESSION_KEY: ${FREEMED_SESSION_KEY:?FREEMED_SESSION_KEY must be set to a strong random value, e.g. openssl rand -base64 48}
     depends_on:
       db:
         condition: service_healthy

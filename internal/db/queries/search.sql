@@ -15,7 +15,11 @@ WHERE (
   AND ptarchive = 0
 LIMIT 10;
 
--- Global search: messages by subject
+-- Global search: messages by subject, scoped to the session user.
+-- Without the msgfor/msgby predicate every message subject in the system was
+-- returned to any authenticated caller. Both arms are still the caller's own
+-- data: msgfor is the recipient (the same rule MessagesViewForUser uses) and
+-- msgby is the author.
 -- name: SearchMessages :many
 SELECT
   id,
@@ -23,6 +27,7 @@ SELECT
   'message' AS result_type
 FROM messages
 WHERE msgsubject LIKE CONCAT('%', sqlc.arg('query'), '%')
+  AND (msgfor = sqlc.arg('user_id') OR msgby = sqlc.arg('user_id'))
 LIMIT 5;
 
 -- Global search: scheduler appointments by patient name (future only)

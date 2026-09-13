@@ -8,20 +8,37 @@ package dbgen
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
+const consumeFhirAuthCode = `-- name: ConsumeFhirAuthCode :execrows
+UPDATE fhir_auth_code SET used = 1, updated_at = NOW() WHERE id = ? AND used = 0
+`
+
+// Conditional single-use consumption: the UPDATE only matches while the code is
+// unused, so two concurrent redemptions of the same code cannot both mint a
+// token. The caller must treat 0 rows affected as "already redeemed".
+func (q *Queries) ConsumeFhirAuthCode(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, consumeFhirAuthCode, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const createFhirClient = `-- name: CreateFhirClient :execresult
-INSERT INTO fhir_client (client_id, client_name, redirect_uris, grant_types, scopes, is_confidential, active, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
+INSERT INTO fhir_client (client_id, client_name, redirect_uris, grant_types, scopes, is_confidential, client_secret_hash, active, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
 `
 
 type CreateFhirClientParams struct {
-	ClientID       string `json:"client_id"`
-	ClientName     string `json:"client_name"`
-	RedirectUris   string `json:"redirect_uris"`
-	GrantTypes     string `json:"grant_types"`
-	Scopes         string `json:"scopes"`
-	IsConfidential bool   `json:"is_confidential"`
+	ClientID         string `json:"client_id"`
+	ClientName       string `json:"client_name"`
+	RedirectUris     string `json:"redirect_uris"`
+	GrantTypes       string `json:"grant_types"`
+	Scopes           string `json:"scopes"`
+	IsConfidential   bool   `json:"is_confidential"`
+	ClientSecretHash string `json:"client_secret_hash"`
 }
 
 func (q *Queries) CreateFhirClient(ctx context.Context, arg CreateFhirClientParams) (sql.Result, error) {
@@ -32,6 +49,7 @@ func (q *Queries) CreateFhirClient(ctx context.Context, arg CreateFhirClientPara
 		arg.GrantTypes,
 		arg.Scopes,
 		arg.IsConfidential,
+		arg.ClientSecretHash,
 	)
 }
 
@@ -91,7 +109,7 @@ func (q *Queries) GetFhirAuthCode(ctx context.Context, code string) (FhirAuthCod
 }
 
 const getFhirClientByID = `-- name: GetFhirClientByID :one
-SELECT id, created_at, updated_at, deleted_at, client_id, client_name, redirect_uris, public_key, grant_types, scopes, is_confidential, active FROM fhir_client WHERE client_id = ? AND active = 1
+SELECT id, created_at, updated_at, deleted_at, client_id, client_name, redirect_uris, public_key, client_secret_hash, grant_types, scopes, is_confidential, active FROM fhir_client WHERE client_id = ? AND active = 1
 `
 
 func (q *Queries) GetFhirClientByID(ctx context.Context, clientID string) (FhirClient, error) {
@@ -106,6 +124,7 @@ func (q *Queries) GetFhirClientByID(ctx context.Context, clientID string) (FhirC
 		&i.ClientName,
 		&i.RedirectUris,
 		&i.PublicKey,
+		&i.ClientSecretHash,
 		&i.GrantTypes,
 		&i.Scopes,
 		&i.IsConfidential,
@@ -163,18 +182,38 @@ func (q *Queries) InsertFhirAuthCode(ctx context.Context, arg InsertFhirAuthCode
 }
 
 const listFhirClients = `-- name: ListFhirClients :many
-SELECT id, created_at, updated_at, deleted_at, client_id, client_name, redirect_uris, public_key, grant_types, scopes, is_confidential, active FROM fhir_client WHERE deleted_at IS NULL ORDER BY client_name
+SELECT id, created_at, updated_at, deleted_at, client_id, client_name, redirect_uris,
+       public_key, grant_types, scopes, is_confidential, active
+FROM fhir_client WHERE deleted_at IS NULL ORDER BY client_name
 `
 
-func (q *Queries) ListFhirClients(ctx context.Context) ([]FhirClient, error) {
+type ListFhirClientsRow struct {
+	ID             int64          `json:"id"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      sql.NullTime   `json:"deleted_at"`
+	ClientID       string         `json:"client_id"`
+	ClientName     string         `json:"client_name"`
+	RedirectUris   string         `json:"redirect_uris"`
+	PublicKey      sql.NullString `json:"public_key"`
+	GrantTypes     string         `json:"grant_types"`
+	Scopes         string         `json:"scopes"`
+	IsConfidential bool           `json:"is_confidential"`
+	Active         bool           `json:"active"`
+}
+
+// client_secret_hash is deliberately excluded: these rows are serialized
+// straight to the admin UI, and a stored credential hash must not leave the
+// database.
+func (q *Queries) ListFhirClients(ctx context.Context) ([]ListFhirClientsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listFhirClients)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []FhirClient
+	var items []ListFhirClientsRow
 	for rows.Next() {
-		var i FhirClient
+		var i ListFhirClientsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatedAt,
@@ -200,13 +239,4 @@ func (q *Queries) ListFhirClients(ctx context.Context) ([]FhirClient, error) {
 		return nil, err
 	}
 	return items, nil
-}
-
-const markFhirAuthCodeUsed = `-- name: MarkFhirAuthCodeUsed :exec
-UPDATE fhir_auth_code SET used = 1, updated_at = NOW() WHERE id = ?
-`
-
-func (q *Queries) MarkFhirAuthCodeUsed(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, markFhirAuthCodeUsed, id)
-	return err
 }

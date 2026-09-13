@@ -11,12 +11,31 @@ import (
 )
 
 func init() {
+	// NOTE: this is the ONLY registration for the "claims" ApiMap key. It used to
+	// be assigned twice — here and in api/claim_export.go — and because the map
+	// key is the route prefix, the second assignment silently replaced the first:
+	// POST /api/claims/generate and GET /api/claims/:id/x12 were dead routes that
+	// fell through to the SPA fallback (HTTP 200 + HTML). The two registrations
+	// are merged into one RouterFunction below so nothing shadows anything.
+	//
+	// Both admin routes use the :id wildcard name (not :voucher) because gin
+	// panics at startup when two patterns place different wildcard names at the
+	// same path position ("':voucher' in new path ... conflicts with existing
+	// wildcard ':id'").
 	common.ApiMap["claims"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
 			r.GET("/recent", getRecentClaims)
 			r.GET("/pending", getPendingClaims)
-			r.PUT("/:id/status", updateClaimStatus)
+			// Admin-only: changing a claim's status is a billing write. It is the
+			// same class as /generate and /:id/x12 below, which have always been
+			// guarded; leaving this one open let any authenticated user (including
+			// a non-billing account) mutate claim state. Unguarded at base revision
+			// 873e1a as well - found by audit, not a regression.
+			r.PUT("/:id/status", common.RequireRole("admin"), updateClaimStatus)
+			// Moved here from api/claim_export.go (see NOTE above).
+			r.POST("/generate", common.RequireRole("admin"), claimGenerate)
+			r.GET("/:id/x12", common.RequireRole("admin"), claimX12ByVoucher)
 		},
 	}
 }

@@ -21,7 +21,13 @@ paths:
   logs: .
 session:
   expiry: 10
-  key: freemed
+  # REQUIRED — the server REFUSES TO START without a strong key. It signs every
+  # JWT credential domain (staff session, patient portal, SMART/FHIR access
+  # tokens), so a weak or public key lets anyone mint an admin token offline.
+  # Supply it out-of-band rather than committing it here:
+  #   export FREEMED_SESSION_KEY="$(openssl rand -base64 48)"
+  # Must be >= 32 bytes and must not be the built-in default.
+  key: ""
 scheduler:
   start: 9
   end: 16

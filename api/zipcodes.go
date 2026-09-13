@@ -36,7 +36,9 @@ func cityStateZipPicklist(r *gin.Context) {
 		r.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-	log.Print("CityStateZipPicklist(): param = '" + param + "'")
+	// %q: the path segment is caller-controlled and would otherwise allow
+	// newline injection into the log file.
+	log.Printf("CityStateZipPicklist(): param = %q", param)
 
 	intval, _ := strconv.Atoi(param)
 	if len(param) >= 4 && param[2:3] == " " {

@@ -530,18 +530,19 @@ type FhirAuthCode struct {
 }
 
 type FhirClient struct {
-	ID             int64          `json:"id"`
-	CreatedAt      time.Time      `json:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at"`
-	DeletedAt      sql.NullTime   `json:"deleted_at"`
-	ClientID       string         `json:"client_id"`
-	ClientName     string         `json:"client_name"`
-	RedirectUris   string         `json:"redirect_uris"`
-	PublicKey      sql.NullString `json:"public_key"`
-	GrantTypes     string         `json:"grant_types"`
-	Scopes         string         `json:"scopes"`
-	IsConfidential bool           `json:"is_confidential"`
-	Active         bool           `json:"active"`
+	ID               int64          `json:"id"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+	DeletedAt        sql.NullTime   `json:"deleted_at"`
+	ClientID         string         `json:"client_id"`
+	ClientName       string         `json:"client_name"`
+	RedirectUris     string         `json:"redirect_uris"`
+	PublicKey        sql.NullString `json:"public_key"`
+	ClientSecretHash string         `json:"client_secret_hash"`
+	GrantTypes       string         `json:"grant_types"`
+	Scopes           string         `json:"scopes"`
+	IsConfidential   bool           `json:"is_confidential"`
+	Active           bool           `json:"active"`
 }
 
 type FinancialDemographic struct {

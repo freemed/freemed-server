@@ -1,5 +1,23 @@
 //go:build integration
 
+// Auth integration tests. These drive the REAL server over HTTP, so a server must
+// already be running on http://localhost:3000 before `go test -tags=integration`.
+//
+// The server now REFUSES TO START without a strong JWT signing key (see
+// config/config.go ValidateStartup) — one master secret from which the staff,
+// portal, FHIR and OAuth2 signing keys are derived. Start it with a key:
+//
+//	make session-key                 # writes FREEMED_SESSION_KEY to .env (gitignored)
+//	make run                         # builds and runs with .env loaded
+//
+// or by hand:
+//
+//	export FREEMED_SESSION_KEY="$(openssl rand -base64 48)"
+//	go run ./cmd/freemed-server
+//
+// The tests log in through POST /auth/login with a real bcrypt password, so they
+// never need to know the key — but the server will exit(1) without one.
+
 package integration
 
 import (

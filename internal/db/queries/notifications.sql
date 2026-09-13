@@ -16,11 +16,17 @@ SELECT * FROM systemnotification
 WHERE npatient = sqlc.arg(patient_id)
 ORDER BY stamp DESC;
 
--- NotificationsFromTimestamp returns notifications since a given timestamp
+-- NotificationsFromTimestamp returns a user's notifications since a timestamp.
+-- The nuser filter is mandatory: systemnotification carries npatient as well as
+-- nuser, so an unscoped query leaked both other users' rows and other patients'
+-- rows to any authenticated caller. LIMIT bounds the poll response, matching
+-- UserNotifications above.
 -- name: NotificationsFromTimestamp :many
 SELECT * FROM systemnotification
-WHERE stamp > sqlc.arg(since)
-ORDER BY stamp DESC;
+WHERE nuser = sqlc.arg(user_id)
+  AND stamp > sqlc.arg(since)
+ORDER BY stamp DESC
+LIMIT 50;
 
 -- LatestTimestamp returns the latest notification timestamp
 -- name: LatestTimestamp :one

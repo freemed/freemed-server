@@ -138,7 +138,17 @@ func formResultsList(r *gin.Context) {
 		return
 	}
 
-	rows, err := model.Queries.ListFormResultsByPatient(r.Request.Context(), patientID)
+	// The array shape is kept: frontend/src/routes/patients/[id]/forms/+page.svelte
+	// types this as `FormResult[]`. ?offset=/?limit= are honoured and clamped,
+	// and the query carries `LIMIT ? OFFSET ?` instead of returning every form
+	// the patient has ever had.
+	offset, limit := pageParams(r)
+
+	rows, err := model.Queries.ListFormResultsByPatient(r.Request.Context(), dbgen.ListFormResultsByPatientParams{
+		PatientID: patientID,
+		Limit:     limit,
+		Offset:    offset,
+	})
 	if err != nil {
 		log.Print(err.Error())
 		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)

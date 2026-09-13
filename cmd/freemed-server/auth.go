@@ -31,7 +31,7 @@ func getAuthMiddleware() *jwt.GinJWTMiddleware {
 	if !authMiddlewareInitialized {
 		authMiddleware, err = jwt.New(&jwt.GinJWTMiddleware{
 			Realm:       "FreeMED",
-			Key:         []byte(config.Config.Session.Key),
+			Key:         config.Config.DomainKey(config.KeyDomainStaff),
 			Timeout:     time.Minute * time.Duration(config.Config.Session.Expiry),
 			MaxRefresh:  time.Hour,
 			IdentityKey: identityKey,

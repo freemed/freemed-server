@@ -32,7 +32,11 @@ services:
   backend:
     restart: always
     environment:
-      FREEMED_SESSION_KEY: "REPLACE-WITH-STRONG-RANDOM-KEY-AT-LEAST-64-CHARS"
+      # Required, with no default. The backend refuses to start with a weak or
+      # default signing key (it signs every JWT credential domain), so supply it
+      # from a .env file or the orchestrator's secret store:
+      #   openssl rand -base64 48
+      FREEMED_SESSION_KEY: ${FREEMED_SESSION_KEY:?FREEMED_SESSION_KEY must be set to a strong random value, e.g. openssl rand -base64 48}
     deploy:
       resources:
         limits:

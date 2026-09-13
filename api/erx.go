@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/config"
 	"github.com/freemed/freemed-server/model"
 	"github.com/freemed/freemed-server/pkg/ncpdp"
 	"github.com/gin-gonic/gin"
@@ -40,8 +41,18 @@ func erxNewPrescription(c *gin.Context) {
 		return
 	}
 
+	// The NCPDP sender ID is assigned per-organization by NCPDP; without it the
+	// resulting NewRx would carry a fabricated sender identity that any pharmacy
+	// would reject. Refuse rather than emit a misleading message.
+	senderNCPDPID := config.Config.Ncpdp.SenderID
+	if senderNCPDPID == "" {
+		common.ErrorResponse(c, http.StatusServiceUnavailable,
+			"e-prescribing is not configured: set ncpdp.sender-id in config.yml or FREEMED_NCPDP_SENDER_ID")
+		return
+	}
+
 	// Assemble prescription data from DB
-	input, err := ncpdp.AssemblePrescriptionInput(model.SqlDb, in.PrescriptionID)
+	input, err := ncpdp.AssemblePrescriptionInput(model.SqlDb, in.PrescriptionID, senderNCPDPID)
 	if err != nil {
 		log.Printf("erxNewPrescription: assemble failed: %v", err)
 		common.ErrorResponseFromError(c, http.StatusNotFound, err)

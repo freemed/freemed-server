@@ -23,7 +23,12 @@ func init() {
 	common.ApiMap["preferences"] = common.ApiMapping{
 		Authenticated: true,
 		RouterFunction: func(r *gin.RouterGroup) {
-			r.PUT("/", preferencesBatchUpdate)
+			// Admin-only: this writes arbitrary keys into the global `config`
+			// table, which holds the outbound billing credentials
+			// (remitt_url / remitt_user / remitt_pass) consumed by the remitt
+			// client. Its sibling route above is guarded; this one was not, so
+			// any authenticated user could reroute that integration.
+			r.PUT("/", common.RequireRole("admin"), preferencesBatchUpdate)
 		},
 	}
 }

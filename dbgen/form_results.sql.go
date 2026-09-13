@@ -65,11 +65,17 @@ func (q *Queries) GetFormResult(ctx context.Context, id int64) (FormResult, erro
 }
 
 const listFormResultsByPatient = `-- name: ListFormResultsByPatient :many
-SELECT id, created_at, updated_at, deleted_at, fr_patient, fr_timestamp, fr_template, fr_formname, user, active FROM form_results WHERE fr_patient = ? AND active = 'active' AND deleted_at IS NULL ORDER BY fr_timestamp DESC
+SELECT id, created_at, updated_at, deleted_at, fr_patient, fr_timestamp, fr_template, fr_formname, user, active FROM form_results WHERE fr_patient = ? AND active = 'active' AND deleted_at IS NULL ORDER BY fr_timestamp DESC LIMIT ? OFFSET ?
 `
 
-func (q *Queries) ListFormResultsByPatient(ctx context.Context, patientID int64) ([]FormResult, error) {
-	rows, err := q.db.QueryContext(ctx, listFormResultsByPatient, patientID)
+type ListFormResultsByPatientParams struct {
+	PatientID int64 `json:"patient_id"`
+	Limit     int32 `json:"limit"`
+	Offset    int32 `json:"offset"`
+}
+
+func (q *Queries) ListFormResultsByPatient(ctx context.Context, arg ListFormResultsByPatientParams) ([]FormResult, error) {
+	rows, err := q.db.QueryContext(ctx, listFormResultsByPatient, arg.PatientID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

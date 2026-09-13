@@ -536,6 +536,7 @@ WHERE ptlname = ?
   AND (? IS NULL OR ptsuffix = ?)
   AND (? IS NULL OR ptdob = ?)
   AND ptarchive = 0
+LIMIT 20
 `
 
 type PatientSearchDuplicatesParams struct {
@@ -546,7 +547,10 @@ type PatientSearchDuplicatesParams struct {
 	Ptdob    sql.NullTime   `json:"ptdob"`
 }
 
-// Patient duplicate search (with optional middle name, suffix, DOB)
+// Patient duplicate search (with optional middle name, suffix, DOB).
+// Capped at 20 rows, matching the picklist queries above: the endpoint answers
+// "does this patient already exist?" and previously returned one row per
+// matching patient in the whole table with no bound at all.
 func (q *Queries) PatientSearchDuplicates(ctx context.Context, arg PatientSearchDuplicatesParams) ([]string, error) {
 	rows, err := q.db.QueryContext(ctx, patientSearchDuplicates,
 		arg.Ptlname,

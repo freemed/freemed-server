@@ -52,13 +52,24 @@ func (q *Queries) LatestTimestamp(ctx context.Context) (interface{}, error) {
 
 const notificationsFromTimestamp = `-- name: NotificationsFromTimestamp :many
 SELECT id, created_at, updated_at, deleted_at, stamp, nuser, ntext, naction, nmodule, npatient FROM systemnotification
-WHERE stamp > ?
+WHERE nuser = ?
+  AND stamp > ?
 ORDER BY stamp DESC
+LIMIT 50
 `
 
-// NotificationsFromTimestamp returns notifications since a given timestamp
-func (q *Queries) NotificationsFromTimestamp(ctx context.Context, since time.Time) ([]Systemnotification, error) {
-	rows, err := q.db.QueryContext(ctx, notificationsFromTimestamp, since)
+type NotificationsFromTimestampParams struct {
+	UserID int64     `json:"user_id"`
+	Since  time.Time `json:"since"`
+}
+
+// NotificationsFromTimestamp returns a user's notifications since a timestamp.
+// The nuser filter is mandatory: systemnotification carries npatient as well as
+// nuser, so an unscoped query leaked both other users' rows and other patients'
+// rows to any authenticated caller. LIMIT bounds the poll response, matching
+// UserNotifications above.
+func (q *Queries) NotificationsFromTimestamp(ctx context.Context, arg NotificationsFromTimestampParams) ([]Systemnotification, error) {
+	rows, err := q.db.QueryContext(ctx, notificationsFromTimestamp, arg.UserID, arg.Since)
 	if err != nil {
 		return nil, err
 	}

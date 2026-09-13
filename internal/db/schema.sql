@@ -1533,6 +1533,7 @@ CREATE TABLE `fhir_client` (
   `client_name` VARCHAR(255) NOT NULL DEFAULT '',
   `redirect_uris` TEXT NOT NULL,
   `public_key` TEXT,
+  `client_secret_hash` VARCHAR(255) NOT NULL DEFAULT '',
   `grant_types` VARCHAR(255) NOT NULL DEFAULT 'authorization_code',
   `scopes` VARCHAR(255) NOT NULL DEFAULT 'launch patient/*.read',
   `is_confidential` TINYINT(1) NOT NULL DEFAULT 0,

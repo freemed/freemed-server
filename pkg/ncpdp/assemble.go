@@ -7,8 +7,10 @@ import (
 )
 
 // AssemblePrescriptionInput queries the FreeMED database for all data needed
-// to construct a NewRx message for a given prescription ID.
-func AssemblePrescriptionInput(db *sql.DB, prescriptionID int64) (*PrescriptionInput, error) {
+// to construct a NewRx message for a given prescription ID. The NCPDP sender
+// ID is supplied by the caller (from configuration) because it is assigned
+// per-organization by NCPDP and has no safe default.
+func AssemblePrescriptionInput(db *sql.DB, prescriptionID int64, senderNCPDPID string) (*PrescriptionInput, error) {
 	if db == nil {
 		return nil, fmt.Errorf("ncpdp: database connection is nil")
 	}
@@ -156,8 +158,9 @@ func AssemblePrescriptionInput(db *sql.DB, prescriptionID int64) (*PrescriptionI
 		}
 	}
 
-	// Set sender NCPDPID (practice-level identifier — can be configured later)
-	in.SenderNCPDPID = "FREEMED" // placeholder — should be configurable
+	// Sender NCPDPID identifies this organization to the pharmacy/Surescripts.
+	// Supplied by the caller from configuration — never defaulted.
+	in.SenderNCPDPID = senderNCPDPID
 
 	return in, nil
 }

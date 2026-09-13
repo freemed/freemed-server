@@ -56,20 +56,22 @@ func patientPicklist(r *gin.Context) {
 
 	if first != "" && last != "" {
 		rows, err = model.Queries.PatientPicklistByName(r.Request.Context(), dbgen.PatientPicklistByNameParams{
-			LastName:  last,
-			FirstName: first,
+			// LIKE-bound values are escaped so `%`, `_` or `\` in the path
+			// cannot widen the pattern (the queries are `LIKE CONCAT(?, '%')`).
+			LastName:  common.EscapeLikePattern(last),
+			FirstName: common.EscapeLikePattern(first),
 		})
 	} else if first != "" {
 		rows, err = model.Queries.PatientPicklistByFirstNameOrId(r.Request.Context(), dbgen.PatientPicklistByFirstNameOrIdParams{
-			Query: first,
+			Query: common.EscapeLikePattern(first),
 		})
 	} else if last != "" {
 		rows, err = model.Queries.PatientPicklistByLastNameOrId(r.Request.Context(), dbgen.PatientPicklistByLastNameOrIdParams{
-			Query: last,
+			Query: common.EscapeLikePattern(last),
 		})
 	} else if either != "" {
 		rows, err = model.Queries.PatientPicklistByEither(r.Request.Context(), dbgen.PatientPicklistByEitherParams{
-			Query: either,
+			Query: common.EscapeLikePattern(either),
 		})
 	} else {
 		r.AbortWithStatus(http.StatusBadRequest)
@@ -130,17 +132,17 @@ func patientSearch(r *gin.Context) {
 		switch paramName {
 		case "first_name":
 			if sv, ok := paramValue.(string); ok && sv != "" {
-				searchParams.FirstName = sv
+				searchParams.FirstName = common.EscapeLikePattern(sv)
 				hasSimple = true
 			}
 		case "last_name":
 			if sv, ok := paramValue.(string); ok && sv != "" {
-				searchParams.LastName = sv
+				searchParams.LastName = common.EscapeLikePattern(sv)
 				hasSimple = true
 			}
 		case "patient_id":
 			if sv, ok := paramValue.(string); ok && sv != "" {
-				searchParams.PatientID = sv
+				searchParams.PatientID = common.EscapeLikePattern(sv)
 				hasSimple = true
 			}
 		}
@@ -181,27 +183,27 @@ func patientSearch(r *gin.Context) {
 		case "city":
 			if sv, found := paramValue.(string); found && sv != "" {
 				k = append(k, "pa.city LIKE CONCAT('%', ?, '%')")
-				v = append(v, sv)
+				v = append(v, common.EscapeLikePattern(sv))
 			}
 		case "dmv":
 			if sv, found := paramValue.(string); found && sv != "" {
 				k = append(k, "p.dmv LIKE CONCAT('%', ?, '%')")
-				v = append(v, sv)
+				v = append(v, common.EscapeLikePattern(sv))
 			}
 		case "email":
 			if sv, found := paramValue.(string); found && sv != "" {
 				k = append(k, "p.pemail LIKE CONCAT('%', ?, '%')")
-				v = append(v, sv)
+				v = append(v, common.EscapeLikePattern(sv))
 			}
 		case "ssn":
 			if sv, found := paramValue.(string); found && sv != "" {
 				k = append(k, "p.ssn LIKE CONCAT('%', ?, '%')")
-				v = append(v, sv)
+				v = append(v, common.EscapeLikePattern(sv))
 			}
 		case "zip":
 			if sv, found := paramValue.(string); found && sv != "" {
 				k = append(k, "pa.zip LIKE CONCAT('%', ?, '%')")
-				v = append(v, sv)
+				v = append(v, common.EscapeLikePattern(sv))
 			}
 		}
 	}
@@ -211,18 +213,22 @@ func patientSearch(r *gin.Context) {
 		return
 	}
 
-	query := fmt.Sprintf(
-		"SELECT p.ptlname AS last_name"+
-			", p.ptfname AS first_name"+
-			", p.ptmname AS middle_name"+
-			", p.ptid AS patient_id"+
-			", FLOOR( ( TO_DAYS(NOW()) - TO_DAYS(p.ptdob) ) / 365 ) AS age"+
-			", p.ptdob AS date_of_birth"+
-			", p.id AS id"+
-			" FROM "+model.TABLE_PATIENT+" p"+
-			" LEFT OUTER JOIN "+model.TABLE_PATIENT_ADDRESS+" pa ON p.id = pa.patient"+
-			" WHERE "+strings.Join(k, " AND ")+" AND pa.active = 1 "+archive+
-			" ORDER BY p.ptlname, p.ptfname, p.ptmname LIMIT 20")
+	// NOTE: built by concatenation, not fmt.Sprintf — there are no format
+	// verbs here, and vet flags a non-constant format string, which also
+	// fails `go test ./api/...` (go test runs vet by default).
+	selectCols := "SELECT p.ptlname AS last_name" +
+		", p.ptfname AS first_name" +
+		", p.ptmname AS middle_name" +
+		", p.ptid AS patient_id" +
+		", FLOOR( ( TO_DAYS(NOW()) - TO_DAYS(p.ptdob) ) / 365 ) AS age" +
+		", p.ptdob AS date_of_birth" +
+		", p.id AS id" +
+		" FROM " + model.TABLE_PATIENT + " p" +
+		" LEFT OUTER JOIN " + model.TABLE_PATIENT_ADDRESS + " pa ON p.id = pa.patient" +
+		" WHERE " + strings.Join(k, " AND ") + " AND pa.active = 1 " + archive +
+		" ORDER BY p.ptlname, p.ptfname, p.ptmname LIMIT 20"
+
+	query := selectCols
 
 	rows, err := model.SqlDb.QueryContext(r.Request.Context(), query, v...)
 	if err != nil {
@@ -266,21 +272,44 @@ func patientSearchForDuplicates(r *gin.Context) {
 		return
 	}
 
+	// gin.H decodes every JSON value into whatever the document contains, so
+	// each key must be type-checked before use — an unchecked v.(string)
+	// panics (500) on {"ptlname":1} and friends.
+	strParam := func(key string) (string, bool) {
+		v, ok := params[key]
+		if !ok {
+			return "", false
+		}
+		s, ok := v.(string)
+		return s, ok
+	}
+	nullStringParam := func(key string) (sql.NullString, bool) {
+		s, ok := strParam(key)
+		if !ok {
+			return sql.NullString{}, false
+		}
+		return sql.NullString{String: s, Valid: true}, true
+	}
+
 	dupParams := dbgen.PatientSearchDuplicatesParams{}
-	if v, ok := params["ptlname"]; ok {
-		dupParams.Ptlname = v.(string)
+	if v, ok := strParam("ptlname"); ok {
+		dupParams.Ptlname = v
 	}
-	if v, ok := params["ptfname"]; ok {
-		dupParams.Ptfname = v.(string)
+	if v, ok := strParam("ptfname"); ok {
+		dupParams.Ptfname = v
 	}
-	if v, ok := params["ptmname"]; ok {
-		dupParams.Ptmname = sql.NullString{String: v.(string), Valid: true}
+	if v, ok := nullStringParam("ptmname"); ok {
+		dupParams.Ptmname = v
 	}
-	if v, ok := params["ptsuffix"]; ok {
-		dupParams.Ptsuffix = sql.NullString{String: v.(string), Valid: true}
+	if v, ok := nullStringParam("ptsuffix"); ok {
+		dupParams.Ptsuffix = v
 	}
-	if _, ok := params["ptdob"]; ok {
-		dupParams.Ptdob = sql.NullTime{Valid: true}
+	// ptDOB must be parsed into a real time: the previous code set
+	// sql.NullTime{Valid: true} with a zero time, which is not a usable filter.
+	if v, ok := strParam("ptdob"); ok && v != "" {
+		if parsed, err := common.ParseDate(v); err == nil {
+			dupParams.Ptdob = sql.NullTime{Time: parsed, Valid: true}
+		}
 	}
 
 	results, err := model.Queries.PatientSearchDuplicates(r.Request.Context(), dupParams)
@@ -296,19 +325,19 @@ func patientSearchForDuplicates(r *gin.Context) {
 // patientCreate handles POST /patients — creates a new patient with address.
 func patientCreate(r *gin.Context) {
 	var input struct {
-		FirstName     string `json:"first_name"`
-		LastName      string `json:"last_name"`
-		MiddleName    string `json:"middle_name"`
-		NameSuffix    string `json:"name_suffix"`
-		DateOfBirth   string `json:"date_of_birth"`
-		Gender        string `json:"gender"`
-		PatientID     string `json:"patient_id"`
-		AddressLine1  string `json:"address_line_1"`
-		AddressLine2  string `json:"address_line_2"`
-		City          string `json:"city"`
-		State         string `json:"state"`
-		Zip           string `json:"zip"`
-		Phone         string `json:"phone"`
+		FirstName    string `json:"first_name"`
+		LastName     string `json:"last_name"`
+		MiddleName   string `json:"middle_name"`
+		NameSuffix   string `json:"name_suffix"`
+		DateOfBirth  string `json:"date_of_birth"`
+		Gender       string `json:"gender"`
+		PatientID    string `json:"patient_id"`
+		AddressLine1 string `json:"address_line_1"`
+		AddressLine2 string `json:"address_line_2"`
+		City         string `json:"city"`
+		State        string `json:"state"`
+		Zip          string `json:"zip"`
+		Phone        string `json:"phone"`
 	}
 
 	if err := r.BindJSON(&input); err != nil {

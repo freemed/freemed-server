@@ -601,7 +601,16 @@ func portalDocuments(c *gin.Context) {
 		return
 	}
 
-	rows, err := model.Queries.ListScannedDocs(c.Request.Context(), patientID)
+	// Pages of a patient's scanned documents. The response stays a bare array
+	// (portal clients parse `ScannedDoc[]`) with the bound applied here:
+	// ?offset=/?limit= clamped, default 50, maximum 200.
+	offset, limit := pageParams(c)
+
+	rows, err := model.Queries.ListScannedDocs(c.Request.Context(), dbgen.ListScannedDocsParams{
+		PatientID: patientID,
+		Limit:     limit,
+		Offset:    offset,
+	})
 	if err != nil {
 		log.Print(err.Error())
 		common.ErrorResponseFromError(c, http.StatusInternalServerError, err)

@@ -52,6 +52,26 @@ crosscompile:
 		go build -v -ldflags "-X main.Version=${VERSION}" \
 			-o ${BINARY}.mac.bin )
 
+# === Local development secrets ===
+
+# Generate a strong JWT signing key into .env if one is not already present.
+# The server refuses to start without it (see config/config.go ValidateStartup).
+session-key:
+	@if [ -f .env ] && grep -q '^FREEMED_SESSION_KEY=.' .env; then \
+		echo "- .env already provides FREEMED_SESSION_KEY (left unchanged)"; \
+	else \
+		{ echo "# Local development secrets - DO NOT COMMIT (gitignored)"; \
+		  echo "FREEMED_SESSION_KEY=$$(openssl rand -base64 48)"; } > .env; \
+		echo "- wrote a fresh FREEMED_SESSION_KEY to .env"; \
+	fi
+.PHONY: session-key
+
+# Build and run the server from the repo root with .env loaded.
+run: session-key
+	@set -a; [ -f .env ] && . ./.env; set +a; \
+	go run ./cmd/freemed-server
+.PHONY: run
+
 # === Frontend (SvelteKit) ===
 
 frontend-deps:

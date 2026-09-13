@@ -86,24 +86,37 @@ func (q *Queries) CountMessagesUnreadForUser(ctx context.Context, userID int64) 
 	return total, err
 }
 
-const deleteMessages = `-- name: DeleteMessages :exec
-DELETE FROM messages WHERE id IN (/*SLICE:ids*/?)
+const deleteMessagesForUser = `-- name: DeleteMessagesForUser :execresult
+DELETE FROM messages
+WHERE msgfor = ?
+  AND id IN (/*SLICE:ids*/?)
 `
 
-// Delete messages by IDs
-func (q *Queries) DeleteMessages(ctx context.Context, ids []int64) error {
-	query := deleteMessages
+type DeleteMessagesForUserParams struct {
+	UserID int64   `json:"user_id"`
+	Ids    []int64 `json:"ids"`
+}
+
+// Delete messages by IDs, scoped to the owning session user.
+//
+// The `msgfor` predicate is part of the statement text on purpose: the only
+// caller (api/messages.go messagesDelete) used to delete arbitrary ids from the
+// request body, so any authenticated user could mass-delete another user's
+// secure messages. Scoping in SQL means a non-owned id is simply not matched —
+// it cannot be reintroduced by a handler-level mistake.
+func (q *Queries) DeleteMessagesForUser(ctx context.Context, arg DeleteMessagesForUserParams) (sql.Result, error) {
+	query := deleteMessagesForUser
 	var queryParams []interface{}
-	if len(ids) > 0 {
-		for _, v := range ids {
+	queryParams = append(queryParams, arg.UserID)
+	if len(arg.Ids) > 0 {
+		for _, v := range arg.Ids {
 			queryParams = append(queryParams, v)
 		}
-		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(ids))[1:], 1)
+		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(arg.Ids))[1:], 1)
 	} else {
 		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
 	}
-	_, err := q.db.ExecContext(ctx, query, queryParams...)
-	return err
+	return q.db.ExecContext(ctx, query, queryParams...)
 }
 
 const listMessageTags = `-- name: ListMessageTags :many

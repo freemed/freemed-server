@@ -134,6 +134,14 @@ SELECT DISTINCT msgtag FROM messages WHERE msgtag IS NOT NULL AND msgtag != '' O
 -- name: MessagesByTag :many
 SELECT * FROM messages WHERE msgtag = sqlc.arg(tag) ORDER BY msgtime DESC;
 
--- Delete messages by IDs
--- name: DeleteMessages :exec
-DELETE FROM messages WHERE id IN (sqlc.slice(ids));
+-- Delete messages by IDs, scoped to the owning session user.
+--
+-- The `msgfor` predicate is part of the statement text on purpose: the only
+-- caller (api/messages.go messagesDelete) used to delete arbitrary ids from the
+-- request body, so any authenticated user could mass-delete another user's
+-- secure messages. Scoping in SQL means a non-owned id is simply not matched —
+-- it cannot be reintroduced by a handler-level mistake.
+-- name: DeleteMessagesForUser :execresult
+DELETE FROM messages
+WHERE msgfor = sqlc.arg(user_id)
+  AND id IN (sqlc.slice(ids));

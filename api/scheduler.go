@@ -99,6 +99,7 @@ func paginateSchedulerRange(data interface{}, offset, limit int64) gin.H {
 
 // paginateSlice applies offset/limit to a generic slice and returns a gin.H envelope.
 func paginateSlice[T any](data []T, offset, limit int64) gin.H {
+	offset, limit = common.ClampPagination(offset, limit)
 	total := int64(len(data))
 	start := offset
 	if start > total {

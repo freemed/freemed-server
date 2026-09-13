@@ -146,6 +146,7 @@ func patientLedger(r *gin.Context) {
 	toDate := parseOptionalDate(r.Query("to"))
 	offset := common.ParseInt(r.DefaultQuery("offset", "0"))
 	limit := common.ParseInt(r.DefaultQuery("limit", "50"))
+	offset, limit = common.ClampPagination(offset, limit)
 
 	ledger, err := model.Queries.PatientLedger(r.Request.Context(), dbgen.PatientLedgerParams{
 		PatientID: patientID,
@@ -192,6 +193,7 @@ func standaloneLedger(r *gin.Context) {
 	toDate := parseOptionalDate(r.Query("to"))
 	offset := common.ParseInt(r.DefaultQuery("offset", "0"))
 	limit := common.ParseInt(r.DefaultQuery("limit", "50"))
+	offset, limit = common.ClampPagination(offset, limit)
 
 	ledger, err := model.Queries.PatientLedger(r.Request.Context(), dbgen.PatientLedgerParams{
 		PatientID: pid,

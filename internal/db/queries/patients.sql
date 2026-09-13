@@ -107,7 +107,10 @@ LIMIT 20;
 -- name: PatientTotalInSystem :one
 SELECT COUNT(*) AS total FROM patient WHERE ptarchive = 0;
 
--- Patient duplicate search (with optional middle name, suffix, DOB)
+-- Patient duplicate search (with optional middle name, suffix, DOB).
+-- Capped at 20 rows, matching the picklist queries above: the endpoint answers
+-- "does this patient already exist?" and previously returned one row per
+-- matching patient in the whole table with no bound at all.
 -- name: PatientSearchDuplicates :many
 SELECT ptid FROM patient p
 WHERE ptlname = sqlc.arg(ptlname)
@@ -115,7 +118,8 @@ WHERE ptlname = sqlc.arg(ptlname)
   AND (sqlc.narg('ptmname') IS NULL OR ptmname = sqlc.narg('ptmname'))
   AND (sqlc.narg('ptsuffix') IS NULL OR ptsuffix = sqlc.narg('ptsuffix'))
   AND (sqlc.narg('ptdob') IS NULL OR ptdob = sqlc.narg('ptdob'))
-  AND ptarchive = 0;
+  AND ptarchive = 0
+LIMIT 20;
 
 -- Patient list with pagination
 -- name: ListPatients :many

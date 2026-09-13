@@ -1,5 +1,5 @@
 -- name: ListFormResultsByPatient :many
-SELECT * FROM form_results WHERE fr_patient = sqlc.arg(patient_id) AND active = 'active' AND deleted_at IS NULL ORDER BY fr_timestamp DESC;
+SELECT * FROM form_results WHERE fr_patient = sqlc.arg(patient_id) AND active = 'active' AND deleted_at IS NULL ORDER BY fr_timestamp DESC LIMIT ? OFFSET ?;
 
 -- name: GetFormResult :one
 SELECT * FROM form_results WHERE id = sqlc.arg(id) AND deleted_at IS NULL;

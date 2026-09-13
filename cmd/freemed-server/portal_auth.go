@@ -103,7 +103,7 @@ func getPortalAuthMiddleware() *jwt.GinJWTMiddleware {
 	var err error
 	portalAuthMiddleware, err = jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "FreeMED Patient Portal",
-		Key:         []byte(config.Config.Session.Key),
+		Key:         config.Config.DomainKey(config.KeyDomainPortal),
 		Timeout:     time.Minute * time.Duration(config.Config.Session.Expiry),
 		MaxRefresh:  time.Hour,
 		IdentityKey: portalIdentityKey,

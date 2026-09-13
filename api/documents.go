@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -8,6 +9,24 @@ import (
 	"github.com/freemed/freemed-server/dbgen"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
+)
+
+// Query seams for the two document inboxes. The response envelope and the page
+// bound are asserted without a live database, the same way api/dicom.go exposes
+// dicomGetRow.
+var (
+	unfiledDocsPageQuery = func(ctx context.Context, arg dbgen.ListUnfiledDocsParams) ([]dbgen.UnfiledDoc, error) {
+		return model.Queries.ListUnfiledDocs(ctx, arg)
+	}
+	unfiledDocsTotalQuery = func(ctx context.Context) (int64, error) {
+		return model.Queries.CountUnfiledDocs(ctx)
+	}
+	unreadDocsPageQuery = func(ctx context.Context, arg dbgen.ListUnreadDocsParams) ([]dbgen.UnreadDoc, error) {
+		return model.Queries.ListUnreadDocs(ctx, arg)
+	}
+	unreadDocsTotalQuery = func(ctx context.Context) (int64, error) {
+		return model.Queries.CountUnreadDocs(ctx)
+	}
 )
 
 func init() {
@@ -34,14 +53,42 @@ func init() {
 // ============================================================================
 
 // unfiledDocsList handles GET /api/documents/unfiled
+//
+// The response is now the standard pagination envelope ({data,total,offset,
+// limit}) used by the other paginated list endpoints, and the query is bounded
+// by LIMIT/OFFSET. Before this, the endpoint returned every active unfiled
+// document in the table. No frontend or portal source references
+// /documents/unfiled, so the shape change breaks no consumer; the count is what
+// makes paging usable.
 func unfiledDocsList(r *gin.Context) {
-	rows, err := model.Queries.ListUnfiledDocs(r.Request.Context())
+	offset, limit := pageParams(r)
+
+	rows, err := unfiledDocsPageQuery(r.Request.Context(), dbgen.ListUnfiledDocsParams{
+		Limit:  limit,
+		Offset: offset,
+	})
 	if err != nil {
 		log.Print(err.Error())
 		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
-	r.JSON(http.StatusOK, rows)
+	if rows == nil {
+		rows = []dbgen.UnfiledDoc{}
+	}
+
+	total, err := unfiledDocsTotalQuery(r.Request.Context())
+	if err != nil {
+		log.Print(err.Error())
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
+		return
+	}
+
+	r.JSON(http.StatusOK, gin.H{
+		"data":   rows,
+		"total":  total,
+		"offset": offset,
+		"limit":  limit,
+	})
 }
 
 // unfiledDocsCount handles GET /api/documents/unfiled/count
@@ -107,14 +154,38 @@ func unfiledDocSplit(r *gin.Context) {
 // ============================================================================
 
 // unreadDocsList handles GET /api/documents/unread
+//
+// Same change as unfiledDocsList: bounded query, pagination envelope, and no
+// known consumer of the old bare-array shape to break.
 func unreadDocsList(r *gin.Context) {
-	rows, err := model.Queries.ListUnreadDocs(r.Request.Context())
+	offset, limit := pageParams(r)
+
+	rows, err := unreadDocsPageQuery(r.Request.Context(), dbgen.ListUnreadDocsParams{
+		Limit:  limit,
+		Offset: offset,
+	})
 	if err != nil {
 		log.Print(err.Error())
 		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
 		return
 	}
-	r.JSON(http.StatusOK, rows)
+	if rows == nil {
+		rows = []dbgen.UnreadDoc{}
+	}
+
+	total, err := unreadDocsTotalQuery(r.Request.Context())
+	if err != nil {
+		log.Print(err.Error())
+		common.ErrorResponseFromError(r, http.StatusInternalServerError, err)
+		return
+	}
+
+	r.JSON(http.StatusOK, gin.H{
+		"data":   rows,
+		"total":  total,
+		"offset": offset,
+		"limit":  limit,
+	})
 }
 
 // unreadDocsCount handles GET /api/documents/unread/count

@@ -10,15 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func init() {
-	common.ApiMap["claims"] = common.ApiMapping{
-		Authenticated: true,
-		RouterFunction: func(r *gin.RouterGroup) {
-			r.POST("/generate", common.RequireRole("admin"), claimGenerate)
-			r.GET("/:voucher/x12", common.RequireRole("admin"), claimX12ByVoucher)
-		},
-	}
-}
+// NOTE: claimGenerate and claimX12ByVoucher are registered under the "claims"
+// ApiMap key in api/claims.go. They deliberately have no init() here: assigning
+// ApiMap["claims"] a second time would replace that registration (the map key IS
+// the route prefix) and silently drop the routes declared there.
 
 type claimGenerateInput struct {
 	ProcedureIDs []int64 `json:"procedure_ids" binding:"required,min=1"`
@@ -50,11 +45,13 @@ func claimGenerate(c *gin.Context) {
 	})
 }
 
-// claimX12ByVoucher handles GET /api/claims/:voucher/x12
+// claimX12ByVoucher handles GET /api/claims/:id/x12
 // Generates an X12 837P for all procedures sharing a claim voucher,
 // and returns the X12 text as a downloadable file.
+// The path parameter is ":id" (registered in api/claims.go) because gin cannot
+// have two different wildcard names at the same position as /:id/status.
 func claimX12ByVoucher(c *gin.Context) {
-	voucher := c.Param("voucher")
+	voucher := c.Param("id")
 	if voucher == "" {
 		common.ErrorResponse(c, http.StatusBadRequest, "voucher parameter is required")
 		return

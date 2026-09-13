@@ -1,14 +1,24 @@
 package api
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/freemed/freemed-server/common"
+	"github.com/freemed/freemed-server/dbgen"
 	"github.com/freemed/freemed-server/model"
 	"github.com/gin-gonic/gin"
 )
+
+// notificationsFromTimestampRows is a query seam so the poll handler can be
+// tested — the M5 regression is "does /notifications/from leak rows belonging
+// to other users or patients?", which must be answerable without a live
+// database. Same pattern as api/dicom.go's dicomGetRow.
+var notificationsFromTimestampRows = func(ctx context.Context, arg dbgen.NotificationsFromTimestampParams) ([]dbgen.Systemnotification, error) {
+	return model.Queries.NotificationsFromTimestamp(ctx, arg)
+}
 
 func init() {
 	common.ApiMap["notifications"] = common.ApiMapping{
@@ -65,7 +75,18 @@ func notificationsUnreadCount(c *gin.Context) {
 }
 
 // notificationsFromTimestamp handles GET /api/notifications/from?timestamp=...
+//
+// The query is scoped to the session user. systemnotification carries npatient
+// as well as nuser, so the previous unfiltered query returned every other
+// user's and every other patient's notifications to any authenticated caller.
 func notificationsFromTimestamp(c *gin.Context) {
+	session, err := common.GetSession(c)
+	if err != nil {
+		log.Print(err.Error())
+		common.ErrorResponseFromError(c, http.StatusUnauthorized, err)
+		return
+	}
+
 	ts := c.Query("timestamp")
 	if ts == "" {
 		common.ErrorResponse(c, http.StatusBadRequest, "timestamp query parameter required")
@@ -82,7 +103,10 @@ func notificationsFromTimestamp(c *gin.Context) {
 		}
 	}
 
-	notifications, err := model.Queries.NotificationsFromTimestamp(c.Request.Context(), since)
+	notifications, err := notificationsFromTimestampRows(c.Request.Context(), dbgen.NotificationsFromTimestampParams{
+		UserID: session.UserId,
+		Since:  since,
+	})
 	if err != nil {
 		log.Print(err.Error())
 		c.AbortWithError(http.StatusInternalServerError, err)

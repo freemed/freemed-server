@@ -49,7 +49,11 @@ func moduleSupportPicklist(r *gin.Context) {
 	// Convert GORM-style :query named params to standard ?
 	sqlQuery := strings.ReplaceAll(mod.Query, ":query", "?")
 
-	rows, err := model.SqlDb.QueryContext(r.Request.Context(), sqlQuery, query)
+	// The registry queries are LIKE patterns built from this path segment, so
+	// escape the metacharacters before binding: an unescaped `%` (or `_`, or a
+	// trailing `\`) turns the lookup into a scan of the whole table. The SQL
+	// text itself needs no ESCAPE clause — backslash is MySQL's default.
+	rows, err := model.SqlDb.QueryContext(r.Request.Context(), sqlQuery, common.EscapeLikePattern(query))
 	if err != nil {
 		log.Print(err.Error())
 		r.AbortWithError(http.StatusInternalServerError, err)

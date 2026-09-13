@@ -19,6 +19,10 @@ frontend/test-results
 frontend/playwright-report
 frontend-portal/test-results
 frontend-portal/playwright-report
+### Local secrets — never commit the signing key
+.env
+.env.local
+
 ### Any logs left behind
 *.log
 ### Backups

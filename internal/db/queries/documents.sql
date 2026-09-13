@@ -6,7 +6,8 @@
 SELECT * FROM unfiled_docs
 WHERE active = 'active'
   AND deleted_at IS NULL
-ORDER BY received_date DESC;
+ORDER BY received_date DESC
+LIMIT ? OFFSET ?;
 
 -- name: CountUnfiledDocs :one
 SELECT COUNT(*) AS total FROM unfiled_docs
@@ -29,7 +30,8 @@ WHERE id = sqlc.arg(id)
 SELECT * FROM unread_docs
 WHERE active = 'active'
   AND deleted_at IS NULL
-ORDER BY sent_date DESC;
+ORDER BY sent_date DESC
+LIMIT ? OFFSET ?;
 
 -- name: CountUnreadDocs :one
 SELECT COUNT(*) AS total FROM unread_docs
