@@ -35,8 +35,12 @@
 		loading = true;
 		error = '';
 		try {
-			const data = await api.get<Message[]>('/messages/view');
-			messages = data || [];
+			// /messages/view returns the paginated envelope {data,total,offset,limit},
+			// not a bare array. Reading it as Message[] assigned the envelope object to
+			// `messages`, and the `messages.filter(...)` in filteredMessages then threw
+			// "messages.filter is not a function", so this page never rendered a row.
+			const res = await api.get<{ data: Message[] | null }>('/messages/view');
+			messages = res?.data ?? [];
 		} catch (e: any) {
 			error = e.message || 'Failed to load messages';
 			messages = [];
