@@ -3,6 +3,7 @@ package dicom
 import (
 	"encoding/binary"
 	"testing"
+	"time"
 )
 
 // appendExplicitElement appends an Explicit VR Little Endian element.
@@ -200,5 +201,54 @@ func TestParseSkipsSequences(t *testing.T) {
 func TestParseTooShort(t *testing.T) {
 	if _, err := Parse([]byte{0x01, 0x02, 0x03}); err == nil {
 		t.Error("expected error for short input, got nil")
+	}
+}
+
+// TestSkipUndefinedSequenceDepthCap guards against unbounded recursion in
+// skipUndefinedSequence. Each nesting level (an undefined-length Item) costs
+// only 8 bytes of input, so a crafted object can drive the recursion past the
+// goroutine stack limit, and the resulting "fatal error: stack overflow" is a
+// runtime throw — it cannot be recovered and kills the process. Before the cap,
+// ~23M levels (~184 MB) reproduced exactly that.
+func TestSkipUndefinedSequenceDepthCap(t *testing.T) {
+	// A long chain of undefined-length items, each 8 bytes.
+	chain := make([]byte, 0, 8*100000)
+	for i := 0; i < 100000; i++ {
+		chain = append(chain, 0xFE, 0xFF, 0x00, 0xE0, 0xFF, 0xFF, 0xFF, 0xFF)
+	}
+
+	// At the cap the function must give up immediately rather than recurse
+	// further (it reports "consumed everything", the same bail-out the
+	// malformed-tag path uses).
+	if got := skipUndefinedSequenceDepth(chain, 0, maxSequenceDepth); got != len(chain) {
+		t.Errorf("at the cap: got %d, want %d (must bail out, not recurse)", got, len(chain))
+	}
+
+	if maxSequenceDepth <= 0 || maxSequenceDepth > 256 {
+		t.Fatalf("maxSequenceDepth = %d; must be a small positive bound", maxSequenceDepth)
+	}
+}
+
+// TestParseDeeplyNestedSequenceTerminates verifies the parser survives a deeply
+// nested undefined-length sequence instead of recursing to the stack limit.
+func TestParseDeeplyNestedSequenceTerminates(t *testing.T) {
+	buf := make([]byte, 128)
+	copy(buf, "DICM")
+
+	// (0008,1111) SQ undefined length, explicit VR LE.
+	buf = append(buf, 0x08, 0x00, 0x11, 0x11, 'S', 'Q', 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF)
+	for i := 0; i < 200000; i++ {
+		buf = append(buf, 0xFE, 0xFF, 0x00, 0xE0, 0xFF, 0xFF, 0xFF, 0xFF)
+	}
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		_, _ = Parse(buf)
+	}()
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		t.Fatal("Parse did not terminate on deeply nested input")
 	}
 }

@@ -25,18 +25,18 @@ const (
 
 // Metadata holds the DICOM attributes extracted from a Part-10 object.
 type Metadata struct {
-	PatientName           string
-	PatientID             string
-	PatientBirthDate      string
-	StudyInstanceUID      string
-	SeriesInstanceUID     string
-	SOPInstanceUID        string
-	Modality              string
-	StudyDate             string
-	StudyDescription      string
-	InstitutionName       string
+	PatientName            string
+	PatientID              string
+	PatientBirthDate       string
+	StudyInstanceUID       string
+	SeriesInstanceUID      string
+	SOPInstanceUID         string
+	Modality               string
+	StudyDate              string
+	StudyDescription       string
+	InstitutionName        string
 	ReferringPhysicianName string
-	TransferSyntaxUID     string
+	TransferSyntaxUID      string
 }
 
 // Parse reads a DICOM Part-10 object and returns the extracted metadata.
@@ -144,10 +144,29 @@ func isLongVR(vr string) bool {
 	return false
 }
 
+// maxSequenceDepth bounds nesting of undefined-length sequence items while
+// skipping. Each nesting level costs only a few bytes of input, so without a
+// ceiling a crafted object (~47 bytes per level) drives this recursion past the
+// goroutine stack limit, raising an UNCATCHABLE "fatal error: stack overflow"
+// that kills the whole process — a gin.Recovery() cannot catch it. This is a
+// security bound, not a formatting choice.
+const maxSequenceDepth = 64
+
 // skipUndefinedSequence advances past an undefined-length sequence value that
 // is encoded as a series of Item (FFFE,E000) tags terminated by a Sequence
 // Delimitation Item (FFFE,E0DD).
 func skipUndefinedSequence(data []byte, pos int) int {
+	return skipUndefinedSequenceDepth(data, pos, 0)
+}
+
+// skipUndefinedSequenceDepth is skipUndefinedSequence with an explicit nesting
+// depth so that hostile input cannot exhaust the stack.
+func skipUndefinedSequenceDepth(data []byte, pos, depth int) int {
+	if depth >= maxSequenceDepth {
+		// Nested implausibly deeply for a real object; give up on this sequence
+		// the same way the malformed-tag path below does.
+		return len(data)
+	}
 	for {
 		if pos+8 > len(data) {
 			return len(data)
@@ -164,7 +183,7 @@ func skipUndefinedSequence(data []byte, pos int) int {
 		switch element {
 		case 0xE000: // Item
 			if length == 0xFFFFFFFF {
-				pos = skipUndefinedSequence(data, pos) // undefined item length: recurse
+				pos = skipUndefinedSequenceDepth(data, pos, depth+1) // undefined item length: recurse
 			} else {
 				pos += int(length)
 			}

@@ -103,7 +103,7 @@
 - [x] Tickler background firing job
 
 ### FOLLOW-UP (deferred)
-- [ ] DICOM Modality Worklist (MWL C-FIND SCP)
+- [x] DICOM Modality Worklist (MWL C-FIND SCP)
 - [ ] Embedded DICOM web viewer (OHIF/cornerstone)
 
 ### LOW: Frontend

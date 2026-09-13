@@ -18,12 +18,11 @@ import (
 	"github.com/freemed/freemed-server/api"
 	"github.com/freemed/freemed-server/common"
 	"github.com/freemed/freemed-server/config"
-	dbpkg "github.com/freemed/freemed-server/internal/db"
-	"github.com/freemed/freemed-server/model"
 	"github.com/freemed/freemed-server/dbgen"
-	"github.com/freemed/freemed-server/pkg/tickler"
+	dbpkg "github.com/freemed/freemed-server/internal/db"
 	"github.com/freemed/freemed-server/internal/middleware"
-	"github.com/gin-gonic/contrib/gzip"
+	"github.com/freemed/freemed-server/model"
+	"github.com/freemed/freemed-server/pkg/tickler"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -72,6 +71,16 @@ func main() {
 		panic("UNABLE TO LOAD CONFIG")
 	}
 	config.Config = *c
+
+	// Fail-fast on a weak/default JWT signing key. This is fatal, not a warning:
+	// the key signs every credential domain, so a public or short key lets anyone
+	// mint an admin token offline (verified: a self-signed HS256 token with
+	// user_type=admin read /api/users/ without any credentials).
+	if err := c.ValidateStartup(); err != nil {
+		log.Printf("FATAL: insecure configuration: %v", err)
+		log.Print("Generate a key with: openssl rand -base64 48")
+		os.Exit(1)
+	}
 
 	for _, w := range c.ValidateProduction() {
 		log.Printf("SECURITY WARNING: %s", w)
@@ -133,6 +142,17 @@ func main() {
 	defer ticklerCancel()
 	go tickler.Runner{Interval: time.Duration(config.Config.Tickler.Interval) * time.Minute}.Start(ticklerCtx)
 
+	// DICOM Modality Worklist C-FIND SCP (disabled unless mwl.port > 0).
+	mwlCtx, mwlCancel := context.WithCancel(context.Background())
+	defer mwlCancel()
+	mwlSrv, err := startMwlServer(mwlCtx)
+	if err != nil {
+		panic(err)
+	}
+	if mwlSrv != nil {
+		log.Printf("Serving DICOM Modality Worklist (C-FIND SCP) on port :%d as AE %q", config.Config.Mwl.Port, config.Config.Mwl.AETitle)
+	}
+
 	log.Print("Initializing session backend")
 	common.ActiveSession = &common.SessionConnector{
 		Address:    config.Config.Redis.Host,
@@ -152,20 +172,40 @@ func main() {
 	m.Use(gin.Logger())
 	m.Use(middleware.SecurityHeaders())
 
-	// Enable gzip compression
-	m.Use(gzip.Gzip(gzip.DefaultCompression))
+	// Enable gzip compression. This is the in-repo middleware, NOT the deprecated
+	// github.com/gin-gonic/contrib/gzip, which left gin's uncompressed
+	// Content-Length header in place and made every c.Data() response
+	// undeliverable to browsers. See internal/middleware/gzip.go.
+	m.Use(middleware.Gzip())
 
 	// Serve SvelteKit SPA frontend
-	if _, err := os.Stat("./frontend/build/index.html"); err == nil {
+	spaIndexPath := "./frontend/build/index.html"
+	spaAvailable := false
+	if _, err := os.Stat(spaIndexPath); err == nil {
 		log.Print("Serving SvelteKit frontend from frontend/build/")
+		spaAvailable = true
 		m.Static("/_app", "./frontend/build/_app")
 		m.StaticFile("/favicon.ico", "./frontend/build/favicon.ico")
 		m.StaticFile("/logo.png", "./frontend/build/logo.png")
-		// SPA fallback: serve index.html for all non-API routes
-		m.NoRoute(func(c *gin.Context) {
-			c.File("./frontend/build/index.html")
-		})
 	}
+
+	// Fallback for unmatched routes. API-ish paths must NEVER fall through to
+	// the SPA: answering an unknown endpoint with HTTP 200 + text/html makes a
+	// missing route indistinguishable from a successful one for clients and
+	// monitors, and it silently masked two dead admin routes (the shadowed
+	// /api/claims/* handlers). Everything outside the JSON surface still gets
+	// the SPA index so client-side routing works.
+	m.NoRoute(func(c *gin.Context) {
+		if isJSONSurfacePath(c.Request.URL.Path) {
+			common.ErrorResponse(c, http.StatusNotFound, "not found")
+			return
+		}
+		if spaAvailable {
+			c.File(spaIndexPath)
+			return
+		}
+		common.ErrorResponse(c, http.StatusNotFound, "not found")
+	})
 
 	mw := getAuthMiddleware()
 
@@ -178,6 +218,11 @@ func main() {
 
 	// Slow query logging for all API routes (500ms threshold)
 	a.Use(middleware.SlowQueryLog(500))
+
+	// Cap request bodies. Without this a single 315 MB POST drove the process
+	// RSS from 30 MB to 1.71 GB (measured) because every ingest handler reads
+	// the raw body with io.ReadAll.
+	a.Use(middleware.MaxBody(middleware.MaxRequestBodyBytes))
 
 	// JWT pieces
 	auth := m.Group("/auth")
@@ -228,10 +273,19 @@ func main() {
 		v.RouterFunction(g)
 	}
 
-	// Create HTTP server
+	// Create HTTP server.
+	//
+	// The timeouts and header cap are deliberate: previously only Addr and
+	// Handler were set, so a client could hold a connection open indefinitely
+	// with an incomplete header set (measured: 70 s and no close) or slowly
+	// feed a body, and could send unbounded request headers.
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", config.Config.Web.Port),
-		Handler: m,
+		Addr:              fmt.Sprintf(":%d", config.Config.Web.Port),
+		Handler:           m,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    1 << 20, // 1 MiB
 	}
 
 	// Start server in goroutine
@@ -246,8 +300,12 @@ func main() {
 	var tlsSrv *http.Server
 	if config.Config.Web.Keys.Key != "" && config.Config.Web.Keys.Cert != "" {
 		tlsSrv = &http.Server{
-			Addr:    fmt.Sprintf(":%d", config.Config.Web.TlsPort),
-			Handler: m,
+			Addr:              fmt.Sprintf(":%d", config.Config.Web.TlsPort),
+			Handler:           m,
+			ReadHeaderTimeout: 10 * time.Second,
+			ReadTimeout:       60 * time.Second,
+			IdleTimeout:       120 * time.Second,
+			MaxHeaderBytes:    1 << 20, // 1 MiB
 		}
 		go func() {
 			log.Printf("Launching https on port :%d", config.Config.Web.TlsPort)
@@ -278,5 +336,30 @@ func main() {
 			log.Fatalf("HTTPS server forced to shutdown: %v", err)
 		}
 	}
+
+	// Stop the DICOM Modality Worklist SCP last, mirroring the order in which
+	// the background services were started.
+	mwlCancel()
+	if mwlSrv != nil {
+		if err := mwlSrv.Shutdown(ctx); err != nil {
+			log.Printf("DICOM worklist SCP forced to shutdown: %v", err)
+		}
+	}
 	log.Print("Servers stopped")
+}
+
+// jsonSurfacePrefixes are the URL prefixes served as JSON. A request under any
+// of them must never be answered with the SPA's index.html.
+var jsonSurfacePrefixes = []string{"/api", "/auth", "/oauth2", "/.well-known", "/portal"}
+
+// isJSONSurfacePath reports whether path belongs to the machine-readable surface
+// (the REST API, the auth/portal/oauth2 endpoints and the SMART discovery
+// document) rather than to the browser-rendered SPA routes.
+func isJSONSurfacePath(path string) bool {
+	for _, prefix := range jsonSurfacePrefixes {
+		if path == prefix || strings.HasPrefix(path, prefix+"/") {
+			return true
+		}
+	}
+	return false
 }
