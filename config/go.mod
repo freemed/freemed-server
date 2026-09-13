@@ -1,8 +1,8 @@
 module github.com/freemed/freemed-server/config
 
-go 1.24
+go 1.26.7
 
-toolchain go1.24.0
+toolchain go1.26.7
 
 replace (
 	github.com/freemed/freemed-server => ../

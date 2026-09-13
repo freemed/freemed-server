@@ -1,6 +1,6 @@
 module github.com/freemed/freemed-server/billing
 
-go 1.24.0
+go 1.26.7
 
 replace (
 	github.com/freemed/freemed-server/common => ../common

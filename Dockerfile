@@ -1,5 +1,8 @@
 # Multi-stage build for FreeMED Go backend
-FROM golang:1.26-alpine AS builder
+# The builder image must match the go directive in go.mod: the stdlib advisories
+# that govulncheck reports against go1.26.0 are fixed in go1.26.6, so pinning a
+# floating 1.26 tag would reintroduce them whenever the patch lags.
+FROM golang:1.26.7-alpine AS builder
 
 RUN apk add --no-cache gcc musl-dev
 
@@ -17,8 +20,8 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /freemed ./cmd/freemed-server
 
-FROM alpine:3.20
-RUN apk add --no-cache ca-certificates tzdata
+FROM alpine:3.24
+RUN apk add --no-cache ca-certificates tzdata && apk upgrade --no-cache
 COPY --from=builder /freemed /freemed
 COPY config.yml /config.yml
 
