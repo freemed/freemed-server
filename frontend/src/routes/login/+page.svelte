@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import { login, fetchCSRFToken } from '$lib/stores/auth.svelte';
   import { onMount } from 'svelte';
   import { superForm } from 'sveltekit-superforms/client';
@@ -12,6 +13,17 @@
   });
 
   let serverError = $state('');
+
+  // Where to land after a successful sign-in. The root layout appends
+  // `?redirect=<path>` when it interrupts a protected request (a SMART
+  // authorization request is interrupted exactly like any other page).
+  // Only an absolute same-origin path is honoured, so a crafted
+  // `?redirect=//evil.example` can never bounce the new session off-site.
+  function destination(): string {
+    const raw = $page.url.searchParams.get('redirect') ?? '';
+    if (!raw.startsWith('/') || raw.startsWith('//')) return '/';
+    return raw;
+  }
 
   const { form, errors, enhance, submitting } = superForm(
     { username: '', password: '' },
@@ -27,7 +39,7 @@
             formData.get('password') as string,
           );
           if (ok) {
-            await goto('/');
+            await goto(destination());
           } else {
             serverError = 'Invalid username or password.';
           }

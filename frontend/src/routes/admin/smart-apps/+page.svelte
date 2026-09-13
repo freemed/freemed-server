@@ -17,6 +17,16 @@
 		created_at: string;
 	}
 
+	// The 201 from POST /smart/clients. For a confidential client the server
+	// returns the generated client_secret exactly once and only ever stores its
+	// bcrypt hash, so this response is the only chance to show it.
+	interface CreatedClient {
+		id: number;
+		client_id: string;
+		client_secret?: string;
+		client_secret_note?: string;
+	}
+
 	let clients = $state<FhirClient[]>([]);
 	let loading = $state(true);
 	let error = $state('');
@@ -25,6 +35,8 @@
 	let formSaving = $state(false);
 	let formError = $state('');
 	let deleting = $state<Record<number, boolean>>({});
+	let createdClient = $state<CreatedClient | null>(null);
+	let copied = $state('');
 
 	const formSchema = z.object({
 		client_name: z.string().min(1, 'Client name is required'),
@@ -88,13 +100,33 @@
 
 		formSaving = true;
 		try {
-			await api.post('/smart/clients', result.data);
+			const created = await api.post<CreatedClient>('/smart/clients', result.data);
 			closeModal();
+			// Hold the 201 body: for a confidential client it is the one and
+			// only place the plaintext client_secret is ever available.
+			createdClient = created;
 			await loadClients();
 		} catch (e: any) {
 			formError = e.message || 'Failed to register client';
 		} finally {
 			formSaving = false;
+		}
+	}
+
+	function closeCreated() {
+		createdClient = null;
+		copied = '';
+	}
+
+	async function copyValue(value: string, what: string) {
+		try {
+			await navigator.clipboard.writeText(value);
+			copied = what;
+			setTimeout(() => {
+				if (copied === what) copied = '';
+			}, 2000);
+		} catch {
+			copied = '';
 		}
 	}
 
@@ -296,6 +328,92 @@
 					</button>
 				</div>
 			</form>
+		</div>
+	</div>
+{/if}
+
+<!-- One-time client credentials. A confidential client's secret is generated
+     server-side, returned once in the 201 body and never stored in plaintext, so
+     this is the only place it can be handed over. It is deliberately not kept in
+     component state after the dialog is dismissed. -->
+{#if createdClient}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="created-client-title"
+	>
+		<div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+			<div class="px-6 py-4 border-b border-gray-100">
+				<h3 id="created-client-title" class="text-lg font-semibold text-gray-900">
+					Application registered
+				</h3>
+				<p class="text-xs text-gray-500 mt-0.5">
+					Give these credentials to the application developer.
+				</p>
+			</div>
+
+			<div class="p-6 space-y-4">
+				{#if createdClient.client_secret}
+					<div class="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-amber-800">
+						{createdClient.client_secret_note ??
+							'This secret is shown once and cannot be retrieved. Store it now.'}
+					</div>
+				{:else}
+					<div class="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-600">
+						This is a public client, so no client secret was generated. Public clients must not be
+						given one; the secret exists only for confidential clients.
+					</div>
+				{/if}
+
+				<div>
+					<div class="flex items-center justify-between mb-1">
+						<span class="text-sm font-medium text-gray-700">Client ID</span>
+						<button
+							type="button"
+							onclick={() => copyValue(createdClient!.client_id, 'client_id')}
+							class="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+						>
+							{copied === 'client_id' ? 'Copied' : 'Copy'}
+						</button>
+					</div>
+					<code
+						class="block w-full px-3 py-2 text-xs font-mono bg-gray-50 border border-gray-200 rounded-md break-all"
+					>
+						{createdClient.client_id}
+					</code>
+				</div>
+
+				{#if createdClient.client_secret}
+					<div>
+						<div class="flex items-center justify-between mb-1">
+							<span class="text-sm font-medium text-gray-700">Client Secret</span>
+							<button
+								type="button"
+								onclick={() => copyValue(createdClient!.client_secret ?? '', 'client_secret')}
+								class="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+							>
+								{copied === 'client_secret' ? 'Copied' : 'Copy'}
+							</button>
+						</div>
+						<code
+							class="block w-full px-3 py-2 text-xs font-mono bg-amber-50 border border-amber-200 rounded-md break-all"
+						>
+							{createdClient.client_secret}
+						</code>
+					</div>
+				{/if}
+
+				<div class="flex justify-end pt-2">
+					<button
+						type="button"
+						onclick={closeCreated}
+						class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+					>
+						Done
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
 {/if}
