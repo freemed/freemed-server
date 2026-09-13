@@ -109,14 +109,14 @@ func TestEncode837Professional(t *testing.T) {
 		ReceiverName:  "TEST PAYER",
 		ReceiverID:    "PAYER456",
 		BillingProvider: ProviderInfo{
-			Name:    "FREEMED CLINIC",
-			NPI:     "1234567890",
-			TaxID:   "123456789",
+			Name:     "FREEMED CLINIC",
+			NPI:      "1234567890",
+			TaxID:    "123456789",
 			Address1: "123 MAIN ST",
-			City:    "HARTFORD",
-			State:   "CT",
-			Zip:     "06101",
-			Phone:   "8605551212",
+			City:     "HARTFORD",
+			State:    "CT",
+			Zip:      "06101",
+			Phone:    "8605551212",
 		},
 		Subscriber: SubscriberInfo{
 			LastName:  "DOE",
@@ -182,11 +182,11 @@ func TestEncode837Professional(t *testing.T) {
 		"GS*HC*",
 		"ST*837*",
 		"BHT*0019*",
-		"NM1*41*", // submitter
-		"NM1*40*", // receiver
-		"HL*1**20*",  // billing provider HL
+		"NM1*41*",   // submitter
+		"NM1*40*",   // receiver
+		"HL*1**20*", // billing provider HL
 		"PRV*BI*",
-		"NM1*85*", // billing provider name
+		"NM1*85*",    // billing provider name
 		"HL*2*1*22*", // subscriber HL
 		"SBR*P*",
 		"NM1*IL*", // subscriber name
@@ -229,13 +229,13 @@ func TestEncode837ProfessionalWithPatient(t *testing.T) {
 		ReceiverName:  "TEST PAYER",
 		ReceiverID:    "PAYER456",
 		BillingProvider: ProviderInfo{
-			Name:    "FREEMED CLINIC",
-			NPI:     "1234567890",
-			TaxID:   "123456789",
+			Name:     "FREEMED CLINIC",
+			NPI:      "1234567890",
+			TaxID:    "123456789",
 			Address1: "123 MAIN ST",
-			City:    "HARTFORD",
-			State:   "CT",
-			Zip:     "06101",
+			City:     "HARTFORD",
+			State:    "CT",
+			Zip:      "06101",
 		},
 		Subscriber: SubscriberInfo{
 			LastName:  "DOE",
@@ -360,10 +360,10 @@ func TestValidateClaim(t *testing.T) {
 				},
 				ServiceLines: []ServiceLineInfo{
 					{
-						ProcedureCode:     "99213",
-						Charge:            100.00,
-						Units:             1,
-						ServiceDate:       "20240101",
+						ProcedureCode: "99213",
+						Charge:        100.00,
+						Units:         1,
+						ServiceDate:   "20240101",
 					},
 				},
 			},
@@ -391,10 +391,10 @@ func TestValidateClaim(t *testing.T) {
 				},
 				ServiceLines: []ServiceLineInfo{
 					{
-						ProcedureCode:     "99213",
-						Charge:            100.00,
-						Units:             1,
-						ServiceDate:       "20240101",
+						ProcedureCode: "99213",
+						Charge:        100.00,
+						Units:         1,
+						ServiceDate:   "20240101",
 					},
 				},
 			},
@@ -454,13 +454,13 @@ func TestEncodeWithMultipleServiceLines(t *testing.T) {
 		ReceiverName:  "TEST PAYER",
 		ReceiverID:    "PAYER456",
 		BillingProvider: ProviderInfo{
-			Name:    "FREEMED CLINIC",
-			NPI:     "1234567890",
-			TaxID:   "123456789",
+			Name:     "FREEMED CLINIC",
+			NPI:      "1234567890",
+			TaxID:    "123456789",
 			Address1: "123 MAIN ST",
-			City:    "HARTFORD",
-			State:   "CT",
-			Zip:     "06101",
+			City:     "HARTFORD",
+			State:    "CT",
+			Zip:      "06101",
 		},
 		Subscriber: SubscriberInfo{
 			LastName:  "DOE",
@@ -538,13 +538,13 @@ func TestEncodeWithAllModifiers(t *testing.T) {
 		ReceiverName:  "TEST PAYER",
 		ReceiverID:    "PAYER456",
 		BillingProvider: ProviderInfo{
-			Name:    "FREEMED CLINIC",
-			NPI:     "1234567890",
-			TaxID:   "123456789",
+			Name:     "FREEMED CLINIC",
+			NPI:      "1234567890",
+			TaxID:    "123456789",
 			Address1: "123 MAIN ST",
-			City:    "HARTFORD",
-			State:   "CT",
-			Zip:     "06101",
+			City:     "HARTFORD",
+			State:    "CT",
+			Zip:      "06101",
 		},
 		Subscriber: SubscriberInfo{
 			LastName:  "DOE",
@@ -604,13 +604,13 @@ func TestEncodeWithReferringProvider(t *testing.T) {
 		ReceiverName:  "TEST PAYER",
 		ReceiverID:    "PAYER456",
 		BillingProvider: ProviderInfo{
-			Name:    "FREEMED CLINIC",
-			NPI:     "1234567890",
-			TaxID:   "123456789",
+			Name:     "FREEMED CLINIC",
+			NPI:      "1234567890",
+			TaxID:    "123456789",
 			Address1: "123 MAIN ST",
-			City:    "HARTFORD",
-			State:   "CT",
-			Zip:     "06101",
+			City:     "HARTFORD",
+			State:    "CT",
+			Zip:      "06101",
 		},
 		Subscriber: SubscriberInfo{
 			LastName:  "DOE",
@@ -677,5 +677,203 @@ func TestPadOrTrunc(t *testing.T) {
 		if got != tt.want {
 			t.Errorf("padOrTrunc(%q, %d) = %q, want %q", tt.input, tt.length, got, tt.want)
 		}
+	}
+}
+
+// encodeSampleClaim returns a minimal valid claim used by envelope tests.
+func encodeSampleClaim() *Claim837P {
+	return &Claim837P{
+		SubmitterName: "FREEMED EMR",
+		SubmitterID:   "SUBMIT123",
+		ReceiverName:  "TEST PAYER",
+		ReceiverID:    "PAYER456",
+		BillingProvider: ProviderInfo{
+			Name: "FREEMED CLINIC", NPI: "1234567890", TaxID: "123456789",
+			Address1: "123 MAIN ST", City: "HARTFORD", State: "CT", Zip: "06101", Phone: "8605551212",
+		},
+		Subscriber: SubscriberInfo{
+			LastName: "DOE", FirstName: "JOHN", MemberID: "MEMBER001", SSN: "123456789",
+			DOB: "19800101", Address1: "123 MAIN ST", City: "HARTFORD", State: "CT", Zip: "06101",
+			PayerName: "TEST PAYER", PayerID: "PAYER456",
+		},
+		Patient: PatientInfo{
+			LastName: "DOE", FirstName: "JOHN", DOB: "19800101",
+			RelationshipToSubscriber: "18", SSN: "123456789",
+		},
+		Claim: ClaimInfo{
+			ClaimID: "CLAIM001", TotalCharges: 245.00, PlaceOfService: "11",
+			DiagnosisCodes: []string{"J45.909"}, StatementFrom: "20240101", StatementTo: "20240101",
+		},
+		ServiceLines: []ServiceLineInfo{
+			{LineNumber: 1, ProcedureCode: "99213", Charge: 245.00, Units: 1, DiagnosisPointers: []int{1}, ServiceDate: "20240101"},
+		},
+	}
+}
+
+// TestISAIsFixedWidth guards X12's hard requirement that the ISA segment be
+// exactly 106 bytes up to and including its terminator. A short ISA13 (the
+// interchange control number must be 9 digits) produces a 101-byte ISA, which
+// payers and clearinghouses reject outright.
+func TestISAIsFixedWidth(t *testing.T) {
+	out, err := Encode837Professional(encodeSampleClaim())
+	if err != nil {
+		t.Fatalf("Encode837Professional() error: %v", err)
+	}
+	s := string(out)
+
+	end := strings.Index(s, SegmentTerminator)
+	if end < 0 {
+		t.Fatal("no segment terminator found")
+	}
+	if got := end + 1; got != 106 {
+		t.Errorf("ISA length = %d, want 106; ISA = %q", got, s[:end+1])
+	}
+
+	isa := strings.Split(s[:end], ElementSeparator)
+	if len(isa) != 17 {
+		t.Fatalf("ISA has %d elements, want 17", len(isa))
+	}
+	if len(isa[13]) != 9 {
+		t.Errorf("ISA13 = %q (len %d), want 9-digit control number", isa[13], len(isa[13]))
+	}
+	if len(isa[6]) != 15 {
+		t.Errorf("ISA06 = %q (len %d), want 15 chars", isa[6], len(isa[6]))
+	}
+	if len(isa[8]) != 15 {
+		t.Errorf("ISA08 = %q (len %d), want 15 chars", isa[8], len(isa[8]))
+	}
+	if isa[16] != SubElementSep {
+		t.Errorf("ISA16 = %q, want %q", isa[16], SubElementSep)
+	}
+}
+
+// TestSECountMatchesActualSegments guards SE01 — X12 requires it to equal the
+// number of segments from ST through SE inclusive. It was previously hardcoded
+// to "0", which every conformant receiver rejects.
+func TestSECountMatchesActualSegments(t *testing.T) {
+	out, err := Encode837Professional(encodeSampleClaim())
+	if err != nil {
+		t.Fatalf("Encode837Professional() error: %v", err)
+	}
+
+	segs := strings.Split(strings.TrimRight(string(out), SegmentTerminator), SegmentTerminator)
+	start, stop := -1, -1
+	for i, seg := range segs {
+		if strings.HasPrefix(seg, "ST"+ElementSeparator) {
+			start = i
+		}
+		if strings.HasPrefix(seg, "SE"+ElementSeparator) && start >= 0 {
+			stop = i
+		}
+	}
+	if start < 0 || stop < 0 {
+		t.Fatalf("could not locate ST/SE segments in output:\n%s", out)
+	}
+	want := stop - start + 1
+
+	se := strings.Split(segs[stop], ElementSeparator)
+	if got := se[1]; got != intToStr(want) {
+		t.Errorf("SE01 = %q, want %q (%d segments ST..SE)", got, intToStr(want), want)
+	}
+}
+
+// TestEnvelopeControlNumbersMatch guards the ISA13/IEA02, ST02/SE02 and
+// GS06/GE02 pairings, which must be identical within an interchange.
+func TestEnvelopeControlNumbersMatch(t *testing.T) {
+	out, err := Encode837Professional(encodeSampleClaim())
+	if err != nil {
+		t.Fatalf("Encode837Professional() error: %v", err)
+	}
+
+	var isa13, iea02, st02, se02, gs06, ge02 string
+	for _, seg := range strings.Split(strings.TrimRight(string(out), SegmentTerminator), SegmentTerminator) {
+		f := strings.Split(seg, ElementSeparator)
+		switch f[0] {
+		case "ISA":
+			isa13 = f[13]
+		case "IEA":
+			iea02 = f[2]
+		case "ST":
+			st02 = f[2]
+		case "SE":
+			se02 = f[2]
+		case "GS":
+			gs06 = f[6]
+		case "GE":
+			ge02 = f[2]
+		}
+	}
+
+	for _, tc := range []struct{ name, a, b string }{
+		{"ISA13/IEA02", isa13, iea02},
+		{"ST02/SE02", st02, se02},
+		{"GS06/GE02", gs06, ge02},
+	} {
+		if tc.a == "" || tc.a != tc.b {
+			t.Errorf("%s mismatch: %q != %q", tc.name, tc.a, tc.b)
+		}
+	}
+	if isa13 == st02 || isa13 == gs06 {
+		t.Errorf("interchange/set/group control numbers must be distinct: isa13=%q st02=%q gs06=%q", isa13, st02, gs06)
+	}
+}
+
+// TestSanitizeElementStripsDelimiters guards against X12 delimiter injection:
+// free-text values (patient/provider names) containing the element separator or
+// segment terminator must not be able to forge or corrupt segments.
+func TestSanitizeElementStripsDelimiters(t *testing.T) {
+	tests := []struct {
+		in   string
+		want string
+	}{
+		{"SMITH", "SMITH"},
+		{"SMITH*JR", "SMITH JR"},
+		{"SMITH~JR", "SMITH JR"},
+		{"SMITH^JR", "SMITH JR"},
+		{"SMITH*~^JR", "SMITH   JR"},
+		// The component element separator is legal composite structure.
+		{"HC:99213:25", "HC:99213:25"},
+	}
+	for _, tt := range tests {
+		if got := sanitizeElement(tt.in); got != tt.want {
+			t.Errorf("sanitizeElement(%q) = %q, want %q", tt.in, got, tt.want)
+		}
+	}
+}
+
+// TestEncodePreventsSegmentInjection verifies an injected segment terminator in
+// a patient name cannot introduce a forged segment into the transaction.
+func TestEncodePreventsSegmentInjection(t *testing.T) {
+	claim := encodeSampleClaim()
+	claim.Subscriber.LastName = "DOE~NM1*IL*1*FORGED"
+
+	out, err := Encode837Professional(claim)
+	if err != nil {
+		t.Fatalf("Encode837Professional() error: %v", err)
+	}
+	got := string(out)
+
+	if strings.Contains(got, "~NM1*IL*1*FORGED") {
+		t.Errorf("injected segment survived encoding:\n%s", got)
+	}
+	// The name must still appear, but with delimiters neutralized.
+	if !strings.Contains(got, "DOE NM1 IL 1 FORGED") {
+		t.Errorf("expected sanitized name in output:\n%s", got)
+	}
+}
+
+// TestISASegmentNotSanitized guards that ISA16 still carries the component
+// element separator after sanitization was introduced.
+func TestISASegmentNotSanitized(t *testing.T) {
+	isa := NewSegment("ISA", "00", "          ", "00", "          ", "ZZ",
+		padOrTrunc("SUBMIT123", 15), "ZZ", padOrTrunc("PAYER456", 15),
+		"240101", "1200", RepetitionSep, "00501", "000000001", "0", "P", SubElementSep)
+	s := isa.String()
+
+	if !strings.HasSuffix(s, SubElementSep+SegmentTerminator) {
+		t.Errorf("ISA must end with the component element separator: %q", s)
+	}
+	if len(s) != 106 {
+		t.Errorf("ISA length = %d, want 106: %q", len(s), s)
 	}
 }
