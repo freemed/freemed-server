@@ -1,4 +1,9 @@
 @import 'tailwindcss';
-@import '@fullcalendar/core/main.css';
-@import '@fullcalendar/daygrid/main.css';
-@import '@fullcalendar/timegrid/main.css';
+
+/* The three fullcalendar @imports that used to sit here referenced
+   '@fullcalendar/{core,daygrid,timegrid}/main.css', which are v4/v5 paths. The
+   project is on @fullcalendar v6, whose package exports field does not expose
+   them, so those specifiers cannot resolve. That is why this stylesheet was
+   imported nowhere - importing it failed the build - which in turn meant Tailwind
+   never ran over it and the whole SPA shipped with no CSS at all. fullcalendar v6
+   injects its own styles from JS, so nothing is lost by dropping them. */

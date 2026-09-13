@@ -1,4 +1,10 @@
 <script lang="ts">
+	// The application stylesheet was never imported anywhere, so Tailwind never
+	// ran over it: the built SPA linked no stylesheet at all, every Tailwind class
+	// in the markup was inert (computed display stayed "block", bg-* transparent)
+	// and the whole UI rendered in the browser default font. vite.config.ts already
+	// had the @tailwindcss/vite plugin configured; only this import was missing.
+	import '../app.css';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { auth, checkAuth } from '$lib/stores/auth.svelte';
@@ -13,6 +19,12 @@
 	// pathname() avoids the typed-union narrowness of $page.url.pathname
 	function pathname(): string {
 		return $page.url.pathname;
+	}
+
+	// The full requested URL (path + query), so a redirect that carries a query
+	// string survives a trip through the login page.
+	function fullPath(): string {
+		return pathname() + $page.url.search;
 	}
 
 	onMount(async () => {
@@ -43,7 +55,11 @@
 		const ok = await checkAuth().catch(() => false);
 		authChecked = true;
 		if (!ok && pathname() !== '/login') {
-			await goto('/login');
+			// Carry the requested URL through login. Without this a SMART
+			// authorization request — the app sends the browser straight to
+			// /smart/authorize with its parameters — is silently discarded the
+			// moment the user is asked to sign in, and the app never gets a code.
+			await goto('/login?redirect=' + encodeURIComponent(fullPath()));
 		}
 	});
 </script>
