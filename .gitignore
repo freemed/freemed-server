@@ -1,8 +1,6 @@
 cmd/freemed-server/freemed-server
 /freemed-server
 .*.swp
-go.sum
-go.work.sum
 ### Build artifacts
 ui/bower_components
 ui/node_modules
