@@ -22,7 +22,7 @@
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
-		"vite": "^8.0.16"
+		"vite": "^8.3.4"
 	},
 	"dependencies": {
 		"@fullcalendar/core": "^6.1.21",
